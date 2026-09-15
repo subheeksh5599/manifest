@@ -1,4 +1,4 @@
-//! CLEARANCE guard program.
+//! MANIFEST guard program.
 //!
 //! Two instructions:
 //! - `Preflight`: read Token-2022 mint extensions plus the plan and refuse if any invariant fails.
@@ -78,11 +78,11 @@ pub fn process_instruction(
     let ix = GuardInstruction::try_from_slice(data).map_err(|_| GuardError::BadInstruction)?;
     match ix {
         GuardInstruction::Preflight(p) => {
-            msg!("clearance: preflight plan_id={:?}", &p.plan_id[..4]);
+            msg!("manifest: preflight plan_id={:?}", &p.plan_id[..4]);
             run_preflight(&p, accounts)
         }
         GuardInstruction::ExecuteGuarded(p) => {
-            msg!("clearance: execute_guarded plan_id={:?}", &p.plan_id[..4]);
+            msg!("manifest: execute_guarded plan_id={:?}", &p.plan_id[..4]);
             run_preflight(&p, accounts)?;
             // Idempotency: touching the plan-registry PDA and requiring not-yet-filled
             // is done in policy::assert_plan_unseen (host-tested).

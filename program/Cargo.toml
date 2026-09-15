@@ -1,5 +1,5 @@
 [package]
-name = "clearance-guard"
+name = "manifest-guard"
 version = "0.1.0"
 edition = "2021"
 description = "Preflight guard program for scheduled tokenized-equity buys."
@@ -7,7 +7,7 @@ license = "MIT"
 
 [lib]
 crate-type = ["cdylib", "lib"]
-name = "clearance_guard"
+name = "manifest_guard"
 
 [features]
 no-entrypoint = []
