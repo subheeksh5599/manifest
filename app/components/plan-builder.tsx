@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { RegistryEntry } from "@/lib/registry";
 
 type Verdict = {
@@ -24,6 +24,14 @@ export default function PlanBuilder({ entries }: { entries: RegistryEntry[] }) {
   const [err, setErr] = useState<string | null>(null);
 
   const entry = entries.find((e) => e.mint === mint);
+
+  const auto = useRef(false);
+  useEffect(() => {
+    if (auto.current) return;
+    auto.current = true;
+    evaluate();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   async function evaluate() {
     setBusy(true);
