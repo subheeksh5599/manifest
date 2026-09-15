@@ -1,4 +1,4 @@
-# CLEARANCE
+# MANIFEST
 
 Scheduled tokenized-stock buys on Solana that either fill at a verified price or publicly refuse. Every refusal is a receipt you can verify by re-reading the chain.
 
@@ -11,8 +11,8 @@ Scheduled tokenized-stock buys on Solana that either fill at a verified price or
 ## Quickstart
 
 ```bash
-git clone https://github.com/subheeksh5599/clearance.git
-cd clearance
+git clone https://github.com/subheeksh5599/manifest.git
+cd manifest
 cp .env.example .env
 # frontend
 cd app && npm ci && npm run build
