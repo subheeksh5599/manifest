@@ -1,0 +1,32 @@
+name: fork-e2e
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "scripts/**"
+      - "data/**"
+      - ".github/workflows/fork-e2e.yml"
+
+# End-to-end lifecycle against real mainnet state.
+# Phase 1 (this file today): clone the real mint accounts locally, hash them,
+# and assert equality with the live mainnet pull in the same job. This proves the
+# cloned account set matches reality and detects a stale mirror.
+# Phase 2 (after SBF build): start a validator with --clone <mints> --clone <pools>,
+# deploy the guard .so, run accept/refuse/catch-up, print receipts.
+
+jobs:
+  clone-and-hash:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r scripts/requirements.txt
+      - name: verify receipts (live mainnet re-read)
+        run: python3 scripts/verify_receipts.py
+      - name: verify tape
+        run: python3 scripts/verify_tape.py
+      - name: adversarial gate
+        run: python3 scripts/adversarial_gate.py
