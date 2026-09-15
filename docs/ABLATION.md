@@ -29,4 +29,4 @@ python3 scripts/adversarial_gate.py
 ```
 
 Exit 0 means all four hostile checks pass. Exit non-zero means the load-bearing property is broken
-and the refusal system is untrustworthy — treat that as a real bug.
+and the refusal system is untrustworthy. treat that as a real bug.
