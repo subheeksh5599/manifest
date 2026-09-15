@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "CLEARANCE",
+  title: "MANIFEST",
   description:
     "Scheduled tokenized-stock buys on Solana that either fill at a verified price or publicly refuse.",
 };
@@ -31,7 +31,7 @@ function Header() {
   return (
     <header className="border-b hair">
       <div className="mx-auto max-w-6xl px-6 py-5 flex items-baseline justify-between">
-        <a href="/" className="serif text-xl tracking-tight">clearance</a>
+        <a href="/" className="serif text-xl tracking-tight">manifest</a>
         <nav className="text-sm text-[color:var(--color-ink-700)] flex gap-6">
           <a href="/plan">plan</a>
           <a href="/tape">tape</a>
