@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "MANIFEST",
+  title: "Manifest — recurring buys that refuse in public when they must",
   description:
-    "Scheduled tokenized-stock buys on Solana that either fill at a verified price or publicly refuse.",
+    "Recurring buys for tokenized equities on Solana. Fill at a verified price or refuse on-chain. Every refusal is a receipt anyone can re-read from mainnet.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -15,39 +16,83 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
         <link
           rel="stylesheet"
-          href="https://fonts.googleapis.com/css2?family=Fraunces:wght@400;500;600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap"
+          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap"
         />
       </head>
       <body>
-        <Header />
-        <main className="mx-auto max-w-6xl px-6 py-10">{children}</main>
-        <Footer />
+        <SiteHeader />
+        <main>{children}</main>
+        <SiteFooter />
       </body>
     </html>
   );
 }
 
-function Header() {
+function BrandMark() {
   return (
-    <header className="border-b hair">
-      <div className="mx-auto max-w-6xl px-6 py-5 flex items-baseline justify-between">
-        <a href="/" className="serif text-xl tracking-tight">manifest</a>
-        <nav className="text-sm text-[color:var(--color-ink-700)] flex gap-6">
-          <a href="/plan">plan</a>
-          <a href="/tape">tape</a>
-          <a href="/evidence">evidence</a>
+    <svg width="20" height="20" viewBox="0 0 20 20" aria-hidden style={{ display: "block" }}>
+      <rect x="1" y="1" width="18" height="18" rx="4" fill="var(--color-ink)" />
+      <path d="M5 14 L5 6 L10 11 L15 6 L15 14" stroke="var(--color-paper)" strokeWidth="1.6" fill="none" strokeLinejoin="miter" strokeLinecap="square" />
+    </svg>
+  );
+}
+
+function SiteHeader() {
+  return (
+    <header
+      className="sticky top-0 z-40 backdrop-blur"
+      style={{ background: "color-mix(in oklab, var(--color-paper) 85%, transparent)", borderBottom: "var(--edge)" }}
+    >
+      <div className="mx-auto max-w-[1200px] px-6 h-14 flex items-center justify-between">
+        <Link href="/" className="flex items-center gap-2">
+          <BrandMark />
+          <span className="text-[15px] font-medium tracking-[-0.01em]">Manifest</span>
+        </Link>
+        <nav className="hidden md:flex items-center gap-8 text-[14px] text-[color:var(--color-ink-700)]">
+          <Link href="/plan" className="underlink">Plan</Link>
+          <Link href="/tape" className="underlink">Tape</Link>
+          <a href="https://github.com/subheeksh5599/manifest" className="underlink">Source</a>
         </nav>
+        <Link href="/plan" className="btn-primary">Try a plan</Link>
       </div>
     </header>
   );
 }
 
-function Footer() {
+function SiteFooter() {
   return (
-    <footer className="border-t hair mt-16">
-      <div className="mx-auto max-w-6xl px-6 py-8 text-xs text-[color:var(--color-ink-500)] flex justify-between">
-        <span>reads mainnet at request time. no wallet. no funds.</span>
-        <span className="mono">MIT</span>
+    <footer style={{ borderTop: "var(--edge)" }}>
+      <div className="mx-auto max-w-[1200px] px-6 py-16 grid gap-10 md:grid-cols-4">
+        <div className="grid gap-4">
+          <div className="flex items-center gap-2">
+            <BrandMark />
+            <span className="text-[15px] font-medium tracking-[-0.01em]">Manifest</span>
+          </div>
+          <p className="text-[13px] text-[color:var(--color-ink-500)] max-w-[24ch] leading-relaxed">
+            Reads mainnet at request time. Never broadcasts. Refusals are the product.
+          </p>
+        </div>
+        <div className="grid gap-3 text-[13px]">
+          <div className="kicker">Product</div>
+          <Link href="/plan" className="text-[color:var(--color-ink-700)] hover:text-[color:var(--color-ink)]">Plan builder</Link>
+          <Link href="/tape" className="text-[color:var(--color-ink-700)] hover:text-[color:var(--color-ink)]">Refusal tape</Link>
+          <Link href="/evidence" className="text-[color:var(--color-ink-700)] hover:text-[color:var(--color-ink)]">Evidence pack</Link>
+        </div>
+        <div className="grid gap-3 text-[13px]">
+          <div className="kicker">Reference</div>
+          <a href="https://github.com/subheeksh5599/manifest" className="text-[color:var(--color-ink-700)] hover:text-[color:var(--color-ink)]">Source</a>
+          <a href="https://github.com/subheeksh5599/manifest/blob/main/README.md" className="text-[color:var(--color-ink-700)] hover:text-[color:var(--color-ink)]">Live status</a>
+          <a href="https://github.com/subheeksh5599/manifest/blob/main/docs" className="text-[color:var(--color-ink-700)] hover:text-[color:var(--color-ink)]">Docs</a>
+        </div>
+        <div className="grid gap-3 text-[13px]">
+          <div className="kicker">License</div>
+          <span className="text-[color:var(--color-ink-700)]">MIT · 2026</span>
+          <span className="text-[color:var(--color-ink-500)] mono text-[11px]">v0 · sep 2026</span>
+        </div>
+      </div>
+      <div className="mx-auto max-w-[1200px] px-6 py-6 flex items-baseline justify-between text-[11px] text-[color:var(--color-ink-500)] mono" style={{ borderTop: "var(--edge)" }}>
+        <span>No wallet. No funds. No mocks.</span>
+        <span>Solana mainnet · read-only</span>
       </div>
     </footer>
   );
