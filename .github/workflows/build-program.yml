@@ -31,5 +31,5 @@ jobs:
         run: cargo build-sbf --sbf-out-dir ./out
       - uses: actions/upload-artifact@v4
         with:
-          name: clearance-guard-sbf
+          name: manifest-guard-sbf
           path: program/out/*.so
