@@ -1,0 +1,55 @@
+{
+  "count": 5,
+  "entries": [
+    {
+      "decimals": 8,
+      "issuer_program": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb",
+      "mint": "XsDoVfqeBukxuZHWhdvWHBhgEHjGNst4MLodqsJHzoB",
+      "name": "Tesla xStock",
+      "permanent_delegate": "5aMNNLQJwAEeoemTEMkv5NVjqKwvvefRYCQ5Z67HFvEq",
+      "slot_read": 447185375,
+      "symbol": "TSLAx",
+      "transfer_hook_authority": "5aMNNLQJwAEeoemTEMkv5NVjqKwvvefRYCQ5Z67HFvEq"
+    },
+    {
+      "decimals": 8,
+      "issuer_program": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb",
+      "mint": "XsCPL9dNWBMvFtTmwcCA5v3xWPSMEBCszbQdiLLq6aN",
+      "name": "Alphabet xStock",
+      "permanent_delegate": "5aMNNLQJwAEeoemTEMkv5NVjqKwvvefRYCQ5Z67HFvEq",
+      "slot_read": 447185377,
+      "symbol": "GOOGLx",
+      "transfer_hook_authority": "5aMNNLQJwAEeoemTEMkv5NVjqKwvvefRYCQ5Z67HFvEq"
+    },
+    {
+      "decimals": 8,
+      "issuer_program": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb",
+      "mint": "XsvNBAYkrDRNhA7wPHQfX3ZUXZyZLdnCQDfHZ56bzpg",
+      "name": "Robinhood xStock",
+      "permanent_delegate": "5aMNNLQJwAEeoemTEMkv5NVjqKwvvefRYCQ5Z67HFvEq",
+      "slot_read": 447185378,
+      "symbol": "HOODx",
+      "transfer_hook_authority": "5aMNNLQJwAEeoemTEMkv5NVjqKwvvefRYCQ5Z67HFvEq"
+    },
+    {
+      "decimals": 8,
+      "issuer_program": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb",
+      "mint": "Xsc9qvGR1efVDFGLrVsmkzv3qi45LTBjeUKSPmx9qEh",
+      "name": "NVIDIA xStock",
+      "permanent_delegate": "5aMNNLQJwAEeoemTEMkv5NVjqKwvvefRYCQ5Z67HFvEq",
+      "slot_read": 447185380,
+      "symbol": "NVDAx",
+      "transfer_hook_authority": "5aMNNLQJwAEeoemTEMkv5NVjqKwvvefRYCQ5Z67HFvEq"
+    },
+    {
+      "decimals": 8,
+      "issuer_program": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb",
+      "mint": "XsueG8BtpquVJX9LVLLEGuViXUungE6WmK5YZ3p3bd1",
+      "name": "Circle xStock",
+      "permanent_delegate": "5aMNNLQJwAEeoemTEMkv5NVjqKwvvefRYCQ5Z67HFvEq",
+      "slot_read": 447185382,
+      "symbol": "CRCLx",
+      "transfer_hook_authority": "5aMNNLQJwAEeoemTEMkv5NVjqKwvvefRYCQ5Z67HFvEq"
+    }
+  ]
+}
