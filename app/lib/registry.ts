@@ -13,7 +13,7 @@ export type RegistryEntry = {
 };
 
 export function loadRegistry(): RegistryEntry[] {
-  const p = path.join(process.cwd(), "..", "data", "registry.json");
+  const p = path.join(process.cwd(), "data", "registry.json");
   const raw = fs.readFileSync(p, "utf8");
   return (JSON.parse(raw).entries as RegistryEntry[]) ?? [];
 }

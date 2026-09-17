@@ -1,0 +1,9 @@
+[toolchain]
+channel = "stable"
+
+[programs.devnet]
+manifest_preflight = "FmTiQA51nS9eQbWAnnN47Hq87fYMk7TKANvPk416yVTN"
+
+[provider]
+cluster = "devnet"
+wallet = "keypair-devnet.json"

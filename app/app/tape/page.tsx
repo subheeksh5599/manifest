@@ -14,7 +14,7 @@ type Rec = {
 };
 
 function loadTape(): Rec[] {
-  const p = path.join(process.cwd(), "..", "data", "tape.jsonl");
+  const p = path.join(process.cwd(), "data", "tape.jsonl");
   if (!fs.existsSync(p)) return [];
   return fs
     .readFileSync(p, "utf8")

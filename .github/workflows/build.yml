@@ -1,0 +1,36 @@
+name: build
+
+on: [push, pull_request]
+
+jobs:
+  frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+      - run: npm ci
+      - run: npm run build
+      - run: npm run lint
+
+  program:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: install foundry
+        run: |
+          U=$(curl -s https://api.github.com/repos/foundry-rs/foundry/releases/latest \
+              | grep -oP '"browser_download_url":\s*"\K[^"]*linux_amd64\.tar\.gz' | head -1)
+          curl -fL --retry 3 --max-time 300 -o /tmp/f.tgz "$U"
+          sudo tar -xzf /tmp/f.tgz -C /usr/local/bin
+          forge --version
+      - name: build program
+        run: cargo build-sbf --manifest-path programs/preflight/Cargo.toml
+      - name: run rust tests
+        run: cargo test --manifest-path programs/preflight/Cargo.toml
