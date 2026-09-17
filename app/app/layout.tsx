@@ -68,29 +68,29 @@ function SiteFooter() {
             <BrandMark />
             <span className="text-[15px] font-medium tracking-[-0.01em]">Manifest</span>
           </div>
-          <p className="text-[13px] text-[color:var(--color-ink-500)] max-w-[24ch] leading-relaxed">
+          <p className="text-[13px] text-[color:var(--color-text-3)] max-w-[24ch] leading-relaxed">
             Reads mainnet at request time. Never broadcasts. Refusals are the product.
           </p>
         </div>
         <div className="grid gap-3 text-[13px]">
           <div className="kicker">Product</div>
-          <Link href="/plan" className="text-[color:var(--color-ink-700)] hover:text-[color:var(--color-ink)]">Plan builder</Link>
-          <Link href="/tape" className="text-[color:var(--color-ink-700)] hover:text-[color:var(--color-ink)]">Refusal tape</Link>
-          <Link href="/evidence" className="text-[color:var(--color-ink-700)] hover:text-[color:var(--color-ink)]">Evidence pack</Link>
+          <Link href="/plan" className="text-[color:var(--color-text-2)] hover:text-[color:var(--color-ink)]">Plan builder</Link>
+          <Link href="/tape" className="text-[color:var(--color-text-2)] hover:text-[color:var(--color-ink)]">Refusal tape</Link>
+          <Link href="/evidence" className="text-[color:var(--color-text-2)] hover:text-[color:var(--color-ink)]">Evidence pack</Link>
         </div>
         <div className="grid gap-3 text-[13px]">
           <div className="kicker">Reference</div>
-          <a href="https://github.com/subheeksh5599/manifest" className="text-[color:var(--color-ink-700)] hover:text-[color:var(--color-ink)]">Source</a>
-          <a href="https://github.com/subheeksh5599/manifest/blob/main/README.md" className="text-[color:var(--color-ink-700)] hover:text-[color:var(--color-ink)]">Live status</a>
-          <a href="https://github.com/subheeksh5599/manifest/blob/main/docs" className="text-[color:var(--color-ink-700)] hover:text-[color:var(--color-ink)]">Docs</a>
+          <a href="https://github.com/subheeksh5599/manifest" className="text-[color:var(--color-text-2)] hover:text-[color:var(--color-accent)]">Source</a>
+          <a href="https://github.com/subheeksh5599/manifest/blob/main/README.md" className="text-[color:var(--color-text-2)] hover:text-[color:var(--color-accent)]">Live status</a>
+          <a href="https://github.com/subheeksh5599/manifest/blob/main/docs" className="text-[color:var(--color-text-2)] hover:text-[color:var(--color-accent)]">Docs</a>
         </div>
         <div className="grid gap-3 text-[13px]">
           <div className="kicker">License</div>
-          <span className="text-[color:var(--color-ink-700)]">MIT · 2026</span>
-          <span className="text-[color:var(--color-ink-500)] mono text-[11px]">v0 · sep 2026</span>
+          <span className="text-[color:var(--color-text-2)]">MIT · 2026</span>
+          <span className="text-[color:var(--color-text-3)] mono text-[11px]">v0 · sep 2026</span>
         </div>
       </div>
-      <div className="mx-auto max-w-[1200px] px-6 py-6 flex items-baseline justify-between text-[11px] text-[color:var(--color-ink-500)] mono" style={{ borderTop: "var(--edge)" }}>
+      <div className="mx-auto max-w-[1200px] px-6 py-6 flex items-baseline justify-between text-[11px] text-[color:var(--color-text-3)] mono" style={{ borderTop: "var(--edge)" }}>
         <span>No wallet. No funds. No mocks.</span>
         <span>Solana mainnet · read-only</span>
       </div>

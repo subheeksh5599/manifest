@@ -48,7 +48,7 @@ function Hero({ latestSlot }: { latestSlot: number }) {
       <div className="grid gap-6 max-w-[1000px]">
         <div className="flex items-center gap-3 flex-wrap">
           <span className="bl bl-live"><span className="dot" /> Live on Solana mainnet · slot {latestSlot || "—"}</span>
-          <span className="mono text-[11px] uppercase tracking-[0.14em] text-[color:var(--color-ink-500)]">v0 &#xb7; sep 2026</span>
+          <span className="mono text-[11px] uppercase tracking-[0.14em] text-[color:var(--color-text-3)]">v0 &#xb7; sep 2026</span>
         </div>
         <h1 className="h-display" style={{ fontSize: "clamp(44px,7.2vw,76px)", maxWidth: "15ch", lineHeight: 0.95 }}>
           A recurring buy that either fills at a verified price, or refuses on-chain.
@@ -69,7 +69,7 @@ function Hero({ latestSlot }: { latestSlot: number }) {
 
 function StatsStrip({ refusalCount, acceptCount, mintsCount }: { refusalCount: number; acceptCount: number; mintsCount: number }) {
   return (
-    <div style={{ borderTop: "var(--edge)", borderBottom: "var(--edge)", background: "color-mix(in oklab, var(--color-paper) 65%, white)" }}>
+    <div style={{ borderTop: "var(--edge)", borderBottom: "var(--edge)" }}>
       <div className="wrap" style={{ padding: "32px 24px" }}>
         <div className="sg">
           <div><div className="sg-v">{String(acceptCount).padStart(2, "0")}</div><div className="sg-l">Accepts</div></div>
@@ -114,10 +114,10 @@ function Features() {
           <Link key={c.icon} href={c.link} className="card card-hover" style={{ padding: 24, textDecoration: "none", color: "inherit", display: "grid", gap: 12 }}>
             <div style={{ fontFamily: "var(--font-mono)", fontSize: 13, color: "var(--color-accent)" }}>{c.icon}</div>
             <div style={{ fontWeight: 500, fontSize: 16, letterSpacing: "-0.01em" }}>{c.title}</div>
-            <p style={{ fontSize: 13, color: "var(--color-ink-700)", lineHeight: 1.5 }}>{c.desc}</p>
+            <p style={{ fontSize: 13, color: "var(--color-text-2)", lineHeight: 1.5 }}>{c.desc}</p>
             <ul style={{ margin: 0, padding: 0, listStyle: "none", display: "grid", gap: 4 }}>
               {c.points.map((p, i) => (
-                <li key={i} style={{ fontSize: 12, color: "var(--color-ink-500)", display: "flex", gap: 6 }}>
+                <li key={i} style={{ fontSize: 12, color: "var(--color-text-3)", display: "flex", gap: 6 }}>
                   <span style={{ color: "var(--color-accent)" }}>&#8250;</span>{p}
                 </li>
               ))}
@@ -143,7 +143,7 @@ function HowItWorks() {
           <div key={s.n} style={{ paddingTop: 20 }}>
             <div className="mono" style={{ fontSize: 12, letterSpacing: "0.08em", color: "var(--color-accent)", marginBottom: 8 }}>{s.n}</div>
             <div style={{ fontWeight: 500, fontSize: 16, letterSpacing: "-0.01em", marginBottom: 6 }}>{s.h}</div>
-            <p style={{ fontSize: 13, color: "var(--color-ink-700)", lineHeight: 1.5, maxWidth: "34ch" }}>{s.b}</p>
+            <p style={{ fontSize: 13, color: "var(--color-text-2)", lineHeight: 1.5, maxWidth: "34ch" }}>{s.b}</p>
           </div>
         ))}
       </div>
