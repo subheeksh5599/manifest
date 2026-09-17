@@ -33,10 +33,6 @@ function SiteHeader() {
     <header className="site-header" id="header">
       <div className="hi">
         <Link href="/" className="hl">
-          <svg width="20" height="20" viewBox="0 0 20 20" aria-hidden style={{ display: "block" }}>
-            <rect x="1" y="1" width="18" height="18" rx="4" fill="currentColor" />
-            <path d="M5 14 L5 6 L10 11 L15 6 L15 14" stroke="var(--color-white)" strokeWidth="1.6" fill="none" strokeLinejoin="miter" strokeLinecap="square" />
-          </svg>
           <span style={{ fontWeight: 500 }}>Manifest</span>
         </Link>
         <nav className="hn">
@@ -57,10 +53,6 @@ function SiteFooter() {
         <div className="g3" style={{ gap: 40 }}>
           <div style={{ display: "grid", gap: 12 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <svg width="20" height="20" viewBox="0 0 20 20" aria-hidden style={{ display: "block" }}>
-                <rect x="1" y="1" width="18" height="18" rx="4" fill="var(--color-onyx)" />
-                <path d="M5 14 L5 6 L10 11 L15 6 L15 14" stroke="var(--color-white)" strokeWidth="1.6" fill="none" strokeLinejoin="miter" strokeLinecap="square" />
-              </svg>
               <span style={{ fontWeight: 500 }}>Manifest</span>
             </div>
             <p style={{ fontSize: 14, color: "var(--color-graphite)", maxWidth: "24ch", lineHeight: 1.6 }}>

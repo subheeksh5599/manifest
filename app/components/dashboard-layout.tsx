@@ -14,11 +14,7 @@ export default function DashboardLayout({ children, active }: { children: ReactN
     <div style={{ display: "grid", gridTemplateColumns: "220px 1fr", minHeight: "calc(100vh - 54px)" }}>
       <aside style={{ borderRight: "1px solid var(--color-ash)", background: "#F8F8FA", padding: "20px 0" }}>
         <Link href="/" style={{ display: "flex", alignItems: "center", gap: 8, padding: "0 20px", marginBottom: 24, textDecoration: "none", color: "inherit" }}>
-          <svg width="18" height="18" viewBox="0 0 20 20" aria-hidden style={{ display: "block" }}>
-            <rect x="1" y="1" width="18" height="18" rx="4" fill="var(--color-onyx)" />
-            <path d="M5 14 L5 6 L10 11 L15 6 L15 14" stroke="var(--color-white)" strokeWidth="1.6" fill="none" strokeLinejoin="miter" strokeLinecap="square" />
-          </svg>
-          <span style={{ fontWeight: 600, fontSize: 14, letterSpacing: "-0.01em" }}>Manifest</span>
+          <span style={{ fontWeight: 700, fontSize: 16, letterSpacing: "-0.03em" }}>Manifest</span>
         </Link>
         <nav style={{ display: "grid", gap: 2 }}>
           {nav.map((n) => {

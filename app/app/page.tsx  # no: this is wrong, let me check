@@ -1,0 +1,91 @@
+# Design-from-spec protocol
+
+When the user provides a design specifications document (Design.md, style guide, tokens file),
+follow these steps. Do NOT improvise, blend palettes, or invent your own interpretation.
+
+## Step 1 — Audit all tokens
+
+Extract every design token from the spec before writing any code:
+
+- Colors (background, surface, text at each level, accent/CTA, borders, statuses)
+- Typography (font family, weights, size+leading+tracking per heading level)
+- Spacing (the base unit, section gaps, card padding, element gaps)
+- Border radius per element type (cards vs inputs vs buttons)
+- Shadow values (card box-shadow, button shadows — the spec may say "no shadows")
+- Layout (page max-width, section structure, grid patterns)
+
+If the spec lists CSS custom properties or Tailwind @theme blocks, USE THOSE
+EXACT values. Every hex code, every radius, every spacing value goes into the
+theme block as written. Do not add your own design choices.
+
+## Step 2 — Write the CSS foundation
+
+Build the `globals.css` with:
+1. The `@theme` block containing every color + font + radius from the spec
+2. `:root` with any remaining variables (shadows, edge values)
+3. Utility classes matching the spec's component definitions (buttons, cards, forms, badges)
+4. The spec's layout classes (`.wrap`, section spacing, grid helpers)
+
+Naming convention: match the spec's component names where given.
+If the spec says `.btn-primary`, use `.btn-primary`.
+
+## Step 3 — Rewrite the pages
+
+Each page section maps to the spec's component descriptions:
+
+- Hero section → spec's hero description (gradient, headline size, CTA button spec)
+- Feature section → card grid with spec's card radius, card padding, shadow
+- Stats section → stat grid with spec's layout
+- Buttons → spec's radius (usually 9999px pill), padding, colors
+- FAQ → spec's spacing and border values
+
+Use the spec's type scale classes (`.display`, `.heading`, `.heading-sm`, `.body-text`, `.caption`)
+for every element instead of inline font styles. The spec defines these for consistency.
+
+## Step 4 — Purge old tokens
+
+When the spec introduces a new token system, remove ALL references to the old
+system from EVERY page file. Grep for old variable names across all `.tsx` and
+`.css` files and replace them. A single `color-ink-700` left in one page file
+will render as inherited fallback (usually wrong) on a dark background.
+
+```
+grep -rn 'old-color-token' app/ --include='*.tsx' --include='*.css' | grep -v node_modules
+```
+
+## Step 5 — Verify against the spec
+
+Open the deployed page and check each section against the spec's component
+descriptions:
+
+- Hero uses the spec's gradient (not a custom one)
+- Buttons use the spec's radius (9999px pill, not 8px)
+- Cards use the spec's radius and padding
+- Font sizes, weights, and letter-spacing match at each level
+- The accent color appears ONLY where the spec says it should (CTAs and active
+  states, NEVER body text or headlines)
+
+## Pitfalls
+
+- "Just changing colors" is not a redesign. If the layout, component shapes, and
+  spacing are identical to the previous version, you changed colors. Swap the
+  layout structure too.
+- A spec that says "no shadows on buttons" means ALL buttons, including hover
+  states. Check for default `transition: transform` on buttons — that creates
+  lift, which is a shadow feel. Disable it if the spec says no shadows.
+- The spec's font may be a licensed custom font (agileSans). Note the specified
+  substitute font and use that instead. Never include the licensed font's font-face
+  unless it's available from a CDN.
+- Card padding and section spacing look the same but are different tokens. The
+  spec's card padding applies inside cards; section gap controls space between
+  sections.
+- When the user says something like "u just changed colours dummy", the fix is NOT to
+  go back to the same catalog for a different palette. Switch to a different
+  part of the catalog (or a different catalog entirely) and pull a different
+  block family — one the current design is not using at all. See the
+  `browser-frame-showcase.md` reference for one specific approach.
+- The spec's "Imagery" section may describe "browser chrome" or "abstract shapes"
+  containing product screenshots. When you cannot take live screenshots (browser
+  tool times out), build text-based mockups of the product UI inside a browser
+  window frame with traffic-light dots, URL bar, and the actual field/form layout
+  rendered as styled HTML inline. See `browser-frame-showcase.md`.
