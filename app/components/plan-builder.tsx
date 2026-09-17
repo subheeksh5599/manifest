@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import Link from "next/link";
 import type { RegistryEntry } from "@/lib/registry";
 
 type Verdict = {
@@ -10,14 +9,6 @@ type Verdict = {
   live: { mint_card: any };
   slot: number;
 };
-
-const nav = [
-  { label: "Overview", href: "/", icon: "◆" },
-  { label: "Plans", href: "/plan", icon: "◈" },
-  { label: "Tape", href: "/tape", icon: "▤" },
-  { label: "Mints", href: `/mint/XsDoVfqeBukxuZHWhdvWHBhgEHjGNst4MLodqsJHzoB`, icon: "◎" },
-  { label: "Evidence", href: "/evidence", icon: "⚙" },
-];
 
 export default function PlanDashboard({ entries }: { entries: RegistryEntry[] }) {
   const [mint, setMint] = useState(entries[0]?.mint ?? "");
@@ -72,139 +63,91 @@ export default function PlanDashboard({ entries }: { entries: RegistryEntry[] })
   const isAccept = verdict?.verdict === "ACCEPT";
 
   return (
-    <div style={{ display: "grid", gridTemplateColumns: "220px 1fr", minHeight: "calc(100vh - 54px)" }}>
-      {/* Sidebar */}
-      <aside style={{ borderRight: "1px solid var(--color-ash)", background: "#F8F8FA", padding: "24px 0" }}>
-        <div style={{ padding: "0 20px", marginBottom: 24 }}>
-          <div className="label-mono" style={{ fontSize: 10 }}>Navigation</div>
-        </div>
-        <nav style={{ display: "grid", gap: 2 }}>
-          {nav.map((n) => (
-            <Link
-              key={n.href}
-              href={n.href}
-              style={{
-                display: "flex", alignItems: "center", gap: 10,
-                padding: "10px 20px", fontSize: 13, fontWeight: 500,
-                color: n.href === "/plan" ? "var(--color-brand-blue)" : "var(--color-graphite)",
-                background: n.href === "/plan" ? "rgba(20, 95, 228, 0.06)" : "transparent",
-                borderRight: n.href === "/plan" ? "2px solid var(--color-brand-blue)" : "2px solid transparent",
-                textDecoration: "none", transition: "all 100ms",
-              }}
-            >
-              <span style={{ fontSize: 14, opacity: 0.6 }}>{n.icon}</span>
-              {n.label}
-            </Link>
-          ))}
-        </nav>
-      </aside>
+    <div style={{ padding: 0 }}>
+      <div style={{ marginBottom: 32 }}>
+        <div className="label-mono" style={{ marginBottom: 8, color: "var(--color-brand-blue)" }}>Plans</div>
+        <h1 className="heading-sm" style={{ margin: 0 }}>Plan builder</h1>
+        <p className="body-text" style={{ marginTop: 8 }}>
+          Set the seven inputs the guard evaluates. Preflight runs against live mainnet state at request time.
+        </p>
+      </div>
 
-      {/* Main */}
-      <div style={{ padding: "32px 32px", maxWidth: 1100 }}>
-        {/* Header */}
-        <div style={{ marginBottom: 32 }}>
-          <div className="label-mono" style={{ marginBottom: 8, color: "var(--color-brand-blue)" }}>Plans</div>
-          <h1 className="heading-sm" style={{ margin: 0 }}>Plan builder</h1>
-          <p className="body-text" style={{ marginTop: 8, maxWidth: "56ch" }}>
-            Set the seven inputs the guard evaluates. Preflight runs against live mainnet state at request time.
-          </p>
-        </div>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 32 }}>
+        <div className="card" style={{ padding: 28 }}>
+          <div className="form-grid">
+            <Field label="Mint">
+              <select className="fs" value={mint} onChange={(e) => setMint(e.target.value)}>
+                {entries.map((e) => (
+                  <option key={e.mint} value={e.mint}>{e.symbol} · {e.name}</option>
+                ))}
+              </select>
+            </Field>
+            <Field label="Multiplier snapshot"><input className="fi" value={snapshot} onChange={(e) => setSnapshot(e.target.value)} /></Field>
+            <Field label="Route cost (bps)"><input type="number" className="fi" value={routeBps} onChange={(e) => setRouteBps(+e.target.value)} /></Field>
+            <Field label="Exit bound (bps)"><input type="number" className="fi" value={exitBps} onChange={(e) => setExitBps(+e.target.value)} /></Field>
+            <Field label="Requested size"><input type="number" className="fi" value={size} onChange={(e) => setSize(+e.target.value)} /></Field>
+            <Field label="Per-trade cap"><input type="number" className="fi" value={cap} onChange={(e) => setCap(+e.target.value)} /></Field>
+            <Field label="Ref age (s)"><input type="number" className="fi" value={refAge} onChange={(e) => setRefAge(+e.target.value)} /></Field>
+            <Field label="Max ref age (s)"><input type="number" className="fi" value={maxAge} onChange={(e) => setMaxAge(+e.target.value)} /></Field>
+          </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 32 }}>
-          {/* Form */}
-          <div className="card" style={{ padding: 28 }}>
-            <div className="form-grid">
-              <Field label="Mint">
-                <select className="fs" value={mint} onChange={(e) => setMint(e.target.value)}>
-                  {entries.map((e) => (
-                    <option key={e.mint} value={e.mint}>{e.symbol} · {e.name}</option>
-                  ))}
-                </select>
-              </Field>
-              <Field label="Multiplier snapshot">
-                <input className="fi" value={snapshot} onChange={(e) => setSnapshot(e.target.value)} />
-              </Field>
-              <Field label="Route cost (bps)">
-                <input type="number" className="fi" value={routeBps} onChange={(e) => setRouteBps(+e.target.value)} />
-              </Field>
-              <Field label="Exit bound (bps)">
-                <input type="number" className="fi" value={exitBps} onChange={(e) => setExitBps(+e.target.value)} />
-              </Field>
-              <Field label="Requested size">
-                <input type="number" className="fi" value={size} onChange={(e) => setSize(+e.target.value)} />
-              </Field>
-              <Field label="Per-trade cap">
-                <input type="number" className="fi" value={cap} onChange={(e) => setCap(+e.target.value)} />
-              </Field>
-              <Field label="Ref age (s)">
-                <input type="number" className="fi" value={refAge} onChange={(e) => setRefAge(+e.target.value)} />
-              </Field>
-              <Field label="Max ref age (s)">
-                <input type="number" className="fi" value={maxAge} onChange={(e) => setMaxAge(+e.target.value)} />
-              </Field>
+          <button
+            onClick={evaluate}
+            disabled={busy}
+            className="btn btn-primary"
+            style={{ width: "100%", justifyContent: "center", marginTop: 24, padding: "12px", fontSize: 15 }}
+          >
+            {busy ? "Evaluating on mainnet..." : "Run preflight"}
+          </button>
+
+          {err && (
+            <div style={{ marginTop: 16, padding: "12px 16px", background: "rgba(255, 77, 77, 0.06)", borderRadius: 8, fontSize: 13, color: "var(--color-refuse)" }}>
+              {err}
             </div>
+          )}
+        </div>
 
-            <button
-              onClick={evaluate}
-              disabled={busy}
-              className="btn btn-primary"
-              style={{ width: "100%", justifyContent: "center", marginTop: 24, padding: "12px", fontSize: 15 }}
-            >
-              {busy ? "Evaluating on mainnet..." : "Run preflight"}
-            </button>
-
-            {err && (
-              <div style={{ marginTop: 16, padding: "12px 16px", background: "rgba(255, 77, 77, 0.06)", borderRadius: 8, fontSize: 13, color: "var(--color-refuse)" }}>
-                {err}
+        <div>
+          {!verdict ? (
+            <div className="card" style={{ padding: 28, minHeight: 300, display: "grid", placeItems: "center" }}>
+              <div style={{ textAlign: "center", color: "var(--color-graphite)" }}>
+                <div style={{ fontSize: 32, marginBottom: 8 }}>◌</div>
+                <p style={{ fontSize: 14 }}>Verdict will appear here after evaluation</p>
               </div>
-            )}
-          </div>
-
-          {/* Verdict */}
-          <div>
-            {!verdict ? (
-              <div className="card" style={{ padding: 28, minHeight: 300, display: "grid", placeItems: "center" }}>
-                <div style={{ textAlign: "center", color: "var(--color-graphite)" }}>
-                  <div style={{ fontSize: 32, marginBottom: 8 }}>◌</div>
-                  <p style={{ fontSize: 14 }}>Verdict will appear here after evaluation</p>
+            </div>
+          ) : (
+            <div className="card" style={{ padding: 28 }}>
+              <div className="label-mono" style={{ marginBottom: 12 }}>Verdict</div>
+              <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
+                <div className={isAccept ? "v-a" : "v-r"}>{verdict.verdict}</div>
+                <span className="mono" style={{ fontSize: 12, color: "var(--color-graphite)" }}>slot {verdict.slot}</span>
+              </div>
+              {verdict.check_id && (
+                <div style={{ marginBottom: 16 }}>
+                  <div className="label-mono" style={{ marginBottom: 4 }}>Check triggered</div>
+                  <code className="mono" style={{ fontSize: 13, padding: "4px 8px", background: "#F8F8FA", borderRadius: 4 }}>{verdict.check_id}</code>
+                </div>
+              )}
+              <div style={{ borderTop: "1px solid var(--color-ash)", paddingTop: 16, marginTop: 16 }}>
+                <div className="label-mono" style={{ marginBottom: 12 }}>Live mint state</div>
+                <div style={{ display: "grid", gap: 8 }}>
+                  {[
+                    ["Symbol", verdict.live?.mint_card?.symbol],
+                    ["Multiplier", verdict.live?.mint_card?.multiplier],
+                    ["Next multiplier", verdict.live?.mint_card?.next_multiplier],
+                    ["Paused", String(verdict.live?.mint_card?.paused ?? "-")],
+                    ["Delegate", verdict.live?.mint_card?.permanent_delegate],
+                    ["Transfer hook", verdict.live?.mint_card?.transfer_hook_program ?? "null"],
+                  ].map(([k, v]) => (
+                    <div key={k as string} style={{ display: "grid", gridTemplateColumns: "130px 1fr", gap: 8, fontSize: 13 }}>
+                      <span className="label-mono" style={{ fontSize: 10 }}>{k}</span>
+                      <span className="mono" style={{ wordBreak: "break-all" }}>{v ?? "—"}</span>
+                    </div>
+                  ))}
                 </div>
               </div>
-            ) : (
-              <div className="card" style={{ padding: 28 }}>
-                <div className="label-mono" style={{ marginBottom: 12 }}>Verdict</div>
-                <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
-                  <div className={isAccept ? "v-a" : "v-r"}>{verdict.verdict}</div>
-                  <span className="mono" style={{ fontSize: 12, color: "var(--color-graphite)" }}>
-                    slot {verdict.slot}
-                  </span>
-                </div>
-                {verdict.check_id && (
-                  <div style={{ marginBottom: 16 }}>
-                    <div className="label-mono" style={{ marginBottom: 4 }}>Check triggered</div>
-                    <code className="mono" style={{ fontSize: 13, padding: "4px 8px", background: "#F8F8FA", borderRadius: 4 }}>{verdict.check_id}</code>
-                  </div>
-                )}
-                <div style={{ borderTop: "1px solid var(--color-ash)", paddingTop: 16, marginTop: 16 }}>
-                  <div className="label-mono" style={{ marginBottom: 12 }}>Live mint state</div>
-                  <div style={{ display: "grid", gap: 8 }}>
-                    {[
-                      ["Symbol", verdict.live?.mint_card?.symbol],
-                      ["Multiplier", verdict.live?.mint_card?.multiplier],
-                      ["Next multiplier", verdict.live?.mint_card?.next_multiplier],
-                      ["Paused", String(verdict.live?.mint_card?.paused ?? "-")],
-                      ["Delegate", verdict.live?.mint_card?.permanent_delegate],
-                      ["Transfer hook", verdict.live?.mint_card?.transfer_hook_program ?? "null"],
-                    ].map(([k, v]) => (
-                      <div key={k as string} style={{ display: "grid", gridTemplateColumns: "130px 1fr", gap: 8, fontSize: 13 }}>
-                        <span className="label-mono" style={{ fontSize: 10 }}>{k}</span>
-                        <span className="mono" style={{ wordBreak: "break-all" }}>{v ?? "—"}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

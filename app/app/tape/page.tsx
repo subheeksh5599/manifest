@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
+import DashboardLayout from "@/components/dashboard-layout";
 
 export const dynamic = "force-dynamic";
 
@@ -16,42 +17,36 @@ type Rec = {
 function loadTape(): Rec[] {
   const p = path.join(process.cwd(), "data", "tape.jsonl");
   if (!fs.existsSync(p)) return [];
-  return fs
-    .readFileSync(p, "utf8")
-    .split("\n")
-    .filter(Boolean)
-    .map((l) => JSON.parse(l) as Rec);
+  return fs.readFileSync(p, "utf8").split("\n").filter(Boolean).map((l) => JSON.parse(l) as Rec);
 }
 
 export default function TapePage() {
   const records = loadTape();
   return (
-    <div className="grid gap-6">
-      <div className="grid gap-1">
-        <span className="text-xs uppercase tracking-wide text-[color:var(--color-graphite)]">refusal tape</span>
-        <h1 className="serif text-3xl">Every verdict, on file.</h1>
-        <p className="text-sm text-[color:var(--color-graphite)] max-w-2xl">
-          Append-only. Sealed with a canonical digest. Re-run <span className="mono">scripts/verify_tape.py</span> to prove no line has been mutated.
+    <DashboardLayout active="tape">
+      <div style={{ marginBottom: 32 }}>
+        <div className="label-mono" style={{ marginBottom: 8, color: "var(--color-brand-blue)" }}>Tape</div>
+        <h1 className="heading-sm" style={{ margin: 0 }}>Refusal tape</h1>
+        <p className="body-text" style={{ marginTop: 8, maxWidth: "56ch" }}>
+          Append-only. Every refusal contains the check that tripped, the account data hash, and the slot it was read at.
+          Re-run <span className="mono" style={{ fontSize: 13, background: "#F8F8FA", padding: "2px 6px", borderRadius: 4 }}>scripts/verify_tape.py</span> to verify the digest.
         </p>
       </div>
-      <div className="card divide-y hair">
-        {records.length === 0 && (
-          <div className="p-6 text-sm text-[color:var(--color-graphite)]">no records yet</div>
-        )}
-        {records.map((r, i) => (
-          <div key={i} className="p-4 grid grid-cols-[100px_120px_1fr_140px] items-baseline gap-4 text-sm">
-            <span
-              className="mono"
-              style={{ color: r.verdict === "ACCEPT" ? "var(--color-accept)" : "var(--color-refuse)" }}
-            >
-              {r.verdict}
-            </span>
-            <span className="mono text-xs">{r.check_id ?? "-"}</span>
-            <span className="mono text-xs break-all">{r.plan.plan_id}</span>
-            <span className="mono text-xs text-[color:var(--color-graphite)]">slot {r.slot}</span>
+      <div className="card" style={{ overflow: "hidden" }}>
+        {records.length === 0 ? (
+          <div style={{ padding: 40, textAlign: "center", color: "var(--color-graphite)", fontSize: 14 }}>No records yet</div>
+        ) : (
+          <div>
+            {records.map((r, i) => (
+              <div key={i} className="tr">
+                <span className={r.verdict === "ACCEPT" ? "v-a" : "v-r"}>{r.verdict}</span>
+                <span className="tr-c2">{r.check_id ?? "—"}</span>
+                <span className="tr-c3">slot {r.slot}</span>
+              </div>
+            ))}
           </div>
-        ))}
+        )}
       </div>
-    </div>
+    </DashboardLayout>
   );
 }
