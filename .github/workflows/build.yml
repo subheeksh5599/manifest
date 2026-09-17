@@ -21,10 +21,17 @@ jobs:
 
   program:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
     steps:
       - uses: actions/checkout@v4
-      - uses: anza-xyz/setup-solana@v1
-        with:
-          solana-version: "2.1.0"
-      - run: cargo build-sbf --manifest-path programs/preflight/Cargo.toml
-      - run: cargo test --manifest-path programs/preflight/Cargo.toml
+      - name: install solana
+        shell: bash
+        run: |
+          curl -sSfL https://release.anza.xyz/v2.1.0/install | sh
+          echo "$HOME/.local/share/solana/install/active_release/bin" >> "$GITHUB_PATH"
+      - name: build-sbf
+        run: cargo build-sbf --manifest-path programs/preflight/Cargo.toml
+      - name: test
+        run: cargo test --manifest-path programs/preflight/Cargo.toml
