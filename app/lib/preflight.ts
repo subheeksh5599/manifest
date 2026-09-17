@@ -29,7 +29,7 @@ export async function evaluate(plan: Plan): Promise<Verdict> {
   if (!entry || entry.symbol !== plan.expected_symbol) {
     return { verdict: "REFUSE", check_id: "mint_identity", live: { mint_card: card }, slot: card.slot };
   }
-  if (card.multiplier !== Number(plan.multiplier_snapshot)) {
+  if (Number(card.multiplier ?? 0) !== Number(plan.multiplier_snapshot)) {
     return { verdict: "REFUSE", check_id: "multiplier_freshness", live: { mint_card: card }, slot: card.slot };
   }
   if (card.paused) {

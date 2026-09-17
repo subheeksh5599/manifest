@@ -71,7 +71,7 @@ export function inspect(plan, entry, card) {
   }
 
   /* 2 - multiplier_freshness */
-  if (card.multiplier !== Number(plan.multiplier_snapshot)) {
+  if (Number(card.multiplier ?? 0) !== Number(plan.multiplier_snapshot)) {
     return { verdict: "REFUSE", check_id: "multiplier_freshness", slot: card.slot };
   }
 
@@ -104,7 +104,7 @@ export function inspect(plan, entry, card) {
 export function allChecks(plan, entry, card) {
   const failed = [];
   if (!entry || entry.symbol !== plan.expected_symbol) failed.push("mint_identity");
-  if (card.multiplier !== Number(plan.multiplier_snapshot)) failed.push("multiplier_freshness");
+  if (Number(card.multiplier ?? 0) !== Number(plan.multiplier_snapshot)) failed.push("multiplier_freshness");
   if (card.paused) failed.push("issuer_levers");
   if (card.transfer_hook_program) failed.push("issuer_levers");
   if (plan.ref_age_secs > plan.max_ref_age_secs) failed.push("reference_regime");

@@ -57,7 +57,7 @@ export function inspect(
   }
 
   /* 2 — multiplier_freshness */
-  if (card.multiplier !== Number(plan.multiplier_snapshot)) {
+  if (Number(card.multiplier ?? 0) !== Number(plan.multiplier_snapshot)) {
     return { verdict: "REFUSE", check_id: "multiplier_freshness", slot: card.slot };
   }
 
