@@ -1,9 +1,13 @@
+"use client";
+
 import Link from "next/link";
+import { useState, useEffect } from "react";
 
 export default function Home() {
   return (
     <div>
       <HeroSection />
+      <MarketSection />
       <ProductsShowcase />
       <HowItWorksSection />
       <CTASection />
@@ -88,6 +92,109 @@ function HeroSection() {
         </div>
       </div>
     </section>
+  );
+}
+
+/* ── MARKET TICKER — live prices via Jupiter V3 ── */
+function MarketSection() {
+  const symbols = [
+    { mint: "XsDoVfqeBukxuZHWhdvWHBhgEHjGNst4MLodqsJHzoB", label: "TSLAx", name: "Tesla" },
+    { mint: "XsCPL9dNWBMvFtTmwcCA5v3xWPSMEBCszbQdiLLq6aN", label: "GOOGLx", name: "Alphabet" },
+    { mint: "XsvNBAYkrDRNhA7wPHQfX3ZUXZyZLdnCQDfHZ56bzpg", label: "HOODx", name: "Robinhood" },
+    { mint: "Xsc9qvGR1efVDFGLrVsmkzv3qi45LTBjeUKSPmx9qEh", label: "NVDAx", name: "NVIDIA" },
+    { mint: "XsueG8BtpquVJX9LVLLEGuViXUungE6WmK5YZ3p3bd1", label: "CRCLx", name: "Circle" },
+  ];
+  return (
+    <section style={{ padding: "48px 0", background: "#F8F8FA", borderBottom: "1px solid #d7d7db" }}>
+      <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 24px" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
+          <p style={{ fontFamily: "JetBrains Mono, monospace", fontSize: 11, letterSpacing: "0.12em", textTransform: "uppercase", color: "#303136", margin: 0 }}>
+            Market — live prices via Jupiter
+          </p>
+          <span style={{ fontFamily: "JetBrains Mono, monospace", fontSize: 10, color: "#999" }}>
+            <MarketTime />
+          </span>
+        </div>
+        <PresetPrices symbols={symbols} />
+      </div>
+    </section>
+  );
+}
+
+function MarketTime() {
+  return typeof window === "undefined" ? null : (
+    <span suppressHydrationWarning>{new Date().toLocaleTimeString()}</span>
+  );
+}
+
+function PresetPrices({ symbols }: { symbols: Array<{ mint: string; label: string; name: string }> }) {
+  const [prices, setPrices] = useState<Record<string, number>>({});
+  const [changes, setChanges] = useState<Record<string, number>>({});
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let mounted = true;
+    async function fetchPrices() {
+      try {
+        const r = await fetch("/api/prices");
+        const data = await r.json();
+        if (!mounted) return;
+        if (data.prices) {
+          const p: Record<string, number> = {};
+          const c: Record<string, number> = {};
+          for (const [mint, info] of Object.entries(data.prices)) {
+            p[mint] = (info as { usdPrice: number }).usdPrice || 0;
+            c[mint] = (info as { change24h: number }).change24h || 0;
+          }
+          setPrices(p);
+          setChanges(c);
+        }
+      } catch { /* ignore */ }
+      if (mounted) setLoading(false);
+    }
+    fetchPrices();
+    const iv = setInterval(fetchPrices, 60000);
+    return () => { mounted = false; clearInterval(iv); };
+  }, []);
+
+  return (
+    <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 16 }}>
+      {symbols.map((s) => {
+        const price = prices[s.mint];
+        const change = changes[s.mint];
+        const up = change !== undefined && change >= 0;
+        return (
+          <Link key={s.mint} href={`/mint/${s.mint}`} style={{
+            background: "#ffffff", borderRadius: 16, padding: 20,
+            border: "1px solid #d7d7db", textDecoration: "none", color: "inherit",
+            boxShadow: "0 4px 12px 0 rgba(0,0,0,0.05)",
+            display: "grid", gap: 4,
+          }}>
+            <span style={{ fontFamily: "JetBrains Mono, monospace", fontSize: 10, letterSpacing: "0.12em", textTransform: "uppercase", color: "#999" }}>
+              {s.name}
+            </span>
+            <span style={{
+              fontFamily: "Inter, sans-serif", fontSize: 28, fontWeight: 500,
+              letterSpacing: "-0.5px", color: "#000",
+            }}>
+              {s.label}
+            </span>
+            <span style={{
+              fontSize: 16, fontWeight: 500, color: "#000",
+              fontFamily: "JetBrains Mono, monospace",
+            }}>
+              {loading ? "—" : price ? `$${price.toFixed(2)}` : "—"}
+            </span>
+            <span style={{
+              fontSize: 12, fontFamily: "JetBrains Mono, monospace",
+              color: up ? "#2E7D32" : "#E65100",
+            }}>
+              {!loading && change !== undefined ? `${up ? "+" : ""}${(change * 100).toFixed(1)}%` : "—"}
+            </span>
+          </Link>
+        );
+      })}
+    </div>
   );
 }
 
