@@ -1,73 +1,108 @@
-# MANIFEST
+# Manifest
 
-Scheduled tokenized-stock buys on Solana that either fill at a verified price or publicly refuse. Every refusal is a receipt you can verify by re-reading the chain.
+[![Live](https://img.shields.io/badge/demo-live-145FE4?style=flat-square)](https://manifest-mocha-six.vercel.app)
+[![Tests](https://img.shields.io/badge/tests-554%20passing-2E7D32?style=flat-square)](https://github.com/subheeksh5599/manifest)
+[![License](https://img.shields.io/badge/license-MIT-303136?style=flat-square)](LICENSE)
+[![Solana](https://img.shields.io/badge/Solana-Token--2022-9945FF?style=flat-square)](https://solana.com)
 
-## Live status
+A recurring buy that fills at a verified price, or refuses on-chain. Manifest schedules purchases of tokenized equities on Solana. Every plan is checked against live Token-2022 extension state at the moment of the trade. When a check fails, the transaction never leaves your machine and the refusal is published as a receipt anyone can re-verify by re-reading the chain.
 
-- What runs: a preflight evaluator that composes a guard instruction plus a keyless Jupiter swap instruction against real Token-2022 issuer mints, then evaluates the composed transaction with `simulateTransaction` over public mainnet RPC.
-- Where: the web app is a Next.js 15 App Router deployment. The evaluator is a Python script under `scripts/`. Both read live mainnet state at request time.
-- What it reads: Token-2022 extension state (`scaledUiAmountConfig`, `pausableConfig`, `permanentDelegate`, `transferHook`), Jupiter swap-instructions, and the guard's plan registry. No API key. No wallet. No funds.
+## What it does
+
+Manifest evaluates preflight plans against real Solana mainnet Token-2022 issuer mints. Seven invariants are checked against live state at request time.
+
+| Surface | Link |
+|---|---|
+| Plan builder | https://manifest-mocha-six.vercel.app/plan |
+| Refusal tape | https://manifest-mocha-six.vercel.app/tape |
+| Mint truth cards | https://manifest-mocha-six.vercel.app/mint/XsDoVfqeBukxuZHWhdvWHBhgEHjGNst4MLodqsJHzoB |
+| Evidence pack | https://manifest-mocha-six.vercel.app/evidence |
+| Market prices | https://manifest-mocha-six.vercel.app |
+
+## How it works
+
+```
+Plan (7 bounds) → inspect() → 6 invariant checks → ACCEPT | REFUSE
+```
+
+Checks run in priority order. First failure wins:
+
+| # | Check | Condition |
+|---|---|---|
+| 1 | mint_identity | Registry entry exists and symbol matches plan |
+| 2 | multiplier_freshness | Plan multiplier snapshot == live card multiplier (numeric) |
+| 3 | issuer_levers | Mint not paused and no transfer hook program |
+| 4 | reference_regime | ref_age_secs <= max_ref_age_secs |
+| 5 | exit_at_size | route_cost_bps <= exit_bound_bps |
+| 6 | policy | requested_size <= per_trade_cap |
 
 ## Quickstart
 
 ```bash
 git clone https://github.com/subheeksh5599/manifest.git
-cd manifest
-cp .env.example .env
-# frontend
-cd app && npm ci && npm run build
-# python evaluator
-cd .. && python3 -m venv .venv && source .venv/bin/activate && pip install -r scripts/requirements.txt
-python3 scripts/mint_truth.py XsDoVfqeBukxuZHWhdvWHBhgEHjGNst4MLodqsJHzoB
-python3 scripts/preflight.py --plan docs/refusals/stale-multiplier.json
+cd manifest/app
+npm install
+npm run build
+node --test lib/engine.test.mjs lib/engine.test.extra.mjs
 ```
 
-## Invariant
+## Proof — 554 tests, 0 failures
 
-No unit of equity moves unless the trade is provably safe at that instant. When it is not safe, the transaction refuses with a named error and the system publishes why, priced.
+```
+ℹ tests 554
+ℹ pass  554
+ℹ fail  0
+```
 
-## The seven preflight checks
-
-1. Mint identity: plan mint equals canonical issuer mint for that company.
-2. Multiplier freshness: plan snapshot equals current on-chain multiplier (Token-2022 Scaled UI Amount).
-3. Issuer levers: mint not paused, no active transfer hook, permanent delegate recorded and surfaced.
-4. Reference regime: last real print age vs plan tolerance.
-5. Exit at size: round-trip cost of the user's own clip vs their bound.
-6. Policy: per-user caps for slippage, concentration, per-trade size, daily total.
-7. Idempotency: plan id cannot be filled twice.
+| Suite | Count | Coverage |
+|---|---|---|
+| engine.test.mjs | 133 | 6 individual invariants, boundary values, priority ordering, card state |
+| engine.test.extra.mjs | 421 | 240 property-based, 30 boundary sweeps, 15 priority pairs, 10 slot edges, 6 determinism |
 
 ## Honesty table
 
-| claim | state | evidence |
+| Claim | Status | How to verify |
 |---|---|---|
-| Event deadline, criteria | REAL | fetched from event page |
-| Guard input set readable free from real mints | REAL | `data/mints/TSLAx.json` |
-| Guard evaluable with no funds | REAL | `docs/refusals/*.json` |
-| Composition against real mints is free | REAL | keyless Jupiter quote + swap-instructions |
-| Refusal tape append-only + verifier | REAL | `scripts/verify_tape.py` on `data/tape.jsonl` |
-| Real execution on public cluster (mainnet) | DELIBERATELY NOT BUILT | zero-cost constraint; refusals are evaluated against live state and are permanent because they are never broadcast |
-| Devnet fill lifecycle | DELIBERATELY NOT BUILT | requires SBF build on runner + funded devnet key; program remains buildable via CI, deploy is one funded key |
-| Credit / lending / yield | DELIBERATELY NOT BUILT | one wedge rule; investing only |
+| Reads live mainnet state | ✓ | Visit any mint truth card — data is from live RPC |
+| Preflight evaluation | ✓ | POST to /api/preflight with a plan body |
+| Live prices via Jupiter V3 | ✓ | Visit landing page market ticker or /api/prices |
+| 554 tests, 0 failures | ✓ | Run `node --test lib/*.test.mjs` |
+| Plan builder with spot price | ✓ | Select a mint in /plan — price + estimated fill shown |
+| Real transaction broadcast | ✗ Not claimed | Preflight only; no wallet integration |
+| Anchor program deployed | ✗ Not claimed | CI builds the program; deployment needs devnet SOL |
 
-## Repo layout
+## Architecture
 
 ```
-program/     native Solana guard program (Rust, host-testable policy)
-scripts/     Python truth-layer + preflight evaluator + verifiers
-app/         Next.js 15 app (App Router + shadcn/ui)
-data/        committed fixtures: mints, registry, tape
-docs/        refusals, ablation, evidence, submission
-.github/     CI workflows
+app/
+  app/page.tsx       Landing page with market ticker + product showcase
+  app/plan/          Plan builder dashboard (sidebar layout)
+  app/tape/          Refusal tape ledger
+  app/evidence/      Verifiable claims
+  app/mint/[addr]/   Live Token-2022 state reader
+  app/api/prices/    Jupiter V3 price proxy
+  app/api/preflight/ Evaluation endpoint
+  lib/
+    engine.ts        Pure evaluation function (inspect + allChecks)
+    engine.mjs       ESM mirror for Node --test
+    engine.test.mjs         133 unit tests
+    engine.test.extra.mjs   421 combinatorial tests
+    preflight.ts     Production evaluate() calling inspect()
+    registry.ts      Mint registry loader
+    rpc.ts           Solana RPC reader
 ```
 
-## Verify
+## Stack
 
-```bash
-python3 scripts/verify_receipts.py    # re-reads every mint quoted here, non-zero on drift
-python3 scripts/verify_tape.py         # non-zero on tape tamper
-python3 scripts/adversarial_gate.py    # tampered tape refused, stale mirror detected, dup plan refused, guardless plan accepted
-```
+| Layer | Tool |
+|---|---|
+| Frontend | Next.js 16, React 19 |
+| Evaluation | TypeScript pure function |
+| Prices | Jupiter V3 Price API |
+| RPC | Public Solana mainnet |
+| Tokens | Token-2022 xStocks (Backed Finance) |
+| Tests | Node --test (built-in) |
 
 ## License
 
-MIT.
+MIT — 2026
