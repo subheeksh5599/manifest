@@ -14,9 +14,9 @@ export default async function MintPage({ params }: { params: Promise<{ addr: str
   return (
     <div className="grid gap-6">
       <div className="grid gap-1">
-        <span className="text-xs uppercase tracking-wide text-[color:var(--color-ink-500)]">mint truth card</span>
+        <span className="text-xs uppercase tracking-wide text-[color:var(--color-graphite)]">mint truth card</span>
         <h1 className="serif text-3xl">{card?.symbol ?? addr}</h1>
-        <span className="mono text-xs text-[color:var(--color-ink-500)]">{addr}</span>
+        <span className="mono text-xs text-[color:var(--color-graphite)]">{addr}</span>
       </div>
       {err && <p className="text-[color:var(--color-refuse)]">{err}</p>}
       {card && (
@@ -34,7 +34,7 @@ export default async function MintPage({ params }: { params: Promise<{ addr: str
           <KV k="slot read" v={card.slot} />
         </div>
       )}
-      <p className="text-xs text-[color:var(--color-ink-500)]">
+      <p className="text-xs text-[color:var(--color-graphite)]">
         The list above is exactly what the guard reads before it will let a plan touch this mint.
       </p>
     </div>
@@ -44,7 +44,7 @@ export default async function MintPage({ params }: { params: Promise<{ addr: str
 function KV({ k, v }: { k: string; v: any }) {
   return (
     <div className="grid grid-cols-[180px_1fr] items-baseline text-sm">
-      <span className="text-[color:var(--color-ink-500)]">{k}</span>
+      <span className="text-[color:var(--color-graphite)]">{k}</span>
       <span className="mono break-all">{v ?? "-"}</span>
     </div>
   );

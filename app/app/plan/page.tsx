@@ -9,7 +9,7 @@ export default function PlanPage() {
     <div className="grid gap-8">
       <div className="grid gap-2">
         <h1 className="serif text-3xl">Plan builder</h1>
-        <p className="text-sm text-[color:var(--color-ink-700)] max-w-2xl">
+        <p className="text-sm text-[color:var(--color-graphite)] max-w-2xl">
           Set the seven inputs the guard evaluates. Preflight runs against live mainnet state at request time. Nothing broadcasts.
         </p>
       </div>

@@ -28,15 +28,15 @@ export default function TapePage() {
   return (
     <div className="grid gap-6">
       <div className="grid gap-1">
-        <span className="text-xs uppercase tracking-wide text-[color:var(--color-ink-500)]">refusal tape</span>
+        <span className="text-xs uppercase tracking-wide text-[color:var(--color-graphite)]">refusal tape</span>
         <h1 className="serif text-3xl">Every verdict, on file.</h1>
-        <p className="text-sm text-[color:var(--color-ink-700)] max-w-2xl">
+        <p className="text-sm text-[color:var(--color-graphite)] max-w-2xl">
           Append-only. Sealed with a canonical digest. Re-run <span className="mono">scripts/verify_tape.py</span> to prove no line has been mutated.
         </p>
       </div>
       <div className="card divide-y hair">
         {records.length === 0 && (
-          <div className="p-6 text-sm text-[color:var(--color-ink-500)]">no records yet</div>
+          <div className="p-6 text-sm text-[color:var(--color-graphite)]">no records yet</div>
         )}
         {records.map((r, i) => (
           <div key={i} className="p-4 grid grid-cols-[100px_120px_1fr_140px] items-baseline gap-4 text-sm">
@@ -48,7 +48,7 @@ export default function TapePage() {
             </span>
             <span className="mono text-xs">{r.check_id ?? "-"}</span>
             <span className="mono text-xs break-all">{r.plan.plan_id}</span>
-            <span className="mono text-xs text-[color:var(--color-ink-500)]">slot {r.slot}</span>
+            <span className="mono text-xs text-[color:var(--color-graphite)]">slot {r.slot}</span>
           </div>
         ))}
       </div>
