@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { RegistryEntry } from "@/lib/registry";
 
 type Verdict = {
@@ -8,6 +8,12 @@ type Verdict = {
   check_id: string | null;
   live: { mint_card: any };
   slot: number;
+};
+
+type PriceInfo = {
+  usdPrice: number;
+  change24h: number;
+  liquidity: number;
 };
 
 export default function PlanDashboard({ entries }: { entries: RegistryEntry[] }) {
@@ -22,14 +28,38 @@ export default function PlanDashboard({ entries }: { entries: RegistryEntry[] })
   const [busy, setBusy] = useState(false);
   const [verdict, setVerdict] = useState<Verdict | null>(null);
   const [err, setErr] = useState<string | null>(null);
+  const [prices, setPrices] = useState<Record<string, PriceInfo>>({});
 
   const entry = entries.find((e) => e.mint === mint);
+  const livePrice = prices[mint]?.usdPrice;
+  const change24h = prices[mint]?.change24h;
+  const estimated = livePrice ? livePrice * (1 - routeBps / 10000) : null;
+
+  // Fetch prices
+  useEffect(() => {
+    let mounted = true;
+    async function fetchPrices() {
+      try {
+        const r = await fetch("/api/prices");
+        const data = await r.json();
+        if (!mounted || !data.prices) return;
+        const p: Record<string, PriceInfo> = {};
+        for (const [m, info] of Object.entries(data.prices)) {
+          const i = info as any;
+          p[m] = { usdPrice: i.usdPrice || 0, change24h: i.change24h || 0, liquidity: i.liquidity || 0 };
+        }
+        if (mounted) setPrices(p);
+      } catch { /* ignore */ }
+    }
+    fetchPrices();
+    const iv = setInterval(fetchPrices, 60000);
+    return () => { mounted = false; clearInterval(iv); };
+  }, []);
 
   const auto = useRef(false);
   useEffect(() => {
     if (auto.current) return;
     auto.current = true;
-    evaluate();
   }, []);
 
   async function evaluate() {
@@ -61,18 +91,30 @@ export default function PlanDashboard({ entries }: { entries: RegistryEntry[] })
   }
 
   const isAccept = verdict?.verdict === "ACCEPT";
+  const up = change24h !== undefined && change24h >= 0;
 
   return (
-    <div style={{ padding: 0 }}>
-      <div style={{ marginBottom: 32 }}>
-        <div className="label-mono" style={{ marginBottom: 8, color: "var(--color-brand-blue)" }}>Plans</div>
-        <h1 className="heading-sm" style={{ margin: 0 }}>Plan builder</h1>
-        <p className="body-text" style={{ marginTop: 8 }}>
-          Set the seven inputs the guard evaluates. Preflight runs against live mainnet state at request time.
+    <div style={{ maxWidth: 1100 }}>
+      {/* Header */}
+      <div style={{ marginBottom: 28 }}>
+        <div style={{ display: "flex", alignItems: "baseline", gap: 12, marginBottom: 8 }}>
+          <h1 className="heading-sm" style={{ margin: 0 }}>Plan builder</h1>
+          {livePrice && (
+            <span style={{ fontFamily: "JetBrains Mono, monospace", fontSize: 13, color: "#000" }}>
+              {entry?.symbol} @ ${livePrice.toFixed(2)}
+              <span style={{ color: up ? "#2E7D32" : "#E65100", marginLeft: 6 }}>
+                {up ? "+" : ""}{(change24h * 100).toFixed(1)}%
+              </span>
+            </span>
+          )}
+        </div>
+        <p className="body-text" style={{ margin: 0 }}>
+          Set the seven inputs the guard evaluates. Mainnet state is read at request time.
         </p>
       </div>
 
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 32 }}>
+        {/* Form card */}
         <div className="card" style={{ padding: 28 }}>
           <div className="form-grid">
             <Field label="Mint">
@@ -82,7 +124,7 @@ export default function PlanDashboard({ entries }: { entries: RegistryEntry[] })
                 ))}
               </select>
             </Field>
-            <Field label="Multiplier snapshot"><input className="fi" value={snapshot} onChange={(e) => setSnapshot(e.target.value)} /></Field>
+            <Field label="Multiplier snap"><input className="fi" value={snapshot} onChange={(e) => setSnapshot(e.target.value)} placeholder="e.g. 1.00000000" /></Field>
             <Field label="Route cost (bps)"><input type="number" className="fi" value={routeBps} onChange={(e) => setRouteBps(+e.target.value)} /></Field>
             <Field label="Exit bound (bps)"><input type="number" className="fi" value={exitBps} onChange={(e) => setExitBps(+e.target.value)} /></Field>
             <Field label="Requested size"><input type="number" className="fi" value={size} onChange={(e) => setSize(+e.target.value)} /></Field>
@@ -91,11 +133,32 @@ export default function PlanDashboard({ entries }: { entries: RegistryEntry[] })
             <Field label="Max ref age (s)"><input type="number" className="fi" value={maxAge} onChange={(e) => setMaxAge(+e.target.value)} /></Field>
           </div>
 
+          {/* Price estimate */}
+          {livePrice && !isNaN(Number(routeBps)) && Number(routeBps) > 0 && (
+            <div style={{
+              marginTop: 16, padding: "12px 16px", background: "#F8F8FA",
+              borderRadius: 8, fontSize: 13, fontFamily: "JetBrains Mono, monospace",
+            }}>
+              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
+                <span style={{ color: "#666" }}>Spot price</span>
+                <span>${livePrice.toFixed(2)}</span>
+              </div>
+              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
+                <span style={{ color: "#666" }}>Route cost {routeBps} bps →</span>
+                <span>${(livePrice * (routeBps / 10000)).toFixed(4)}</span>
+              </div>
+              <div style={{ display: "flex", justifyContent: "space-between", fontWeight: 500 }}>
+                <span style={{ color: "#000" }}>Est. fill price</span>
+                <span>${estimated!.toFixed(2)}</span>
+              </div>
+            </div>
+          )}
+
           <button
             onClick={evaluate}
             disabled={busy}
             className="btn btn-primary"
-            style={{ width: "100%", justifyContent: "center", marginTop: 24, padding: "12px", fontSize: 15 }}
+            style={{ width: "100%", justifyContent: "center", marginTop: 20, padding: "12px", fontSize: 15 }}
           >
             {busy ? "Evaluating on mainnet..." : "Run preflight"}
           </button>
@@ -107,12 +170,13 @@ export default function PlanDashboard({ entries }: { entries: RegistryEntry[] })
           )}
         </div>
 
+        {/* Verdict card */}
         <div>
           {!verdict ? (
-            <div className="card" style={{ padding: 28, minHeight: 300, display: "grid", placeItems: "center" }}>
+            <div className="card" style={{ padding: 28, minHeight: 340, display: "grid", placeItems: "center" }}>
               <div style={{ textAlign: "center", color: "var(--color-graphite)" }}>
                 <div style={{ fontSize: 32, marginBottom: 8 }}>◌</div>
-                <p style={{ fontSize: 14 }}>Verdict will appear here after evaluation</p>
+                <p style={{ fontSize: 14 }}>Run a preflight to check this plan against live state</p>
               </div>
             </div>
           ) : (
@@ -130,18 +194,17 @@ export default function PlanDashboard({ entries }: { entries: RegistryEntry[] })
               )}
               <div style={{ borderTop: "1px solid var(--color-ash)", paddingTop: 16, marginTop: 16 }}>
                 <div className="label-mono" style={{ marginBottom: 12 }}>Live mint state</div>
-                <div style={{ display: "grid", gap: 8 }}>
+                <div style={{ display: "grid", gap: 8, fontSize: 13 }}>
                   {[
                     ["Symbol", verdict.live?.mint_card?.symbol],
                     ["Multiplier", verdict.live?.mint_card?.multiplier],
-                    ["Next multiplier", verdict.live?.mint_card?.next_multiplier],
                     ["Paused", String(verdict.live?.mint_card?.paused ?? "-")],
-                    ["Delegate", verdict.live?.mint_card?.permanent_delegate],
-                    ["Transfer hook", verdict.live?.mint_card?.transfer_hook_program ?? "null"],
+                    ["Delegate", verdict.live?.mint_card?.permanent_delegate?.slice(0, 12) + "..."],
+                    ["Transfer hook", verdict.live?.mint_card?.transfer_hook_program || "null"],
                   ].map(([k, v]) => (
-                    <div key={k as string} style={{ display: "grid", gridTemplateColumns: "130px 1fr", gap: 8, fontSize: 13 }}>
+                    <div key={k as string} style={{ display: "grid", gridTemplateColumns: "120px 1fr", gap: 8 }}>
                       <span className="label-mono" style={{ fontSize: 10 }}>{k}</span>
-                      <span className="mono" style={{ wordBreak: "break-all" }}>{v ?? "—"}</span>
+                      <span className="mono" style={{ wordBreak: "break-all", color: "var(--color-onyx)" }}>{v ?? "—"}</span>
                     </div>
                   ))}
                 </div>
@@ -150,6 +213,30 @@ export default function PlanDashboard({ entries }: { entries: RegistryEntry[] })
           )}
         </div>
       </div>
+
+      {/* Price reference table */}
+      {Object.keys(prices).length > 0 && (
+        <div style={{ marginTop: 32 }}>
+          <div className="card" style={{ padding: 20 }}>
+            <div className="label-mono" style={{ marginBottom: 12 }}>Market prices <span style={{ color: "var(--color-graphite)" }}>— auto-refreshes</span></div>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 12 }}>
+              {entries.map((e) => {
+                const p = prices[e.mint];
+                if (!p) return null;
+                return (
+                  <div key={e.mint} style={{ padding: "8px 12px", borderRadius: 8, background: "#F8F8FA", fontSize: 12, fontFamily: "JetBrains Mono, monospace" }}>
+                    <div style={{ fontWeight: 600, color: "#000" }}>{e.symbol}</div>
+                    <div style={{ color: "#000" }}>${p.usdPrice.toFixed(2)}</div>
+                    <div style={{ color: (p.change24h || 0) >= 0 ? "#2E7D32" : "#E65100" }}>
+                      {(p.change24h * 100).toFixed(1)}%
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
