@@ -26,12 +26,11 @@ export default function Home() {
   const tape = loadTape();
   const refusalCount = tape.filter((r) => r.verdict === "REFUSE").length;
   const acceptCount = tape.filter((r) => r.verdict === "ACCEPT").length;
-  const latestSlot = tape.length ? Math.max(...tape.map((r) => r.live_value?.mint_card?.slot ?? 0)) : 0;
   const mintsCount = entries.length;
 
   return (
     <div>
-      <Hero latestSlot={latestSlot} />
+      <Hero />
       <StatsStrip refusalCount={refusalCount} acceptCount={acceptCount} mintsCount={mintsCount} />
       <FeaturesSection />
       <HowItWorksSection />
@@ -41,14 +40,10 @@ export default function Home() {
   );
 }
 
-function Hero({ latestSlot }: { latestSlot: number }) {
+function Hero() {
   return (
     <section className="hero" style={{ paddingTop: 120, paddingBottom: 100 }}>
       <div className="wrap" style={{ position: "relative", zIndex: 1 }}>
-        <div style={{ display: "flex", gap: 12, alignItems: "center", marginBottom: 24 }}>
-          <span className="bl bl-live"><span className="dot" /> Solana mainnet · slot {latestSlot || "—"}</span>
-          <span className="mono" style={{ fontSize: 12, color: "rgba(255,255,255,0.5)" }}>v0 · sep 2026</span>
-        </div>
         <div style={{ maxWidth: 900 }}>
           <h1 className="display" style={{ maxWidth: "14ch", marginBottom: 20 }}>
             A recurring buy that either fills at a verified price, or refuses on-chain.
