@@ -39,21 +39,21 @@ function BrandMark() {
 
 function SiteHeader() {
   return (
-    <header
-      className="sticky top-0 z-40 backdrop-blur"
-      style={{ background: "color-mix(in oklab, var(--color-paper) 85%, transparent)", borderBottom: "var(--edge)" }}
-    >
-      <div className="mx-auto max-w-[1200px] px-6 h-14 flex items-center justify-between">
-        <Link href="/" className="flex items-center gap-2">
-          <BrandMark />
-          <span className="text-[15px] font-medium tracking-[-0.01em]">Manifest</span>
+    <header className="site-header">
+      <div className="hi">
+        <Link href="/" className="hl">
+          <svg width="20" height="20" viewBox="0 0 20 20" aria-hidden style={{ display: "block" }}>
+            <rect x="1" y="1" width="18" height="18" rx="4" fill="var(--color-ink)" />
+            <path d="M5 14 L5 6 L10 11 L15 6 L15 14" stroke="var(--color-paper)" strokeWidth="1.6" fill="none" strokeLinejoin="miter" strokeLinecap="square" />
+          </svg>
+          <span style={{ fontSize: 15, fontWeight: 500, letterSpacing: "-0.01em" }}>Manifest</span>
         </Link>
-        <nav className="hidden md:flex items-center gap-8 text-[14px] text-[color:var(--color-ink-700)]">
-          <Link href="/plan" className="underlink">Plan</Link>
-          <Link href="/tape" className="underlink">Tape</Link>
-          <a href="https://github.com/subheeksh5599/manifest" className="underlink">Source</a>
+        <nav className="hn">
+          <Link href="/plan">Plan</Link>
+          <Link href="/tape">Tape</Link>
+          <a href="https://github.com/subheeksh5599/manifest">Source</a>
         </nav>
-        <Link href="/plan" className="btn-primary">Try a plan</Link>
+        <Link href="/plan" className="btn-primary" style={{ padding: "7px 16px", fontSize: 13 }}>Try a plan</Link>
       </div>
     </header>
   );
