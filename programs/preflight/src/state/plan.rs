@@ -23,8 +23,10 @@ pub struct Plan {
     pub fill_count: u16,
     /// Snapshot of the ScaledUiAmount multiplier at plan creation
     pub snapshot_multiplier: u64,
+    pub bump: u8,
 }
 
 impl Plan {
-    pub const LEN: usize = 8 + 32 + 8 + 32 + 8 + 2 + 2 + 1 + 8 + 8 + 2 + 8;
+    // discriminator(8) + pubkey(32) + u64(8) + pubkey(32) + u64(8) + u16(2) + u16(2) + u8(1) + i64(8) + i64(8) + u16(2) + u64(8) + u8(1)
+    pub const LEN: usize = 8 + 32 + 8 + 32 + 8 + 2 + 2 + 1 + 8 + 8 + 2 + 8 + 1;
 }

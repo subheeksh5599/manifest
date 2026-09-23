@@ -10,6 +10,8 @@ export default function EvidencePage() {
     { claim: "Tampered tape, dup plan, stale mirror, guardless accepts", artifact: "scripts/adversarial_gate.py", cmd: "python3 scripts/adversarial_gate.py" },
     { claim: "Four reproducible refusals + one accept", artifact: "docs/REFUSALS.md", cmd: "cat docs/REFUSALS.md" },
     { claim: "Guard host tests all pass", artifact: "program/src/policy.rs", cmd: "cd program && cargo test --lib" },
+    { claim: "Anchor program deployed on devnet", artifact: "programs/preflight/src/lib.rs", cmd: "solana program show pTpaE75ubNyv9voydPJNaEfmv3GbmcN5bvZBfnRtdiA --url devnet" },
+    { claim: "Plan created, preflight passed, fill+refusal recorded", artifact: "scripts/devnet_full_test.py", cmd: "python3 scripts/devnet_full_test.py" },
   ];
   return (
     <DashboardLayout active="evidence">
