@@ -1,484 +1,182 @@
-"use client";
-
 import Link from "next/link";
-import { useState, useEffect } from "react";
 
 export default function Home() {
   return (
     <div>
+      <SiteHeader />
       <HeroSection />
-      <MarketSection />
-      <ProductsShowcase />
-      <HowItWorksSection />
-      <CTASection />
-      <FAQSection />
+      <StatsSection />
+      <ProductShowcase />
+      <InvariantSection />
+      <SiteFooter />
     </div>
   );
 }
 
-/* ── HERO ── */
+function SiteHeader() {
+  return (
+    <header className="site-header">
+      <div className="hi">
+        <Link href="/" className="hl">manifest</Link>
+        <nav className="hn">
+          <Link href="/plan">Plan</Link>
+          <Link href="/tape">Tape</Link>
+          <a href="https://github.com/subheeksh5599/manifest">Source</a>
+          <Link href="/plan" className="btn btn-primary">Launch app</Link>
+        </nav>
+      </div>
+    </header>
+  );
+}
+
 function HeroSection() {
   return (
-    <section style={{
-      background: "linear-gradient(180deg, #1D1D21 25%, #145FE4 70%, #99BEFF 100%)",
-      color: "#fff", minHeight: "100vh", display: "flex", flexDirection: "column",
-      justifyContent: "center", alignItems: "center", textAlign: "center",
-      paddingTop: 80, paddingBottom: 80, position: "relative", overflow: "hidden",
-    }}>
-      <div aria-hidden style={{
-        position: "absolute", top: "20%", left: "10%", width: 300, height: 300,
-        borderRadius: "50%", background: "rgba(255,255,255,0.03)", filter: "blur(80px)",
-      }} />
-      <div aria-hidden style={{
-        position: "absolute", bottom: "10%", right: "15%", width: 400, height: 400,
-        borderRadius: "50%", background: "rgba(20,95,228,0.15)", filter: "blur(100px)",
-      }} />
-      <div style={{ maxWidth: 900, padding: "0 24px", position: "relative", zIndex: 1 }}>
-        <h1 style={{
-          fontFamily: "Inter, ui-sans-serif, sans-serif",
-          fontSize: "clamp(48px, 7vw, 88px)", fontWeight: 300,
-          letterSpacing: "-2.02px", lineHeight: 1.1,
-          margin: "0 auto 20px", maxWidth: "14ch",
-        }}>
-          A recurring buy that fills at a verified price, or refuses on-chain.
-        </h1>
-        <p style={{
-          fontSize: 20, fontWeight: 400, lineHeight: 1.43,
-          color: "rgba(255,255,255,0.75)", maxWidth: "60ch",
-          margin: "0 auto 40px",
-        }}>
-          Manifest schedules purchases of tokenized equities on Solana. Every plan is checked against live
-          mainnet state at the moment of the trade. When a check fails, the transaction never leaves your
-          machine and the refusal is published as a receipt anyone can re-read from the chain.
-        </p>
-        <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
-          <Link href="/plan" style={{
-            display: "inline-flex", alignItems: "center", gap: 8,
-            background: "#145FE4", color: "#ffffff",
-            borderRadius: 9999, padding: "10px 24px",
-            fontSize: 15, fontWeight: 500, textDecoration: "none",
-          }}>
-            Try a plan <span aria-hidden>&rarr;</span>
-          </Link>
-          <Link href="/tape" style={{
-            display: "inline-flex", alignItems: "center", gap: 8,
-            background: "transparent", color: "#ffffff",
-            borderRadius: 9999, padding: "10px 24px",
-            fontSize: 15, fontWeight: 500,
-            border: "1px solid rgba(255,255,255,0.5)", textDecoration: "none",
-          }}>
-            Read the refusal tape
-          </Link>
-        </div>
-        {/* Terminal output — live-look */}
-        <div style={{
-          marginTop: 64, maxWidth: 540, marginLeft: "auto", marginRight: "auto",
-          background: "rgba(0,0,0,0.4)", border: "1px solid rgba(255,255,255,0.08)",
-          borderRadius: 8, padding: "16px 20px", textAlign: "left",
-          fontFamily: "JetBrains Mono, monospace", fontSize: 12, color: "rgba(255,255,255,0.6)",
-          backdropFilter: "blur(12px)",
-        }}>
-          <div style={{ display: "flex", gap: 6, marginBottom: 12 }}>
-            <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#FF5F56" }} />
-            <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#FFBD2E" }} />
-            <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#27C93F" }} />
-          </div>
-          <div>$ manifest evaluate --mint TSLAx --size 500</div>
-          <div style={{ color: "#27C93F" }}>&gt; reading Token-2022 extension state...</div>
-          <div style={{ color: "#27C93F" }}>&gt; composing Jupiter swap route...</div>
-          <div style={{ color: "#27C93F" }}>&gt; running 7 invariants...</div>
-          <div style={{ color: "#FFBD2E" }}>&gt; check failed: exit_at_size (62 bps &gt; 30 bps)</div>
-          <div style={{ color: "#FF5F56", marginTop: 4 }}>✗ REFUSED — evidence written to tape</div>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-/* ── MARKET TICKER — live prices via Jupiter V3 ── */
-function MarketSection() {
-  const symbols = [
-    { mint: "XsDoVfqeBukxuZHWhdvWHBhgEHjGNst4MLodqsJHzoB", label: "TSLAx", name: "Tesla" },
-    { mint: "XsCPL9dNWBMvFtTmwcCA5v3xWPSMEBCszbQdiLLq6aN", label: "GOOGLx", name: "Alphabet" },
-    { mint: "XsvNBAYkrDRNhA7wPHQfX3ZUXZyZLdnCQDfHZ56bzpg", label: "HOODx", name: "Robinhood" },
-    { mint: "Xsc9qvGR1efVDFGLrVsmkzv3qi45LTBjeUKSPmx9qEh", label: "NVDAx", name: "NVIDIA" },
-    { mint: "XsueG8BtpquVJX9LVLLEGuViXUungE6WmK5YZ3p3bd1", label: "CRCLx", name: "Circle" },
-  ];
-  return (
-    <section style={{ padding: "48px 0", background: "#F8F8FA", borderBottom: "1px solid #d7d7db" }}>
-      <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 24px" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
-          <p style={{ fontFamily: "JetBrains Mono, monospace", fontSize: 11, letterSpacing: "0.12em", textTransform: "uppercase", color: "#303136", margin: 0 }}>
-            Market — live prices via Jupiter
-          </p>
-          <span style={{ fontFamily: "JetBrains Mono, monospace", fontSize: 10, color: "#999" }}>
-            <MarketTime />
-          </span>
-        </div>
-        <PresetPrices symbols={symbols} />
-      </div>
-    </section>
-  );
-}
-
-function MarketTime() {
-  return typeof window === "undefined" ? null : (
-    <span suppressHydrationWarning>{new Date().toLocaleTimeString()}</span>
-  );
-}
-
-function PresetPrices({ symbols }: { symbols: Array<{ mint: string; label: string; name: string }> }) {
-  const [prices, setPrices] = useState<Record<string, number>>({});
-  const [changes, setChanges] = useState<Record<string, number>>({});
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    let mounted = true;
-    async function fetchPrices() {
-      try {
-        const r = await fetch("/api/prices");
-        const data = await r.json();
-        if (!mounted) return;
-        if (data.prices) {
-          const p: Record<string, number> = {};
-          const c: Record<string, number> = {};
-          for (const [mint, info] of Object.entries(data.prices)) {
-            p[mint] = (info as { usdPrice: number }).usdPrice || 0;
-            c[mint] = (info as { change24h: number }).change24h || 0;
-          }
-          setPrices(p);
-          setChanges(c);
-        }
-      } catch { /* ignore */ }
-      if (mounted) setLoading(false);
-    }
-    fetchPrices();
-    const iv = setInterval(fetchPrices, 60000);
-    return () => { mounted = false; clearInterval(iv); };
-  }, []);
-
-  return (
-    <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 16 }}>
-      {symbols.map((s) => {
-        const price = prices[s.mint];
-        const change = changes[s.mint];
-        const up = change !== undefined && change >= 0;
-        return (
-          <Link key={s.mint} href={`/mint/${s.mint}`} style={{
-            background: "#ffffff", borderRadius: 16, padding: 20,
-            border: "1px solid #d7d7db", textDecoration: "none", color: "inherit",
-            boxShadow: "0 4px 12px 0 rgba(0,0,0,0.05)",
-            display: "grid", gap: 4,
-          }}>
-            <span style={{ fontFamily: "JetBrains Mono, monospace", fontSize: 10, letterSpacing: "0.12em", textTransform: "uppercase", color: "#999" }}>
-              {s.name}
-            </span>
-            <span style={{
-              fontFamily: "Inter, sans-serif", fontSize: 28, fontWeight: 500,
-              letterSpacing: "-0.5px", color: "#000",
-            }}>
-              {s.label}
-            </span>
-            <span style={{
-              fontSize: 16, fontWeight: 500, color: "#000",
-              fontFamily: "JetBrains Mono, monospace",
-            }}>
-              {loading ? "—" : price ? `$${price.toFixed(2)}` : "—"}
-            </span>
-            <span style={{
-              fontSize: 12, fontFamily: "JetBrains Mono, monospace",
-              color: up ? "#2E7D32" : "#E65100",
-            }}>
-              {!loading && change !== undefined ? `${up ? "+" : ""}${(change * 100).toFixed(1)}%` : "—"}
-            </span>
-          </Link>
-        );
-      })}
-    </div>
-  );
-}
-
-/* ── PRODUCT SHOWCASE — browser frame mockups ── */
-function ProductsShowcase() {
-  return (
-    <section style={{ padding: "96px 0", background: "#ffffff" }}>
-      <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 24px" }}>
-        <div style={{ textAlign: "center", marginBottom: 56 }}>
-          <p style={{ fontFamily: "JetBrains Mono, monospace", fontSize: 11, letterSpacing: "0.12em", textTransform: "uppercase", color: "#303136", marginBottom: 16 }}>
-            Product
-          </p>
-          <h2 style={{
-            fontFamily: "Inter, ui-sans-serif, sans-serif",
-            fontSize: "clamp(28px, 3.8vw, 48px)", fontWeight: 400,
-            letterSpacing: "-1.1px", lineHeight: 1.2, margin: 0, color: "#000000",
-          }}>
-            Four surfaces. One invariant guard.
-          </h2>
-        </div>
-
-        {/* 01 Plan builder */}
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 64, alignItems: "center", marginBottom: 96 }}>
+    <section style={{ background: "#edeff2", paddingTop: 80, paddingBottom: 80, borderBottom: "1px solid #dedfe1" }}>
+      <div className="wrap">
+        <div style={{ display: "grid", gridTemplateColumns: "5fr 7fr", gap: 48, alignItems: "center" }}>
           <div>
-            <p style={{ fontFamily: "JetBrains Mono, monospace", fontSize: 11, letterSpacing: "0.12em", textTransform: "uppercase", color: "#145FE4", marginBottom: 12 }}>01 · Plan builder</p>
-            <h3 style={{ fontFamily: "Inter, ui-sans-serif, sans-serif", fontSize: 32, fontWeight: 400, letterSpacing: "-0.74px", lineHeight: 1.25, margin: "0 0 16px", color: "#000000" }}>
-              Compose a plan in seven bounds.
-            </h3>
-            <p style={{ fontSize: 16, lineHeight: 1.5, margin: "0 0 20px", color: "#303136" }}>
-              Pick a real xStock mint, set your multiplier snapshot, route cost, exit bound, size cap, and
-              reference age limits. The evaluator reads live Token-2022 state and composes a keyless Jupiter
-              swap — no wallet, no server, no gas.
+            <h1 style={{ fontSize: "clamp(32px, 4.5vw, 48px)", fontWeight: 800, letterSpacing: "-0.03em", lineHeight: 1.12, margin: "0 0 16px" }}>
+              Scheduled equity buys that verify or refuse on-chain
+            </h1>
+            <p style={{ fontSize: 14, color: "#6b7280", lineHeight: 1.7, margin: "0 0 24px", maxWidth: 420 }}>
+              Every recurring buy is checked against live Token-2022 mint state before execution. If any of 7 invariant checks fails, the trade is refused and the refusal is recorded as a permanent on-chain receipt.
             </p>
-            <Link href="/plan" style={{ color: "#145FE4", fontSize: 16, fontWeight: 500, textDecoration: "none" }}>
-              Try the plan builder &rarr;
-            </Link>
-          </div>
-          <BrowserWindow url="manifest.xyz/plan">
-            <PlanBuilderMock />
-          </BrowserWindow>
-        </div>
-
-        {/* 02 Refusal tape */}
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 64, alignItems: "center", marginBottom: 96 }}>
-          <BrowserWindow url="manifest.xyz/tape">
-            <RefusalTapeMock />
-          </BrowserWindow>
-          <div>
-            <p style={{ fontFamily: "JetBrains Mono, monospace", fontSize: 11, letterSpacing: "0.12em", textTransform: "uppercase", color: "#145FE4", marginBottom: 12 }}>02 · Refusal tape</p>
-            <h3 style={{ fontFamily: "Inter, ui-sans-serif, sans-serif", fontSize: 32, fontWeight: 400, letterSpacing: "-0.74px", lineHeight: 1.25, margin: "0 0 16px", color: "#000000" }}>
-              Every refusal is public evidence.
-            </h3>
-            <p style={{ fontSize: 16, lineHeight: 1.5, margin: "0 0 20px", color: "#303136" }}>
-              When a check trips, the named error, the account data hash, and the read slot are written to
-              an append-only tape. Anyone can re-verify by reading the same slot at the same mint.
-            </p>
-            <Link href="/tape" style={{ color: "#145FE4", fontSize: 16, fontWeight: 500, textDecoration: "none" }}>
-              Read the tape &rarr;
-            </Link>
-          </div>
-        </div>
-
-        {/* 03 Mint truth cards */}
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 64, alignItems: "center", marginBottom: 96 }}>
-          <div>
-            <p style={{ fontFamily: "JetBrains Mono, monospace", fontSize: 11, letterSpacing: "0.12em", textTransform: "uppercase", color: "#145FE4", marginBottom: 12 }}>03 · Mint truth cards</p>
-            <h3 style={{ fontFamily: "Inter, ui-sans-serif, sans-serif", fontSize: 32, fontWeight: 400, letterSpacing: "-0.74px", lineHeight: 1.25, margin: "0 0 16px", color: "#000000" }}>
-              One live-read per issuer mint.
-            </h3>
-            <p style={{ fontSize: 16, lineHeight: 1.5, margin: "0 0 20px", color: "#303136" }}>
-              Every mint gets its own page that reads Token-2022 extension state at request time: multiplier,
-              paused status, permanent delegate, transfer hook program, and the slot it was read at.
-            </p>
-            <Link href={`/mint/XsDoVfqeBukxuZHWhdvWHBhgEHjGNst4MLodqsJHzoB`} style={{ color: "#145FE4", fontSize: 16, fontWeight: 500, textDecoration: "none" }}>
-              View a truth card &rarr;
-            </Link>
-          </div>
-          <BrowserWindow url="manifest.xyz/mint/TSLAx">
-            <TruthCardMock />
-          </BrowserWindow>
-        </div>
-
-        {/* 04 Evidence */}
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 64, alignItems: "center" }}>
-          <BrowserWindow url="manifest.xyz/evidence">
-            <EvidenceMock />
-          </BrowserWindow>
-          <div>
-            <p style={{ fontFamily: "JetBrains Mono, monospace", fontSize: 11, letterSpacing: "0.12em", textTransform: "uppercase", color: "#145FE4", marginBottom: 12 }}>04 · Evidence pack</p>
-            <h3 style={{ fontFamily: "Inter, ui-sans-serif, sans-serif", fontSize: 32, fontWeight: 400, letterSpacing: "-0.74px", lineHeight: 1.25, margin: "0 0 16px", color: "#000000" }}>
-              Every claim maps to a command.
-            </h3>
-            <p style={{ fontSize: 16, lineHeight: 1.5, margin: "0 0 20px", color: "#303136" }}>
-              Every claim in the project README maps to a runnable command that proves or disproves it.
-              verify_receipts.py re-reads every mint quoted in the docs and exits non-zero on mismatch.
-            </p>
-            <Link href="/evidence" style={{ color: "#145FE4", fontSize: 16, fontWeight: 500, textDecoration: "none" }}>
-              See the evidence &rarr;
-            </Link>
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-/* ── BROWSER WINDOW FRAME ── */
-function BrowserWindow({ children, url }: { children: React.ReactNode; url: string }) {
-  return (
-    <div style={{
-      background: "#F4F5F7", borderRadius: 8, padding: 24,
-      border: "1px solid #d7d7db", boxShadow: "0 8px 24px 0 rgba(0,0,0,0.06)",
-    }}>
-      <div style={{ background: "#ffffff", borderRadius: 8, overflow: "hidden", border: "1px solid #e0e0e0" }}>
-        <div style={{ display: "flex", gap: 6, padding: "10px 16px", background: "#F8F8FA", borderBottom: "1px solid #e0e0e0", alignItems: "center" }}>
-          <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#FF5F56" }} />
-          <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#FFBD2E" }} />
-          <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#27C93F" }} />
-          <span style={{ marginLeft: 24, fontSize: 11, color: "#6D6B60", fontFamily: "JetBrains Mono, monospace", padding: "1px 12px", background: "#eee", borderRadius: 4, flex: 1, textAlign: "center" }}>{url}</span>
-        </div>
-        <div style={{ padding: 24 }}>{children}</div>
-      </div>
-    </div>
-  );
-}
-
-/* ── PLAN BUILDER MOCK ── */
-function PlanBuilderMock() {
-  return (
-    <>
-      <div style={{ fontFamily: "JetBrains Mono, monospace", fontSize: 10, letterSpacing: "0.12em", textTransform: "uppercase", color: "#999", marginBottom: 16 }}>Plan configuration</div>
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-        <div>
-          <div style={{ fontSize: 11, color: "#666", marginBottom: 4, fontFamily: "JetBrains Mono, monospace" }}>MINT</div>
-          <div style={{ padding: "8px 12px", border: "1px solid #d7d7db", borderRadius: 6, fontSize: 13, background: "#fafafa" }}>TSLAx</div>
-        </div>
-        <div>
-          <div style={{ fontSize: 11, color: "#666", marginBottom: 4, fontFamily: "JetBrains Mono, monospace" }}>SIZE</div>
-          <div style={{ padding: "8px 12px", border: "1px solid #d7d7db", borderRadius: 6, fontSize: 13, background: "#fafafa" }}>500</div>
-        </div>
-        <div>
-          <div style={{ fontSize: 11, color: "#666", marginBottom: 4, fontFamily: "JetBrains Mono, monospace" }}>ROUTE COST</div>
-          <div style={{ padding: "8px 12px", border: "1px solid #d7d7db", borderRadius: 6, fontSize: 13, background: "#fafafa" }}>30 bps</div>
-        </div>
-        <div>
-          <div style={{ fontSize: 11, color: "#666", marginBottom: 4, fontFamily: "JetBrains Mono, monospace" }}>EXIT BOUND</div>
-          <div style={{ padding: "8px 12px", border: "1px solid #d7d7db", borderRadius: 6, fontSize: 13, background: "#fafafa" }}>50 bps</div>
-        </div>
-      </div>
-      <div style={{ marginTop: 16, display: "flex", gap: 8, alignItems: "center" }}>
-        <div style={{ padding: "8px 20px", background: "#145FE4", color: "#fff", borderRadius: 9999, fontSize: 13, fontWeight: 500 }}>Evaluate</div>
-        <div style={{ padding: "5px 12px", background: "#E8F5E9", color: "#2E7D32", borderRadius: 9999, fontSize: 11, fontFamily: "JetBrains Mono, monospace" }}>ACCEPT</div>
-      </div>
-    </>
-  );
-}
-
-/* ── REFUSAL TAPE MOCK ── */
-function RefusalTapeMock() {
-  const rows = [
-    { v: "REFUSE", check: "exit_at_size", slot: "447185683" },
-    { v: "REFUSE", check: "multiplier_freshness", slot: "447185680" },
-    { v: "ACCEPT", check: "", slot: "447185677" },
-    { v: "REFUSE", check: "issuer_levers", slot: "447185674" },
-  ];
-  return (
-    <>
-      <div style={{ fontFamily: "JetBrains Mono, monospace", fontSize: 10, letterSpacing: "0.12em", textTransform: "uppercase", color: "#999", marginBottom: 12 }}>Recent tape entries</div>
-      <div style={{
-        display: "grid", gridTemplateColumns: "90px 1fr 120px", gap: 16, padding: "10px 0",
-        borderBottom: "2px solid #eee", fontFamily: "JetBrains Mono, monospace", fontSize: 10, letterSpacing: "0.05em", textTransform: "uppercase", color: "#999", marginBottom: 4,
-      }}>
-        <span>Verdict</span>
-        <span>Check</span>
-        <span>Slot</span>
-      </div>
-      {rows.map((row, i) => (
-        <div key={i} style={{
-          display: "grid", gridTemplateColumns: "90px 1fr 120px", gap: 16, padding: "10px 0",
-          borderBottom: i < 3 ? "1px solid #f0f0f0" : "none", fontSize: 13,
-          fontFamily: "JetBrains Mono, monospace", alignItems: "center",
-        }}>
-          <span style={{
-            padding: "3px 10px", borderRadius: 9999, fontSize: 10, fontWeight: 600, textAlign: "center", width: "fit-content",
-            background: row.v === "ACCEPT" ? "#E8F5E9" : "#FFF3E0",
-            color: row.v === "ACCEPT" ? "#2E7D32" : "#E65100",
-          }}>{row.v}</span>
-          <span style={{ color: "#000" }}>{row.check || "—"}</span>
-          <span style={{ color: "#999" }}>#{row.slot}</span>
-        </div>
-      ))}
-    </>
-  );
-}
-
-/* ── TRUTH CARD MOCK ── */
-function TruthCardMock() {
-  const fields = [
-    ["Multiplier", "1.000000"],
-    ["Paused", "false"],
-    ["Permanent Delegate", "0x8a3...de9f"],
-    ["Transfer Hook", "none"],
-    ["Slot", "447185683"],
-  ];
-  return (
-    <>
-      <div style={{ fontFamily: "JetBrains Mono, monospace", fontSize: 10, letterSpacing: "0.12em", textTransform: "uppercase", color: "#999", marginBottom: 12 }}>TSLAx — Token-2022 State</div>
-      {fields.map(([k, v]) => (
-        <div key={k as string} style={{
-          display: "grid", gridTemplateColumns: "160px 1fr", gap: 12,
-          padding: "8px 0", borderBottom: "1px solid #f0f0f0",
-          fontSize: 12, fontFamily: "JetBrains Mono, monospace",
-        }}>
-          <span style={{ color: "#999" }}>{k}</span>
-          <span style={{ color: "#000", wordBreak: "break-all" }}>{v}</span>
-        </div>
-      ))}
-    </>
-  );
-}
-
-/* ── EVIDENCE MOCK ── */
-function EvidenceMock() {
-  const claims = [
-    { check: "mint_identity", cmd: "verify_receipts.py --check mint_identity" },
-    { check: "multiplier_freshness", cmd: "verify_receipts.py --check multiplier_freshness" },
-    { check: "exit_at_size", cmd: "verify_receipts.py --plan data/plan.json" },
-  ];
-  return (
-    <>
-      <div style={{ fontFamily: "JetBrains Mono, monospace", fontSize: 10, letterSpacing: "0.12em", textTransform: "uppercase", color: "#999", marginBottom: 12 }}>Verifiable claims</div>
-      {claims.map((c, i) => (
-        <div key={i} style={{
-          padding: "12px 16px", background: "#F8F8FA", borderRadius: 6,
-          border: "1px solid #eee", marginBottom: 8,
-          fontFamily: "JetBrains Mono, monospace", fontSize: 12,
-        }}>
-          <div style={{ color: "#145FE4", marginBottom: 4 }}>{c.check}</div>
-          <div style={{ color: "#6D6B60" }}>$ {c.cmd}</div>
-        </div>
-      ))}
-    </>
-  );
-}
-
-/* ── HOW IT WORKS ── */
-const steps = [
-  { step: "01", title: "Compose", desc: "Pick a mint, set your bounds, choose a size. The plan is a JSON object with seven bounded fields." },
-  { step: "02", title: "Evaluate", desc: "The evaluator reads Token-2022 extension state, composes a Jupiter swap, then runs the checks against live mainnet accounts." },
-  { step: "03", title: "Refuse or fill", desc: "If every check passes, the transaction is signed and broadcast. If any fails, the named error is written to the tape." },
-];
-
-function HowItWorksSection() {
-  return (
-    <section style={{ padding: "96px 0", background: "#F8F8FA" }}>
-      <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 24px" }}>
-        <div style={{ textAlign: "center", marginBottom: 56 }}>
-          <h2 style={{
-            fontFamily: "Inter, ui-sans-serif, sans-serif",
-            fontSize: "clamp(28px, 3.8vw, 48px)", fontWeight: 400,
-            letterSpacing: "-1.1px", lineHeight: 1.2, margin: 0, color: "#000000",
-          }}>
-            Three steps between a plan and a broadcast.
-          </h2>
-        </div>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 40 }}>
-          {steps.map((s) => (
-            <div key={s.step} style={{ textAlign: "center" }}>
-              <div style={{
-                width: 52, height: 52, borderRadius: "50%",
-                background: "#145FE4", color: "#fff",
-                display: "flex", alignItems: "center", justifyContent: "center",
-                fontFamily: "Inter, sans-serif", fontSize: 18, fontWeight: 500,
-                margin: "0 auto 16px",
-              }}>
-                {s.step}
-              </div>
-              <h3 style={{ fontFamily: "Inter, ui-sans-serif, sans-serif", fontSize: 24, fontWeight: 500, letterSpacing: "-0.4px", lineHeight: 1.3, margin: "0 0 8px", color: "#000000" }}>
-                {s.title}
-              </h3>
-              <p style={{ fontSize: 15, lineHeight: 1.6, margin: 0, color: "#303136", maxWidth: "36ch", marginLeft: "auto", marginRight: "auto" }}>
-                {s.desc}
-              </p>
+            <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
+              <Link href="/plan" className="btn btn-primary">Launch app</Link>
+              <a href="https://github.com/subheeksh5599/manifest" style={{ fontSize: 13, fontWeight: 500, color: "#1a1a1a", textDecoration: "none" }}>
+                View source →
+              </a>
             </div>
+          </div>
+
+          {/* Mock preflight verdict card */}
+          <div style={{ background: "#fff", border: "1px solid #dedfe1", borderRadius: 2, boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>
+            <div style={{ padding: "12px 16px", borderBottom: "1px solid #f3f4f6", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <span style={{ fontSize: 13, fontWeight: 600 }}>Preflight evaluation</span>
+              <div style={{ display: "flex", gap: 8, fontSize: 10, fontFamily: "var(--font-mono)", color: "#9ca3af", alignItems: "center" }}>
+                <span>SLOT 447,185,683</span>
+                <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#0ECB81", display: "inline-block" }} />
+              </div>
+            </div>
+            <div style={{ padding: "4px 16px" }}>
+              {[
+                { name: "mint_identity", pass: true },
+                { name: "multiplier_freshness", pass: true },
+                { name: "issuer_levers", pass: true },
+                { name: "reference_regime", pass: false },
+                { name: "exit_at_size", pass: null },
+                { name: "policy", pass: null },
+              ].map((c, i) => (
+                <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 0", borderBottom: i < 5 ? "1px solid #fafafa" : "none", fontSize: 12 }}>
+                  <span style={{ fontFamily: "var(--font-mono)", color: c.pass === false ? "#FF4D4D" : "#1a1a1a" }}>{c.name}</span>
+                  <span style={{ fontFamily: "var(--font-mono)", fontSize: 10, letterSpacing: "0.04em", color: c.pass === true ? "#0ECB81" : c.pass === false ? "#FF4D4D" : "#d1d5db" }}>
+                    {c.pass === true ? "PASS" : c.pass === false ? "FAIL" : "SKIP"}
+                  </span>
+                </div>
+              ))}
+            </div>
+            <div style={{ padding: "12px 16px", borderTop: "1px solid #f3f4f6", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <span className="v-r">REFUSED</span>
+              <span style={{ fontSize: 11, fontFamily: "var(--font-mono)", color: "#FF4D4D" }}>reference_regime: ref_age 47h &gt; max 6h</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function StatsSection() {
+  return (
+    <section style={{ background: "#1a1a1a", color: "#fff", padding: "80px 0" }}>
+      <div className="wrap">
+        <div style={{ textAlign: "center", maxWidth: 640, margin: "0 auto 48px" }}>
+          <h2 style={{ fontSize: "clamp(24px, 3vw, 36px)", fontWeight: 800, letterSpacing: "-0.02em", margin: "0 0 12px" }}>
+            The preflight guard for tokenized equities
+          </h2>
+          <p style={{ fontSize: 14, color: "#9ca3af", lineHeight: 1.6 }}>
+            Reads live Token-2022 extension state from Solana mainnet. Checks multiplier freshness, issuer levers, exit cost, and policy bounds in one atomic evaluation.
+          </p>
+        </div>
+
+        <div className="sg" style={{ marginBottom: 48 }}>
+          <div><div className="sg-v">554</div><div className="sg-l">TESTS PASSING</div></div>
+          <div><div className="sg-v">7</div><div className="sg-l">INVARIANT CHECKS</div></div>
+          <div><div className="sg-v">4</div><div className="sg-l">ON-CHAIN INSTRUCTIONS</div></div>
+          <div><div className="sg-v">5</div><div className="sg-l">xSTOCK MINTS</div></div>
+        </div>
+
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24, maxWidth: 900, margin: "0 auto" }}>
+          <div style={{ background: "#fff", color: "#1a1a1a", padding: 28, borderRadius: 2 }}>
+            <span style={{ display: "inline-block", fontSize: 10, fontFamily: "var(--font-mono)", letterSpacing: "0.08em", padding: "2px 8px", background: "#f3f4f6", borderRadius: 2, marginBottom: 12, fontWeight: 600 }}>OFF-CHAIN</span>
+            <h3 style={{ fontSize: 16, fontWeight: 700, margin: "0 0 8px" }}>Preflight evaluation</h3>
+            <p style={{ fontSize: 12, color: "#6b7280", lineHeight: 1.6, margin: "0 0 16px" }}>
+              Pure function: plan + registry entry + live mint card = ACCEPT or REFUSE with the named check that tripped.
+            </p>
+            <ul style={{ fontSize: 12, color: "#374151", listStyle: "none", padding: 0, margin: 0 }}>
+              {["mint_identity", "multiplier_freshness", "issuer_levers", "reference_regime", "exit_at_size", "policy"].map(c => (
+                <li key={c} style={{ padding: "4px 0", borderTop: "1px solid #f3f4f6", fontFamily: "var(--font-mono)", fontWeight: 600 }}>{c}</li>
+              ))}
+            </ul>
+          </div>
+          <div style={{ background: "#fff", color: "#1a1a1a", padding: 28, borderRadius: 2 }}>
+            <span style={{ display: "inline-block", fontSize: 10, fontFamily: "var(--font-mono)", letterSpacing: "0.08em", padding: "2px 8px", background: "#145FE4", color: "#fff", borderRadius: 2, marginBottom: 12, fontWeight: 600 }}>ON-CHAIN</span>
+            <h3 style={{ fontSize: 16, fontWeight: 700, margin: "0 0 8px" }}>Anchor program (devnet)</h3>
+            <p style={{ fontSize: 12, color: "#6b7280", lineHeight: 1.6, margin: "0 0 16px" }}>
+              Deployed on Solana devnet. Creates plans, runs checks against Token-2022 extension data, records fills and refusals as permanent receipts.
+            </p>
+            <ul style={{ fontSize: 12, color: "#374151", listStyle: "none", padding: 0, margin: 0 }}>
+              {[
+                "create_plan — PDA-bound plan with mint + snapshot",
+                "preflight — reads pausable, transfer_hook, multiplier",
+                "record_fill — writes fill receipt to chain",
+                "record_refusal — writes refusal with reason code",
+              ].map(c => (
+                <li key={c} style={{ padding: "4px 0", borderTop: "1px solid #f3f4f6" }}>{c}</li>
+              ))}
+            </ul>
+            <div style={{ marginTop: 12, fontSize: 10, fontFamily: "var(--font-mono)", color: "#9ca3af" }}>
+              pTpaE75ubNyv9voydPJNaEfmv3GbmcN5bvZBfnRtdiA
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function ProductShowcase() {
+  const cards = [
+    { title: "Plan Builder", desc: "Select a mint, set bounds for slippage, reference age, exit cost. Evaluated against live state.", href: "/plan",
+      svg: <svg viewBox="0 0 200 80" style={{width:"100%",height:"100%"}}><rect x="10" y="15" width="180" height="8" rx="1" fill="#f3f4f6"/><rect x="10" y="15" width="120" height="8" rx="1" fill="#145FE4" opacity="0.3"/><rect x="10" y="30" width="180" height="8" rx="1" fill="#f3f4f6"/><rect x="10" y="30" width="80" height="8" rx="1" fill="#145FE4" opacity="0.3"/><rect x="10" y="45" width="180" height="8" rx="1" fill="#f3f4f6"/><rect x="10" y="45" width="140" height="8" rx="1" fill="#0ECB81" opacity="0.3"/><rect x="10" y="62" width="60" height="12" rx="1" fill="#1a1a1a"/></svg> },
+    { title: "No-Trade Tape", desc: "Every refusal is appended with the check that tripped, the live value, and the account data hash.", href: "/tape",
+      svg: <svg viewBox="0 0 200 80" style={{width:"100%",height:"100%"}}>{[0,1,2,3].map(i=><g key={i}><rect x="10" y={10+i*17} width="180" height="12" rx="1" fill="#fafafa" stroke="#f3f4f6"/><rect x="14" y={12+i*17} width="30" height="8" rx="1" fill={i===1||i===3?"#FF4D4D":"#0ECB81"} opacity="0.2"/><rect x="50" y={12+i*17} width="60" height="8" rx="1" fill="#e5e7eb"/></g>)}</svg> },
+    { title: "Mint Truth Cards", desc: "Live Token-2022 extension state: multiplier, paused status, delegate, transfer hook, supply.", href: "/mint/XsDoVfqeBukxuZHWhdvWHBhgEHjGNst4MLodqsJHzoB",
+      svg: <svg viewBox="0 0 200 80" style={{width:"100%",height:"100%"}}><rect x="10" y="8" width="85" height="64" rx="1" fill="#fafafa" stroke="#e5e7eb"/><rect x="105" y="8" width="85" height="64" rx="1" fill="#fafafa" stroke="#e5e7eb"/><text x="52" y="30" textAnchor="middle" fontSize="8" fill="#9ca3af" fontFamily="monospace">TSLAx</text><text x="52" y="45" textAnchor="middle" fontSize="10" fill="#1a1a1a" fontWeight="600" fontFamily="monospace">1.000000</text><text x="147" y="30" textAnchor="middle" fontSize="8" fill="#9ca3af" fontFamily="monospace">NVDAx</text><text x="147" y="45" textAnchor="middle" fontSize="10" fill="#1a1a1a" fontWeight="600" fontFamily="monospace">1.000000</text></svg> },
+    { title: "Evidence Pack", desc: "Every claim maps to a runnable command. Adversarial tests: tampered tape, stale mirrors, guard-less ablation.", href: "/evidence",
+      svg: <svg viewBox="0 0 200 80" style={{width:"100%",height:"100%"}}>{[0,1,2,3].map(i=><g key={i}><circle cx="20" cy={18+i*17} r="5" fill="#0ECB81" opacity="0.15"/><path d={`M17,${18+i*17} l2,2 l4,-4`} stroke="#0ECB81" strokeWidth="1.5" fill="none"/><rect x="32" y={14+i*17} width="100" height="8" rx="1" fill="#f3f4f6"/></g>)}</svg> },
+  ];
+
+  return (
+    <section style={{ background: "#fff", padding: "80px 0", borderBottom: "1px solid #dedfe1" }}>
+      <div className="wrap">
+        <div style={{ textAlign: "center", marginBottom: 48 }}>
+          <h2 style={{ fontSize: "clamp(24px, 3vw, 36px)", fontWeight: 800, letterSpacing: "-0.02em", margin: "0 0 12px" }}>
+            What you can inspect
+          </h2>
+          <p style={{ fontSize: 14, color: "#6b7280", maxWidth: 480, margin: "0 auto" }}>
+            Every surface reads live state. Nothing is mocked or cached beyond a single request.
+          </p>
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16 }}>
+          {cards.map((c, i) => (
+            <Link key={i} href={c.href} style={{ textDecoration: "none", color: "inherit" }}>
+              <div className="card card-hover" style={{ height: "100%", display: "flex", flexDirection: "column" }}>
+                <div style={{ height: 80, background: "#fafafa", border: "1px solid #f3f4f6", borderRadius: 2, marginBottom: 12, overflow: "hidden" }}>{c.svg}</div>
+                <h3 style={{ fontSize: 13, fontWeight: 700, margin: "0 0 6px" }}>{c.title}</h3>
+                <p style={{ fontSize: 11, color: "#6b7280", lineHeight: 1.5, margin: 0, flex: 1 }}>{c.desc}</p>
+              </div>
+            </Link>
           ))}
         </div>
       </div>
@@ -486,72 +184,93 @@ function HowItWorksSection() {
   );
 }
 
-/* ── CTA ── */
-function CTASection() {
+function InvariantSection() {
   return (
-    <section style={{ background: "#1D1D21", color: "#ffffff", padding: "80px 0" }}>
-      <div style={{ maxWidth: 720, margin: "0 auto", padding: "0 24px", textAlign: "center" }}>
-        <h2 style={{
-          fontFamily: "Inter, ui-sans-serif, sans-serif",
-          fontSize: "clamp(28px, 3.8vw, 48px)", fontWeight: 400,
-          letterSpacing: "-1.1px", lineHeight: 1.2, margin: "0 0 16px",
-        }}>
-          The default answer is no. It is faster than yes.
-        </h2>
-        <p style={{ fontSize: 20, lineHeight: 1.43, color: "rgba(255,255,255,0.6)", margin: "0 auto 32px", maxWidth: "56ch" }}>
-          No unit of equity moves unless the trade is provably safe at that instant. When it is not safe,
-          the transaction refuses with a named error and the system publishes why, priced.
-        </p>
-        <Link href="/plan" style={{
-          display: "inline-flex", alignItems: "center", gap: 8,
-          background: "#ffffff", color: "#000000",
-          borderRadius: 9999, padding: "10px 24px",
-          fontSize: 15, fontWeight: 500, textDecoration: "none",
-        }}>
-          Try a plan <span aria-hidden>&rarr;</span>
-        </Link>
+    <section style={{ background: "#edeff2", padding: "80px 0", borderBottom: "1px solid #dedfe1" }}>
+      <div className="wrap">
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 48, alignItems: "start" }}>
+          <div>
+            <h2 style={{ fontSize: "clamp(24px, 3vw, 36px)", fontWeight: 800, letterSpacing: "-0.02em", margin: "0 0 16px" }}>
+              The default answer is no
+            </h2>
+            <p style={{ fontSize: 14, color: "#6b7280", lineHeight: 1.7, margin: "0 0 20px", maxWidth: 420 }}>
+              A recurring buy that passes all 7 checks fills normally. A buy that fails any single check is publicly refused. The refusal carries the check name, the on-chain value that tripped it, and the account data hash at that slot.
+            </p>
+            <p style={{ fontSize: 14, color: "#6b7280", lineHeight: 1.7, margin: "0 0 24px", maxWidth: 420 }}>
+              A silent retry is unfalsifiable. A public refusal is evidence.
+            </p>
+            <div style={{ display: "flex", gap: 12 }}>
+              <Link href="/plan" className="btn btn-primary">Try a plan</Link>
+              <Link href="/tape" style={{ fontSize: 13, fontWeight: 500, color: "#145FE4", textDecoration: "none", padding: "8px 0" }}>View the tape →</Link>
+            </div>
+          </div>
+
+          <div style={{ background: "#fff", border: "1px solid #dedfe1", borderRadius: 2, overflow: "hidden" }}>
+            <div style={{ padding: "12px 16px", borderBottom: "1px solid #f3f4f6", fontSize: 10, fontFamily: "var(--font-mono)", letterSpacing: "0.06em", color: "#9ca3af", textTransform: "uppercase" }}>
+              7 invariant checks — first failure wins
+            </div>
+            {[
+              { n: 1, name: "mint_identity", desc: "Registry entry exists, symbol matches" },
+              { n: 2, name: "multiplier_freshness", desc: "Plan snapshot == live multiplier" },
+              { n: 3, name: "issuer_levers", desc: "Not paused, no transfer hook" },
+              { n: 4, name: "reference_regime", desc: "Last print age within tolerance" },
+              { n: 5, name: "exit_at_size", desc: "Round-trip cost within bound" },
+              { n: 6, name: "policy", desc: "Size within per-trade cap" },
+              { n: 7, name: "idempotency", desc: "Plan ID not already filled" },
+            ].map((c) => (
+              <div key={c.n} style={{ display: "grid", gridTemplateColumns: "28px 1fr", padding: "10px 16px", borderBottom: "1px solid #fafafa", fontSize: 12, alignItems: "start" }}>
+                <span style={{ fontFamily: "var(--font-mono)", color: "#d1d5db", fontSize: 10 }}>{c.n}</span>
+                <div>
+                  <div style={{ fontFamily: "var(--font-mono)", fontWeight: 600, marginBottom: 2 }}>{c.name}</div>
+                  <div style={{ color: "#9ca3af", fontSize: 11 }}>{c.desc}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     </section>
   );
 }
 
-/* ── FAQ ── */
-const faq = [
-  { q: "Does Manifest broadcast a real transaction?", a: "The composed transaction is evaluated against live mainnet state and never sent. Flipping the fill path on public mainnet is one cluster constant and a funded key; the evaluator code is identical." },
-  { q: "What exactly does it read?", a: "Token-2022 extension state on the issuer mint account: scaled UI amount, pausable config, permanent delegate, transfer hook. It also composes a keyless Jupiter swap instruction and reads the current route cost." },
-  { q: "Why refuse instead of retry?", a: "A refusal is the product. The named check and the account data hash are written to an append-only tape. Anyone can re-verify by reading the same slot. A silent retry is unfalsifiable; a public refusal is evidence." },
-  { q: "Is there a wallet, a key, or a server-side signer?", a: "None. The site reads mainnet through a public RPC endpoint. No server-side key, no session, no custody. Every number on the page is from a read." },
-];
-
-function FAQSection() {
+function SiteFooter() {
   return (
-    <section style={{ padding: "80px 0", background: "#ffffff" }}>
-      <div style={{ maxWidth: 800, margin: "0 auto", padding: "0 24px" }}>
-        <div style={{ textAlign: "center", marginBottom: 40 }}>
-          <p style={{ fontFamily: "JetBrains Mono, monospace", fontSize: 11, letterSpacing: "0.12em", textTransform: "uppercase", color: "#303136", marginBottom: 16 }}>
-            Questions
-          </p>
-          <h2 style={{
-            fontFamily: "Inter, ui-sans-serif, sans-serif",
-            fontSize: "clamp(28px, 3.8vw, 48px)", fontWeight: 400,
-            letterSpacing: "-1.1px", lineHeight: 1.2, margin: 0, color: "#000000",
-          }}>
-            The questions we get most.
-          </h2>
-        </div>
-        {faq.map((item) => (
-          <details key={item.q} style={{ borderTop: "1px solid #d7d7db", padding: "18px 0", cursor: "pointer" }}>
-            <summary style={{ listStyle: "none", display: "flex", justifyContent: "space-between", gap: 24, fontWeight: 500, fontSize: 16, color: "#000000" }}>
-              {item.q}
-              <span style={{ color: "#999", fontSize: 18 }}>+</span>
-            </summary>
-            <div style={{ marginTop: 8, color: "#303136", fontSize: 15, lineHeight: 1.65, maxWidth: "60ch" }}>
-              {item.a}
+    <footer style={{ background: "#1a1a1a", color: "#fff", padding: "64px 0 48px" }}>
+      <div className="wrap">
+        <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr 1fr", gap: 32, paddingBottom: 48, borderBottom: "1px solid #2a2a2a" }}>
+          <div>
+            <div style={{ fontSize: 18, fontWeight: 700, letterSpacing: "-0.03em", marginBottom: 12 }}>manifest</div>
+            <p style={{ fontSize: 12, color: "#6b7280", lineHeight: 1.6, maxWidth: "24ch" }}>Reads mainnet at request time. Refusals are the product.</p>
+          </div>
+          <div>
+            <div className="label-mono" style={{ marginBottom: 12 }}>Product</div>
+            <div style={{ display: "grid", gap: 8, fontSize: 12 }}>
+              <Link href="/plan" style={{ color: "#9ca3af", textDecoration: "none" }}>Plan builder</Link>
+              <Link href="/tape" style={{ color: "#9ca3af", textDecoration: "none" }}>No-Trade Tape</Link>
+              <Link href="/evidence" style={{ color: "#9ca3af", textDecoration: "none" }}>Evidence pack</Link>
             </div>
-          </details>
-        ))}
-        <div style={{ borderBottom: "1px solid #d7d7db" }} />
+          </div>
+          <div>
+            <div className="label-mono" style={{ marginBottom: 12 }}>On-Chain</div>
+            <div style={{ display: "grid", gap: 8, fontSize: 12 }}>
+              <a href="https://explorer.solana.com/address/pTpaE75ubNyv9voydPJNaEfmv3GbmcN5bvZBfnRtdiA?cluster=devnet" style={{ color: "#9ca3af", textDecoration: "none" }}>Program</a>
+              <a href="https://explorer.solana.com/address/rDt5XPbutXYPtMgox2AGepKGtDVvBkuhaHiCgU3oxh3?cluster=devnet" style={{ color: "#9ca3af", textDecoration: "none" }}>Plan (filled)</a>
+              <a href="https://explorer.solana.com/address/7hBCzAdqrsNUmQ4VGEvvHjjSGMurQARVB5emjbYHVmsj?cluster=devnet" style={{ color: "#9ca3af", textDecoration: "none" }}>Refusal receipt</a>
+            </div>
+          </div>
+          <div>
+            <div className="label-mono" style={{ marginBottom: 12 }}>Source</div>
+            <div style={{ display: "grid", gap: 8, fontSize: 12 }}>
+              <a href="https://github.com/subheeksh5599/manifest" style={{ color: "#9ca3af", textDecoration: "none" }}>GitHub</a>
+              <a href="https://github.com/subheeksh5599/manifest/blob/main/README.md" style={{ color: "#9ca3af", textDecoration: "none" }}>README</a>
+            </div>
+          </div>
+        </div>
+        <div style={{ paddingTop: 24, display: "flex", justifyContent: "space-between", fontSize: 11, color: "#6b7280" }}>
+          <span>No wallet. No funds. No mocks.</span>
+          <span>MIT — 2026</span>
+        </div>
       </div>
-    </section>
+    </footer>
   );
 }
