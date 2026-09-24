@@ -2,275 +2,589 @@ import Link from "next/link";
 
 export default function Home() {
   return (
-    <div>
-      <SiteHeader />
-      <HeroSection />
-      <StatsSection />
-      <ProductShowcase />
-      <InvariantSection />
-      <SiteFooter />
-    </div>
-  );
-}
+    <>
+{/* BEGIN: MainHeader */}
+<header className="sticky top-0 z-50 bg-white border-b border-[#dedfe1]">
+<div className="max-w-[1240px] mx-auto px-6 h-16 flex items-center justify-between">
+<div className="flex items-center space-x-10">
+<Link className="text-xl font-bold tracking-tight text-black flex items-center" href="/">
+          manifest
+</Link>
+</div>
+<div className="flex items-center space-x-8">
+<nav className="hidden md:flex items-center space-x-7 text-[13px] font-normal text-gray-700">
+<div className="relative group cursor-pointer flex items-center gap-1 hover:text-black transition-colors">
+<span>Products</span>
+<svg className="w-3.5 h-3.5 text-gray-500 stroke-[1.5]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path d="M19 9l-7 7-7-7" strokeLinecap="round" strokeLinejoin="round"></path>
+</svg>
+</div>
+<Link className="hover:text-black transition-colors" href="/plan">Plan</Link>
+<Link className="hover:text-black transition-colors" href="/tape">Tape</Link>
+<a className="hover:text-black transition-colors" href="https://github.com/subheeksh5599/manifest">Source</a>
+</nav>
+<Link className="bg-black text-white text-[13px] font-medium px-4 py-2 rounded-[2px] hover:bg-neutral-800 transition-colors shadow-sm" href="/plan">
+          Launch App
+</Link>
+</div>
+</div>
+</header>
+{/* END: MainHeader */}
 
-function SiteHeader() {
-  return (
-    <header className="site-header">
-      <div className="hi">
-        <Link href="/" className="hl">manifest</Link>
-        <nav className="hn">
-          <Link href="/plan">Plan</Link>
-          <Link href="/tape">Tape</Link>
-          <a href="https://github.com/subheeksh5599/manifest">Source</a>
-          <Link href="/plan" className="btn btn-primary">Launch app</Link>
-        </nav>
-      </div>
-    </header>
-  );
-}
+{/* BEGIN: HeroSection */}
+<section className="bg-[#edeff2] pt-16 pb-20 border-b border-[#dedfe1]">
+<div className="max-w-[1240px] mx-auto px-6">
+<div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+<div className="lg:col-span-5 space-y-6">
+<h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight leading-[1.12] text-black">
+            Scheduled<br/>equity buys<br/>that verify<br/>or refuse
+</h1>
+<p className="text-[14px] text-gray-600 leading-relaxed max-w-[390px]">
+            Every recurring buy is checked against live Token-2022 mint state before execution. If any of 7 invariant checks fails, the trade is refused and the refusal becomes a permanent on-chain receipt.
+</p>
+<div className="pt-2">
+<Link className="inline-flex items-center text-[13px] font-medium text-black hover:underline group" href="/plan">
+              Launch app
+              <span className="ml-1 tracking-normal transition-transform group-hover:translate-x-0.5">→</span>
+</Link>
+</div>
+</div>
+{/* Right Hero Chart UI Mockup */}
+<div className="lg:col-span-7">
+<div className="bg-white border border-[#dedfe1] rounded-[2px] shadow-sm p-4 text-[11px]">
+{/* Chart Header Controls */}
+<div className="flex flex-wrap items-center justify-between pb-3 border-b border-gray-100 gap-2">
+<div className="flex items-center space-x-2">
+<span className="font-medium text-gray-900 border-b border-black pb-0.5">Preflight verdicts</span>
+</div>
+<div className="flex items-center space-x-3 text-gray-500">
+<button className="flex items-center gap-1 hover:text-gray-900">
+<svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 4v16m8-8H4" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"></path></svg>
+                  Compare
+</button>
+<button className="flex items-center gap-1 hover:text-gray-900">
+<svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"></path></svg>
+                  Favorite
+</button>
+<button className="flex items-center gap-1 hover:text-gray-900">
+<svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"></path></svg>
+                  Create alert
+</button>
+</div>
+</div>
+{/* Chart Filter & Selector Row */}
+<div className="py-2.5 flex items-center justify-between">
+<div className="flex items-center space-x-2">
+<span className="inline-flex items-center px-2 py-0.5 bg-gray-100 rounded-[2px] font-medium text-gray-800 text-[10px]">
+<span className="w-2 h-2 rounded-full bg-amber-500 mr-1.5 inline-block"></span>
+                  xStock Equities
+</span>
+<div className="relative">
+<input className="text-[11px] py-0.5 px-2 bg-gray-50 border border-gray-200 rounded-[2px] w-28 text-gray-700" readOnly type="text" defaultValue="preflight"/>
+<svg className="w-3 h-3 text-gray-400 absolute right-1.5 top-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"></path></svg>
+</div>
+</div>
+<div className="flex items-center space-x-1.5 text-[10px] text-gray-500 font-mono">
+<span>1D</span>
+<span className="text-black font-semibold">1W</span>
+<span>1M</span>
+<span>1Y</span>
+<span>ALL</span>
+</div>
+</div>
+{/* Chart Visual Area */}
+<div className="h-64 w-full bg-white relative overflow-hidden rounded-[2px] border border-gray-100 flex flex-col justify-end">
+<div className="absolute inset-0 grid grid-rows-5 grid-cols-6 border-b border-gray-100">
+<div className="border-b border-r border-gray-50/80"></div>
+<div className="border-b border-r border-gray-50/80"></div>
+<div className="border-b border-r border-gray-50/80"></div>
+<div className="border-b border-r border-gray-50/80"></div>
+<div className="border-b border-r border-gray-50/80"></div>
+<div className="border-b border-gray-50/80"></div>
+</div>
+<svg className="w-full h-full preserve-3d" preserveAspectRatio="none" viewBox="0 0 600 240">
+<defs>
+<linearGradient id="grad-red" x1="0%" x2="0%" y1="0%" y2="100%">
+<stop offset="0%" stopColor="#ef4444" stopOpacity="0.9"></stop>
+<stop offset="100%" stopColor="#dc2626" stopOpacity="0.8"></stop>
+</linearGradient>
+<linearGradient id="grad-orange" x1="0%" x2="0%" y1="0%" y2="100%">
+<stop offset="0%" stopColor="#f97316" stopOpacity="0.8"></stop>
+<stop offset="100%" stopColor="#ea580c" stopOpacity="0.7"></stop>
+</linearGradient>
+<linearGradient id="grad-amber" x1="0%" x2="0%" y1="0%" y2="100%">
+<stop offset="0%" stopColor="#f59e0b" stopOpacity="0.7"></stop>
+<stop offset="100%" stopColor="#d97706" stopOpacity="0.6"></stop>
+</linearGradient>
+<linearGradient id="grad-yellow" x1="0%" x2="0%" y1="0%" y2="100%">
+<stop offset="0%" stopColor="#fbbf24" stopOpacity="0.6"></stop>
+<stop offset="100%" stopColor="#fcd34d" stopOpacity="0.5"></stop>
+</linearGradient>
+<linearGradient id="grad-blue" x1="0%" x2="0%" y1="0%" y2="100%">
+<stop offset="0%" stopColor="#60a5fa" stopOpacity="0.5"></stop>
+<stop offset="100%" stopColor="#93c5fd" stopOpacity="0.4"></stop>
+</linearGradient>
+<linearGradient id="grad-purple" x1="0%" x2="0%" y1="0%" y2="100%">
+<stop offset="0%" stopColor="#a855f7" stopOpacity="0.4"></stop>
+<stop offset="100%" stopColor="#c084fc" stopOpacity="0.3"></stop>
+</linearGradient>
+</defs>
+<path d="M 0,240 L 0,80 Q 75,120 150,90 T 300,60 T 450,40 T 600,20 L 600,240 Z" fill="url(#grad-purple)"></path>
+<path d="M 0,240 L 0,110 Q 80,140 160,110 T 320,80 T 470,60 T 600,45 L 600,240 Z" fill="url(#grad-blue)"></path>
+<path d="M 0,240 L 0,140 Q 90,170 170,130 T 340,110 T 490,90 T 600,70 L 600,240 Z" fill="url(#grad-yellow)"></path>
+<path d="M 0,240 L 0,165 Q 100,195 190,150 T 370,135 T 510,120 T 600,95 L 600,240 Z" fill="url(#grad-amber)"></path>
+<path d="M 0,240 L 0,190 Q 110,215 210,180 T 390,160 T 530,145 T 600,125 L 600,240 Z" fill="url(#grad-orange)"></path>
+<path d="M 0,240 L 0,210 Q 120,230 230,205 T 410,185 T 550,170 T 600,155 L 600,240 Z" fill="url(#grad-red)"></path>
+<path d="M 0,190 Q 60,160 120,130 T 240,110 T 360,95 T 480,45 T 600,30" fill="none" stroke="#000" strokeWidth="1.5"></path>
+</svg>
+<div className="flex justify-between text-[9px] text-gray-400 px-3 py-1.5 bg-white border-t border-gray-100 font-mono">
+<span>2016</span>
+<span>2018</span>
+<span>2020</span>
+<span>2022</span>
+<span>2024</span>
+<span>2026</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+{/* END: HeroSection */}
 
-function HeroSection() {
-  return (
-    <section style={{ background: "#edeff2", paddingTop: 80, paddingBottom: 80, borderBottom: "1px solid #dedfe1" }}>
-      <div className="wrap">
-        <div style={{ display: "grid", gridTemplateColumns: "5fr 7fr", gap: 48, alignItems: "center" }}>
-          <div>
-            <h1 style={{ fontSize: "clamp(32px, 4.5vw, 48px)", fontWeight: 800, letterSpacing: "-0.03em", lineHeight: 1.12, margin: "0 0 16px" }}>
-              Scheduled equity buys that verify or refuse on-chain
-            </h1>
-            <p style={{ fontSize: 14, color: "#6b7280", lineHeight: 1.7, margin: "0 0 24px", maxWidth: 420 }}>
-              Every recurring buy is checked against live Token-2022 mint state before execution. If any of 7 invariant checks fails, the trade is refused and the refusal is recorded as a permanent on-chain receipt.
-            </p>
-            <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
-              <Link href="/plan" className="btn btn-primary">Launch app</Link>
-              <a href="https://github.com/subheeksh5599/manifest" style={{ fontSize: 13, fontWeight: 500, color: "#1a1a1a", textDecoration: "none" }}>
-                View source →
-              </a>
-            </div>
-          </div>
+{/* BEGIN: SocialProof */}
+<section className="py-12 bg-white border-b border-[#dedfe1]">
+<div className="max-w-[1240px] mx-auto px-6 text-center">
+<p className="text-[13px] font-medium text-gray-500 mb-8 tracking-normal">
+        Built with
+</p>
+<div className="flex flex-wrap items-center justify-center gap-12 sm:gap-16 opacity-75 grayscale contrast-125">
+<span className="text-sm tracking-widest font-extrabold uppercase font-sans text-gray-900">SOLANA</span>
+<div className="flex items-center space-x-1 font-semibold text-sm tracking-wider text-gray-900">
+<svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle></svg>
+<span className="tracking-tight">TOKEN-2022</span>
+</div>
+<span className="text-sm font-semibold tracking-tight text-gray-900">Anchor</span>
+<div className="flex items-center text-sm font-bold text-gray-900">
+<span>Jupiter</span>
+<span className="text-[10px] ml-1 uppercase font-normal tracking-widest bg-gray-100 px-1 rounded-[1px]">V3</span>
+</div>
+<span className="text-sm font-bold tracking-tight text-gray-900">Backed Finance</span>
+</div>
+</div>
+</section>
+{/* END: SocialProof */}
 
-          {/* Mock preflight verdict card */}
-          <div style={{ background: "#fff", border: "1px solid #dedfe1", borderRadius: 2, boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>
-            <div style={{ padding: "12px 16px", borderBottom: "1px solid #f3f4f6", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <span style={{ fontSize: 13, fontWeight: 600 }}>Preflight evaluation</span>
-              <div style={{ display: "flex", gap: 8, fontSize: 10, fontFamily: "var(--font-mono)", color: "#9ca3af", alignItems: "center" }}>
-                <span>SLOT 447,185,683</span>
-                <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#0ECB81", display: "inline-block" }} />
-              </div>
-            </div>
-            <div style={{ padding: "4px 16px" }}>
-              {[
-                { name: "mint_identity", pass: true },
-                { name: "multiplier_freshness", pass: true },
-                { name: "issuer_levers", pass: true },
-                { name: "reference_regime", pass: false },
-                { name: "exit_at_size", pass: null },
-                { name: "policy", pass: null },
-              ].map((c, i) => (
-                <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 0", borderBottom: i < 5 ? "1px solid #fafafa" : "none", fontSize: 12 }}>
-                  <span style={{ fontFamily: "var(--font-mono)", color: c.pass === false ? "#FF4D4D" : "#1a1a1a" }}>{c.name}</span>
-                  <span style={{ fontFamily: "var(--font-mono)", fontSize: 10, letterSpacing: "0.04em", color: c.pass === true ? "#0ECB81" : c.pass === false ? "#FF4D4D" : "#d1d5db" }}>
-                    {c.pass === true ? "PASS" : c.pass === false ? "FAIL" : "SKIP"}
-                  </span>
-                </div>
-              ))}
-            </div>
-            <div style={{ padding: "12px 16px", borderTop: "1px solid #f3f4f6", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <span className="v-r">REFUSED</span>
-              <span style={{ fontSize: 11, fontFamily: "var(--font-mono)", color: "#FF4D4D" }}>reference_regime: ref_age 47h &gt; max 6h</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
+{/* BEGIN: UnifiedDataLayer */}
+<section className="bg-[#1a1a1a] text-white py-24">
+<div className="max-w-[1240px] mx-auto px-6">
+<div className="text-center max-w-3xl mx-auto mb-16 space-y-4">
+<h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight">
+          The preflight guard for tokenized equities
+</h2>
+<p className="text-[14px] text-gray-400 leading-relaxed max-w-2xl mx-auto">
+          Tokenized stock mints on Solana carry live issuer state in Token-2022 extensions. Manifest reads that state at request time and gates every buy against 7 invariant checks before any equity moves.
+</p>
+</div>
+<div className="flex justify-center items-center gap-8 sm:gap-16 mb-16 text-center divide-x divide-neutral-800">
+<div className="px-4">
+<div className="text-2xl sm:text-3xl font-bold tracking-tight">554</div>
+<div className="text-[10px] tracking-widest font-mono text-gray-400 uppercase mt-1">TESTS</div>
+</div>
+<div className="px-4 pl-8 sm:pl-16">
+<div className="text-2xl sm:text-3xl font-bold tracking-tight">7</div>
+<div className="text-[10px] tracking-widest font-mono text-gray-400 uppercase mt-1">INVARIANT CHECKS</div>
+</div>
+<div className="px-4 pl-8 sm:pl-16">
+<div className="text-2xl sm:text-3xl font-bold tracking-tight">5</div>
+<div className="text-[10px] tracking-widest font-mono text-gray-400 uppercase mt-1">xSTOCK MINTS</div>
+</div>
+</div>
+<div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+{/* Card 1: Off-Chain */}
+<div className="bg-white text-black p-7 rounded-[2px] flex flex-col justify-between">
+<div>
+<span className="inline-block text-[10px] font-mono uppercase tracking-wider px-2 py-0.5 bg-gray-100 text-gray-700 font-semibold mb-3 rounded-[2px]">
+              OFF-CHAIN
+</span>
+<h3 className="text-lg font-bold mb-1">Preflight evaluation</h3>
+<p className="text-[12px] text-gray-600 mb-6 leading-normal">
+              Pure function that takes a plan, a registry entry, and a live mint card. Returns ACCEPT or REFUSE with the named check that tripped. No side effects, no network on the hot path.
+</p>
+<ul className="text-[12px] space-y-2 border-t border-gray-100 pt-4 text-gray-800">
+<li><strong className="font-semibold">mint_identity</strong> — registry entry exists, symbol matches</li>
+<li><strong className="font-semibold">multiplier_freshness</strong> — snapshot == live multiplier</li>
+<li><strong className="font-semibold">issuer_levers</strong> — not paused, no transfer hook</li>
+<li><strong className="font-semibold">reference_regime</strong> — last print age within tolerance</li>
+<li><strong className="font-semibold">exit_at_size</strong> — round-trip cost within bound</li>
+<li><strong className="font-semibold">policy</strong> — size within per-trade cap</li>
+</ul>
+</div>
+<div className="pt-6 mt-6 border-t border-gray-100 text-[10px] text-gray-400 font-sans">
+            Reads live Token-2022 extension state from Solana mainnet RPC.
+</div>
+</div>
+{/* Card 2: On-Chain */}
+<div className="bg-white text-black p-7 rounded-[2px] flex flex-col justify-between">
+<div>
+<span className="inline-block text-[10px] font-mono uppercase tracking-wider px-2 py-0.5 bg-blue-600 text-white font-semibold mb-3 rounded-[2px]">
+              ON-CHAIN
+</span>
+<div className="mb-5">
+<h3 className="text-lg font-bold mb-1">Anchor program</h3>
+<p className="text-[12px] text-gray-600 mb-3 leading-normal">
+                Deployed on Solana devnet. Creates PDA-bound plans, runs preflight checks against Token-2022 extension data, records fills and refusals as permanent on-chain receipts.
+</p>
+<ul className="text-[12px] space-y-1.5 text-gray-800">
+<li><strong className="font-semibold">• create_plan</strong> — PDA-bound plan with mint + snapshot</li>
+<li><strong className="font-semibold">• preflight</strong> — reads pausable, transfer_hook, multiplier</li>
+<li><strong className="font-semibold">• record_fill</strong> — writes fill receipt to chain</li>
+<li><strong className="font-semibold">• record_refusal</strong> — writes refusal with reason code</li>
+</ul>
+</div>
+<div className="border-t border-gray-100 pt-4">
+<h3 className="text-base font-bold mb-1">Devnet artifacts</h3>
+<p className="text-[12px] text-gray-600 mb-3 leading-normal">
+                All four instructions verified on-chain. Plans, fills, and refusals are readable in Solana Explorer.
+</p>
+<ul className="text-[12px] space-y-1.5 text-gray-800">
+<li><strong className="font-semibold">• Program</strong> — pTpaE75ubNyv...yVTN</li>
+<li><strong className="font-semibold">• Plan (filled)</strong> — rDt5XPbutXYP...oxh3</li>
+<li><strong className="font-semibold">• Fill receipt</strong> — 67t8p3Kmxt...ESsA</li>
+<li><strong className="font-semibold">• Refusal receipt</strong> — 7hBCzAdqrs...msj</li>
+</ul>
+</div>
+</div>
+<div className="pt-6 mt-6 border-t border-gray-100 text-[10px] text-gray-400 font-sans">
+            Deployed via cargo-build-sbf + solana program deploy.
+</div>
+</div>
+</div>
+<div className="text-center mt-12 space-y-3">
+<div>
+<a className="text-[13px] font-medium text-blue-400 hover:text-blue-300 transition-colors" href="https://explorer.solana.com/address/pTpaE75ubNyv9voydPJNaEfmv3GbmcN5bvZBfnRtdiA?cluster=devnet">
+            View on Solana Explorer →
+</a>
+</div>
+<p className="text-[12px] text-gray-500">
+          You can access the data through <span className="text-gray-300">Plan Builder</span>, <span className="text-gray-300">Tape</span> or the <span className="text-gray-300">Mint Inspector</span>.
+</p>
+</div>
+</div>
+</section>
+{/* END: UnifiedDataLayer */}
 
-function StatsSection() {
-  return (
-    <section style={{ background: "#1a1a1a", color: "#fff", padding: "80px 0" }}>
-      <div className="wrap">
-        <div style={{ textAlign: "center", maxWidth: 640, margin: "0 auto 48px" }}>
-          <h2 style={{ fontSize: "clamp(24px, 3vw, 36px)", fontWeight: 800, letterSpacing: "-0.02em", margin: "0 0 12px" }}>
-            The preflight guard for tokenized equities
-          </h2>
-          <p style={{ fontSize: 14, color: "#9ca3af", lineHeight: 1.6 }}>
-            Reads live Token-2022 extension state from Solana mainnet. Checks multiplier freshness, issuer levers, exit cost, and policy bounds in one atomic evaluation.
-          </p>
-        </div>
-
-        <div className="sg" style={{ marginBottom: 48 }}>
-          <div><div className="sg-v">554</div><div className="sg-l">TESTS PASSING</div></div>
-          <div><div className="sg-v">7</div><div className="sg-l">INVARIANT CHECKS</div></div>
-          <div><div className="sg-v">4</div><div className="sg-l">ON-CHAIN INSTRUCTIONS</div></div>
-          <div><div className="sg-v">5</div><div className="sg-l">xSTOCK MINTS</div></div>
-        </div>
-
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24, maxWidth: 900, margin: "0 auto" }}>
-          <div style={{ background: "#fff", color: "#1a1a1a", padding: 28, borderRadius: 2 }}>
-            <span style={{ display: "inline-block", fontSize: 10, fontFamily: "var(--font-mono)", letterSpacing: "0.08em", padding: "2px 8px", background: "#f3f4f6", borderRadius: 2, marginBottom: 12, fontWeight: 600 }}>OFF-CHAIN</span>
-            <h3 style={{ fontSize: 16, fontWeight: 700, margin: "0 0 8px" }}>Preflight evaluation</h3>
-            <p style={{ fontSize: 12, color: "#6b7280", lineHeight: 1.6, margin: "0 0 16px" }}>
-              Pure function: plan + registry entry + live mint card = ACCEPT or REFUSE with the named check that tripped.
-            </p>
-            <ul style={{ fontSize: 12, color: "#374151", listStyle: "none", padding: 0, margin: 0 }}>
-              {["mint_identity", "multiplier_freshness", "issuer_levers", "reference_regime", "exit_at_size", "policy"].map(c => (
-                <li key={c} style={{ padding: "4px 0", borderTop: "1px solid #f3f4f6", fontFamily: "var(--font-mono)", fontWeight: 600 }}>{c}</li>
-              ))}
-            </ul>
-          </div>
-          <div style={{ background: "#fff", color: "#1a1a1a", padding: 28, borderRadius: 2 }}>
-            <span style={{ display: "inline-block", fontSize: 10, fontFamily: "var(--font-mono)", letterSpacing: "0.08em", padding: "2px 8px", background: "#145FE4", color: "#fff", borderRadius: 2, marginBottom: 12, fontWeight: 600 }}>ON-CHAIN</span>
-            <h3 style={{ fontSize: 16, fontWeight: 700, margin: "0 0 8px" }}>Anchor program (devnet)</h3>
-            <p style={{ fontSize: 12, color: "#6b7280", lineHeight: 1.6, margin: "0 0 16px" }}>
-              Deployed on Solana devnet. Creates plans, runs checks against Token-2022 extension data, records fills and refusals as permanent receipts.
-            </p>
-            <ul style={{ fontSize: 12, color: "#374151", listStyle: "none", padding: 0, margin: 0 }}>
-              {[
-                "create_plan — PDA-bound plan with mint + snapshot",
-                "preflight — reads pausable, transfer_hook, multiplier",
-                "record_fill — writes fill receipt to chain",
-                "record_refusal — writes refusal with reason code",
-              ].map(c => (
-                <li key={c} style={{ padding: "4px 0", borderTop: "1px solid #f3f4f6" }}>{c}</li>
-              ))}
-            </ul>
-            <div style={{ marginTop: 12, fontSize: 10, fontFamily: "var(--font-mono)", color: "#9ca3af" }}>
-              pTpaE75ubNyv9voydPJNaEfmv3GbmcN5bvZBfnRtdiA
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function ProductShowcase() {
-  const cards = [
-    { title: "Plan Builder", desc: "Select a mint, set bounds for slippage, reference age, exit cost. Evaluated against live state.", href: "/plan",
-      svg: <svg viewBox="0 0 200 80" style={{width:"100%",height:"100%"}}><rect x="10" y="15" width="180" height="8" rx="1" fill="#f3f4f6"/><rect x="10" y="15" width="120" height="8" rx="1" fill="#145FE4" opacity="0.3"/><rect x="10" y="30" width="180" height="8" rx="1" fill="#f3f4f6"/><rect x="10" y="30" width="80" height="8" rx="1" fill="#145FE4" opacity="0.3"/><rect x="10" y="45" width="180" height="8" rx="1" fill="#f3f4f6"/><rect x="10" y="45" width="140" height="8" rx="1" fill="#0ECB81" opacity="0.3"/><rect x="10" y="62" width="60" height="12" rx="1" fill="#1a1a1a"/></svg> },
-    { title: "No-Trade Tape", desc: "Every refusal is appended with the check that tripped, the live value, and the account data hash.", href: "/tape",
-      svg: <svg viewBox="0 0 200 80" style={{width:"100%",height:"100%"}}>{[0,1,2,3].map(i=><g key={i}><rect x="10" y={10+i*17} width="180" height="12" rx="1" fill="#fafafa" stroke="#f3f4f6"/><rect x="14" y={12+i*17} width="30" height="8" rx="1" fill={i===1||i===3?"#FF4D4D":"#0ECB81"} opacity="0.2"/><rect x="50" y={12+i*17} width="60" height="8" rx="1" fill="#e5e7eb"/></g>)}</svg> },
-    { title: "Mint Truth Cards", desc: "Live Token-2022 extension state: multiplier, paused status, delegate, transfer hook, supply.", href: "/mint/XsDoVfqeBukxuZHWhdvWHBhgEHjGNst4MLodqsJHzoB",
-      svg: <svg viewBox="0 0 200 80" style={{width:"100%",height:"100%"}}><rect x="10" y="8" width="85" height="64" rx="1" fill="#fafafa" stroke="#e5e7eb"/><rect x="105" y="8" width="85" height="64" rx="1" fill="#fafafa" stroke="#e5e7eb"/><text x="52" y="30" textAnchor="middle" fontSize="8" fill="#9ca3af" fontFamily="monospace">TSLAx</text><text x="52" y="45" textAnchor="middle" fontSize="10" fill="#1a1a1a" fontWeight="600" fontFamily="monospace">1.000000</text><text x="147" y="30" textAnchor="middle" fontSize="8" fill="#9ca3af" fontFamily="monospace">NVDAx</text><text x="147" y="45" textAnchor="middle" fontSize="10" fill="#1a1a1a" fontWeight="600" fontFamily="monospace">1.000000</text></svg> },
-    { title: "Evidence Pack", desc: "Every claim maps to a runnable command. Adversarial tests: tampered tape, stale mirrors, guard-less ablation.", href: "/evidence",
-      svg: <svg viewBox="0 0 200 80" style={{width:"100%",height:"100%"}}>{[0,1,2,3].map(i=><g key={i}><circle cx="20" cy={18+i*17} r="5" fill="#0ECB81" opacity="0.15"/><path d={`M17,${18+i*17} l2,2 l4,-4`} stroke="#0ECB81" strokeWidth="1.5" fill="none"/><rect x="32" y={14+i*17} width="100" height="8" rx="1" fill="#f3f4f6"/></g>)}</svg> },
-  ];
-
-  return (
-    <section style={{ background: "#fff", padding: "80px 0", borderBottom: "1px solid #dedfe1" }}>
-      <div className="wrap">
-        <div style={{ textAlign: "center", marginBottom: 48 }}>
-          <h2 style={{ fontSize: "clamp(24px, 3vw, 36px)", fontWeight: 800, letterSpacing: "-0.02em", margin: "0 0 12px" }}>
+{/* BEGIN: FlagshipStudioSection */}
+<section className="py-24 bg-white border-b border-[#dedfe1]">
+<div className="max-w-[1240px] mx-auto px-6">
+<div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center mb-16">
+<div className="lg:col-span-6 space-y-6">
+<div className="flex items-center space-x-1.5 text-sm font-semibold">
+<span className="font-bold">manifest</span>
+<span className="font-light text-gray-500">app</span>
+</div>
+<h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight">
             What you can inspect
-          </h2>
-          <p style={{ fontSize: 14, color: "#6b7280", maxWidth: 480, margin: "0 auto" }}>
-            Every surface reads live state. Nothing is mocked or cached beyond a single request.
-          </p>
-        </div>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16 }}>
-          {cards.map((c, i) => (
-            <Link key={i} href={c.href} style={{ textDecoration: "none", color: "inherit" }}>
-              <div className="card card-hover" style={{ height: "100%", display: "flex", flexDirection: "column" }}>
-                <div style={{ height: 80, background: "#fafafa", border: "1px solid #f3f4f6", borderRadius: 2, marginBottom: 12, overflow: "hidden" }}>{c.svg}</div>
-                <h3 style={{ fontSize: 13, fontWeight: 700, margin: "0 0 6px" }}>{c.title}</h3>
-                <p style={{ fontSize: 11, color: "#6b7280", lineHeight: 1.5, margin: 0, flex: 1 }}>{c.desc}</p>
-              </div>
-            </Link>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
+</h2>
+<p className="text-[14px] text-gray-600 leading-relaxed max-w-lg">
+            Every surface reads live state from Solana mainnet. Nothing is mocked or cached beyond a single request. The plan builder, refusal tape, mint inspector, and evidence pack are all live.
+</p>
+<ul className="space-y-3 text-[13px] text-gray-700">
+<li className="flex items-start gap-2.5">
+<span className="mt-0.5 text-gray-400">⊡</span>
+<span>Plan builder: compose a plan in 7 bounds, evaluate against live state.</span>
+</li>
+<li className="flex items-start gap-2.5">
+<span className="mt-0.5 text-gray-400">⊞</span>
+<span>No-Trade Tape: every refusal with the check, the value, and the slot.</span>
+</li>
+<li className="flex items-start gap-2.5">
+<span className="mt-0.5 text-gray-400">⊠</span>
+<span>Mint truth cards: live Token-2022 extension state per issuer mint.</span>
+</li>
+</ul>
+<div className="pt-4 flex items-center space-x-5">
+<Link className="bg-black text-white text-[13px] font-medium px-4 py-2 rounded-[2px] hover:bg-neutral-800 transition-colors" href="/plan">
+              Launch App
+</Link>
+<a className="text-[13px] font-medium text-blue-600 hover:underline" href="https://github.com/subheeksh5599/manifest">
+              View source →
+</a>
+</div>
+</div>
+{/* 3D Isometric Data Plane Graphic Mockup */}
+<div className="lg:col-span-6 flex justify-center">
+<div className="w-full max-w-[480px] h-64 relative flex items-center justify-center">
+<svg className="w-full h-full text-blue-500/20" fill="none" viewBox="0 0 400 240">
+<path d="M 200,20 L 360,110 L 200,200 L 40,110 Z" fill="#f8fafc" stroke="#2563eb" strokeOpacity="0.3" strokeWidth="1.2"></path>
+<path d="M 200,50 L 330,125 L 200,180 L 70,125 Z" fill="#ffffff" stroke="#2563eb" strokeOpacity="0.25" strokeWidth="1"></path>
+<line stroke="#3b82f6" strokeDasharray="3 3" strokeWidth="1.5" x1="80" x2="200" y1="120" y2="60"></line>
+<line stroke="#3b82f6" strokeWidth="1.5" x1="200" x2="320" y1="60" y2="120"></line>
+<line stroke="#3b82f6" strokeWidth="1.5" x1="200" x2="200" y1="60" y2="170"></line>
+<circle cx="200" cy="60" fill="#2563eb" r="4"></circle>
+<circle cx="150" cy="90" fill="#3b82f6" r="3"></circle>
+<circle cx="270" cy="100" fill="#1d4ed8" r="3.5"></circle>
+<circle cx="200" cy="170" fill="#60a5fa" r="4"></circle>
+<circle cx="240" cy="140" fill="#3b82f6" r="2.5"></circle>
+<polygon fill="#3b82f6" fillOpacity="0.6" points="190,40 210,40 210,50 190,50"></polygon>
+<polygon fill="#3b82f6" fillOpacity="0.6" points="290,85 305,85 305,95 290,95"></polygon>
+</svg>
+</div>
+</div>
+</div>
+{/* Studio 4 Metric Cards */}
+<div className="relative">
+<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+{/* Card 1 */}
+<div className="border border-[#dedfe1] rounded-[2px] p-4 bg-white flex flex-col justify-between">
+<div>
+<div className="h-28 bg-gray-50 border border-gray-100 rounded-[2px] mb-3 overflow-hidden flex items-end">
+<svg className="w-full h-full text-red-400" viewBox="0 0 200 80">
+<path d="M 0,60 Q 40,30 80,45 T 140,20 T 200,35" fill="none" stroke="#f43f5e" strokeWidth="2"></path>
+<path d="M 0,70 Q 50,55 100,50 T 170,40 T 200,60" fill="none" stroke="#000" strokeDasharray="2 2" strokeWidth="1.5"></path>
+</svg>
+</div>
+<h4 className="text-[13px] font-bold text-gray-900 leading-snug">Plan Builder</h4>
+<p className="text-[11px] text-gray-500 mt-1 leading-relaxed">
+                Compose a plan with 7 bounds. Evaluate against live Token-2022 state, Jupiter routes, and policy limits.
+</p>
+</div>
+</div>
+{/* Card 2 */}
+<div className="border border-[#dedfe1] rounded-[2px] p-4 bg-white flex flex-col justify-between">
+<div>
+<div className="h-28 bg-gray-50 border border-gray-100 rounded-[2px] mb-3 overflow-hidden flex items-end">
+<svg className="w-full h-full" viewBox="0 0 200 80">
+<rect fill="#22c55e" height="30" opacity="0.8" width="8" x="20" y="30"></rect>
+<rect fill="#22c55e" height="20" opacity="0.8" width="8" x="35" y="40"></rect>
+<rect fill="#ef4444" height="15" opacity="0.8" width="8" x="50" y="50"></rect>
+<rect fill="#22c55e" height="40" opacity="0.8" width="8" x="65" y="20"></rect>
+<rect fill="#ef4444" height="15" opacity="0.8" width="8" x="80" y="45"></rect>
+<rect fill="#22c55e" height="50" opacity="0.8" width="8" x="95" y="10"></rect>
+<rect fill="#22c55e" height="30" opacity="0.8" width="8" x="110" y="30"></rect>
+<rect fill="#ef4444" height="10" opacity="0.8" width="8" x="125" y="55"></rect>
+<rect fill="#22c55e" height="35" opacity="0.8" width="8" x="140" y="25"></rect>
+<line stroke="#dedfe1" x1="0" x2="200" y1="60" y2="60"></line>
+</svg>
+</div>
+<h4 className="text-[13px] font-bold text-gray-900 leading-snug">No-Trade Tape</h4>
+<p className="text-[11px] text-gray-500 mt-1 leading-relaxed">
+                Append-only ledger of every verdict. Green bars are accepted fills, red bars are refusals with named checks.
+</p>
+</div>
+</div>
+{/* Card 3 */}
+<div className="border border-[#dedfe1] rounded-[2px] p-4 bg-white flex flex-col justify-between">
+<div>
+<div className="h-28 bg-gray-50 border border-gray-100 rounded-[2px] mb-3 overflow-hidden flex items-end">
+<svg className="w-full h-full" viewBox="0 0 200 80">
+<path d="M 10,75 L 30,70 L 40,40 L 50,75 L 80,75 L 90,30 L 100,75 L 140,75 L 150,15 L 160,75 L 190,75" fill="none" stroke="#6366f1" strokeWidth="1.8"></path>
+</svg>
+</div>
+<h4 className="text-[13px] font-bold text-gray-900 leading-snug">Mint Inspector</h4>
+<p className="text-[11px] text-gray-500 mt-1 leading-relaxed">
+                Live Token-2022 extension state per xStock mint: multiplier, paused status, permanent delegate, transfer hook.
+</p>
+</div>
+</div>
+{/* Card 4 */}
+<div className="border border-[#dedfe1] rounded-[2px] p-4 bg-white flex flex-col justify-between">
+<div>
+<div className="h-28 bg-gray-50 border border-gray-100 rounded-[2px] mb-3 overflow-hidden flex items-end">
+<svg className="w-full h-full" viewBox="0 0 200 80">
+<path d="M 0,80 Q 50,30 100,60 T 200,20 L 200,80 Z" fill="#93c5fd" opacity="0.3"></path>
+<path d="M 0,80 Q 50,45 100,65 T 200,40 L 200,80 Z" fill="#60a5fa" opacity="0.4"></path>
+<path d="M 0,80 Q 50,60 100,70 T 200,55 L 200,80 Z" fill="#2563eb" opacity="0.5"></path>
+</svg>
+</div>
+<h4 className="text-[13px] font-bold text-gray-900 leading-snug">Evidence Pack</h4>
+<p className="text-[11px] text-gray-500 mt-1 leading-relaxed">
+                Every claim maps to a runnable command. Adversarial tests: tampered tape, stale mirrors, guard-less ablation.
+</p>
+</div>
+</div>
+</div>
+<div className="text-center mt-6">
+<Link className="text-[12px] font-medium text-gray-500 hover:text-black transition-colors underline" href="/plan">
+            554 tests passing, 0 failures.
+</Link>
+</div>
+</div>
+</div>
+</section>
+{/* END: FlagshipStudioSection */}
 
-function InvariantSection() {
-  return (
-    <section style={{ background: "#edeff2", padding: "80px 0", borderBottom: "1px solid #dedfe1" }}>
-      <div className="wrap">
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 48, alignItems: "start" }}>
-          <div>
-            <h2 style={{ fontSize: "clamp(24px, 3vw, 36px)", fontWeight: 800, letterSpacing: "-0.02em", margin: "0 0 16px" }}>
-              The default answer is no
-            </h2>
-            <p style={{ fontSize: 14, color: "#6b7280", lineHeight: 1.7, margin: "0 0 20px", maxWidth: 420 }}>
-              A recurring buy that passes all 7 checks fills normally. A buy that fails any single check is publicly refused. The refusal carries the check name, the on-chain value that tripped it, and the account data hash at that slot.
-            </p>
-            <p style={{ fontSize: 14, color: "#6b7280", lineHeight: 1.7, margin: "0 0 24px", maxWidth: 420 }}>
-              A silent retry is unfalsifiable. A public refusal is evidence.
-            </p>
-            <div style={{ display: "flex", gap: 12 }}>
-              <Link href="/plan" className="btn btn-primary">Try a plan</Link>
-              <Link href="/tape" style={{ fontSize: 13, fontWeight: 500, color: "#145FE4", textDecoration: "none", padding: "8px 0" }}>View the tape →</Link>
-            </div>
-          </div>
+{/* BEGIN: VectorSection */}
+<section className="py-24 bg-[#edeff2] border-b border-[#dedfe1]">
+<div className="max-w-[1240px] mx-auto px-6">
+<div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center mb-16">
+<div className="lg:col-span-6 space-y-6">
+<div className="flex items-center space-x-1.5 text-sm font-semibold">
+<span className="font-bold">manifest</span>
+<span className="font-light text-gray-500">guard</span>
+</div>
+<h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight">
+            The Default Answer<br/>Is No.
+</h2>
+<p className="text-[14px] text-gray-600 leading-relaxed max-w-lg">
+            A recurring buy that passes all 7 checks fills normally. A buy that fails any single check is publicly refused. The refusal is the product. A silent retry is unfalsifiable — a public refusal is evidence.
+</p>
+<div className="pt-2 flex flex-col sm:flex-row items-start sm:items-center gap-4">
+<Link className="bg-black text-white text-[13px] font-medium px-4 py-2 rounded-[2px] hover:bg-neutral-800 transition-colors" href="/plan">
+              Try a plan
+</Link>
+<Link className="text-[13px] font-medium text-blue-600 hover:underline" href="/tape">
+              View the refusal tape →
+</Link>
+</div>
+</div>
+{/* Right Vector Framework Preview Mockup */}
+<div className="lg:col-span-6 flex justify-center">
+<div className="w-full max-w-[440px] bg-white border border-[#dedfe1] p-6 rounded-[2px] shadow-sm">
+<div className="flex justify-between items-center text-[10px] text-gray-400 font-mono mb-4">
+<span>LAST EVALUATED 2 MIN AGO</span>
+<span className="inline-block w-2 h-2 rounded-full bg-emerald-500"></span>
+</div>
+<div className="flex items-center justify-center space-x-3 py-6">
+<span className="w-3.5 h-3.5 rounded-full bg-red-400"></span>
+<span className="text-3xl font-extrabold tracking-tight">Trade</span>
+<span className="text-3xl font-extrabold tracking-tight text-gray-400">REFUSED</span>
+</div>
+<div className="grid grid-cols-4 gap-1 py-4 text-[9px] text-center font-mono uppercase tracking-wider text-gray-400">
+<div className="bg-gray-100 py-1.5 rounded-[1px]">mint_id</div>
+<div className="bg-gray-100 py-1.5 rounded-[1px]">multiplier</div>
+<div className="bg-gray-300 text-black font-semibold py-1.5 rounded-[1px]">ref_age</div>
+<div className="bg-gray-100 py-1.5 rounded-[1px]">policy</div>
+</div>
+<div className="mt-4 pt-3 border-t border-gray-100 flex items-center justify-between text-[11px]">
+<span className="font-medium text-gray-700">TRIPPED CHECK</span>
+<span className="text-gray-400 font-mono text-[10px]">reference_regime (47h &gt; 6h)</span>
+</div>
+</div>
+</div>
+</div>
+{/* Signal Cards */}
+<div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+<div className="bg-white border border-[#dedfe1] p-5 rounded-[2px]">
+<div className="text-[13px] font-bold text-gray-900">ACCEPT — all 7 checks passed</div>
+<div className="text-[11px] text-gray-500 mt-0.5">TSLAx · slot 447,185,677</div>
+<div className="mt-4">
+<Link className="text-[12px] font-medium text-blue-600 hover:underline" href="/tape">View on tape →</Link>
+</div>
+</div>
+<div className="bg-white border border-[#dedfe1] p-5 rounded-[2px]">
+<div className="text-[13px] font-bold text-gray-900">REFUSE — multiplier_freshness</div>
+<div className="text-[11px] text-gray-500 mt-0.5">GOOGLx · slot 447,185,680</div>
+<div className="mt-4">
+<Link className="text-[12px] font-medium text-orange-600 hover:underline" href="/tape">View on tape →</Link>
+</div>
+</div>
+<div className="bg-white border border-[#dedfe1] p-5 rounded-[2px]">
+<div className="text-[13px] font-bold text-gray-900">REFUSE — exit_at_size</div>
+<div className="text-[11px] text-gray-500 mt-0.5">NVDAx · slot 447,185,683</div>
+<div className="mt-4">
+<Link className="text-[12px] font-medium text-orange-600 hover:underline" href="/tape">View on tape →</Link>
+</div>
+</div>
+</div>
+</div>
+</section>
+{/* END: VectorSection */}
 
-          <div style={{ background: "#fff", border: "1px solid #dedfe1", borderRadius: 2, overflow: "hidden" }}>
-            <div style={{ padding: "12px 16px", borderBottom: "1px solid #f3f4f6", fontSize: 10, fontFamily: "var(--font-mono)", letterSpacing: "0.06em", color: "#9ca3af", textTransform: "uppercase" }}>
-              7 invariant checks — first failure wins
-            </div>
-            {[
-              { n: 1, name: "mint_identity", desc: "Registry entry exists, symbol matches" },
-              { n: 2, name: "multiplier_freshness", desc: "Plan snapshot == live multiplier" },
-              { n: 3, name: "issuer_levers", desc: "Not paused, no transfer hook" },
-              { n: 4, name: "reference_regime", desc: "Last print age within tolerance" },
-              { n: 5, name: "exit_at_size", desc: "Round-trip cost within bound" },
-              { n: 6, name: "policy", desc: "Size within per-trade cap" },
-              { n: 7, name: "idempotency", desc: "Plan ID not already filled" },
-            ].map((c) => (
-              <div key={c.n} style={{ display: "grid", gridTemplateColumns: "28px 1fr", padding: "10px 16px", borderBottom: "1px solid #fafafa", fontSize: 12, alignItems: "start" }}>
-                <span style={{ fontFamily: "var(--font-mono)", color: "#d1d5db", fontSize: 10 }}>{c.n}</span>
-                <div>
-                  <div style={{ fontFamily: "var(--font-mono)", fontWeight: 600, marginBottom: 2 }}>{c.name}</div>
-                  <div style={{ color: "#9ca3af", fontSize: 11 }}>{c.desc}</div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
+{/* BEGIN: NewsletterBanner → Honesty Table */}
+<section className="py-16 bg-[#1a1a1a] border-t border-neutral-800 text-white text-center">
+<div className="max-w-[1240px] mx-auto px-6">
+<div className="max-w-xl mx-auto space-y-4">
+<h3 className="text-2xl sm:text-3xl font-bold tracking-tight">
+          What is built. What is not. <span className="bg-[#e2e7fc] text-black px-1.5 py-0.5 rounded-[2px]">No ambiguity.</span>
+</h3>
+<div className="grid grid-cols-3 gap-6 text-left pt-6 text-[12px]">
+<div>
+<div className="font-bold text-white mb-3 text-[11px] uppercase tracking-wider">Done</div>
+<ul className="space-y-2 text-neutral-400">
+<li>Reads live mainnet state</li>
+<li>Preflight evaluation</li>
+<li>554 tests, 0 failures</li>
+<li>Anchor program deployed</li>
+<li>Plan + fill + refusal on-chain</li>
+</ul>
+</div>
+<div>
+<div className="font-bold text-white mb-3 text-[11px] uppercase tracking-wider">Not claimed</div>
+<ul className="space-y-2 text-neutral-400">
+<li>Real mainnet broadcast</li>
+<li>Wallet integration</li>
+<li>Production keeper / cron</li>
+</ul>
+</div>
+<div>
+<div className="font-bold text-white mb-3 text-[11px] uppercase tracking-wider">Verifiable</div>
+<ul className="space-y-2 text-neutral-400">
+<li>node --test lib/*.test.mjs</li>
+<li>Visit any mint truth card</li>
+<li>POST to /api/preflight</li>
+<li>View on Solana Explorer</li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+</section>
+{/* END: NewsletterBanner */}
 
-function SiteFooter() {
-  return (
-    <footer style={{ background: "#1a1a1a", color: "#fff", padding: "64px 0 48px" }}>
-      <div className="wrap">
-        <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr 1fr", gap: 32, paddingBottom: 48, borderBottom: "1px solid #2a2a2a" }}>
-          <div>
-            <div style={{ fontSize: 18, fontWeight: 700, letterSpacing: "-0.03em", marginBottom: 12 }}>manifest</div>
-            <p style={{ fontSize: 12, color: "#6b7280", lineHeight: 1.6, maxWidth: "24ch" }}>Reads mainnet at request time. Refusals are the product.</p>
-          </div>
-          <div>
-            <div className="label-mono" style={{ marginBottom: 12 }}>Product</div>
-            <div style={{ display: "grid", gap: 8, fontSize: 12 }}>
-              <Link href="/plan" style={{ color: "#9ca3af", textDecoration: "none" }}>Plan builder</Link>
-              <Link href="/tape" style={{ color: "#9ca3af", textDecoration: "none" }}>No-Trade Tape</Link>
-              <Link href="/evidence" style={{ color: "#9ca3af", textDecoration: "none" }}>Evidence pack</Link>
-            </div>
-          </div>
-          <div>
-            <div className="label-mono" style={{ marginBottom: 12 }}>On-Chain</div>
-            <div style={{ display: "grid", gap: 8, fontSize: 12 }}>
-              <a href="https://explorer.solana.com/address/pTpaE75ubNyv9voydPJNaEfmv3GbmcN5bvZBfnRtdiA?cluster=devnet" style={{ color: "#9ca3af", textDecoration: "none" }}>Program</a>
-              <a href="https://explorer.solana.com/address/rDt5XPbutXYPtMgox2AGepKGtDVvBkuhaHiCgU3oxh3?cluster=devnet" style={{ color: "#9ca3af", textDecoration: "none" }}>Plan (filled)</a>
-              <a href="https://explorer.solana.com/address/7hBCzAdqrsNUmQ4VGEvvHjjSGMurQARVB5emjbYHVmsj?cluster=devnet" style={{ color: "#9ca3af", textDecoration: "none" }}>Refusal receipt</a>
-            </div>
-          </div>
-          <div>
-            <div className="label-mono" style={{ marginBottom: 12 }}>Source</div>
-            <div style={{ display: "grid", gap: 8, fontSize: 12 }}>
-              <a href="https://github.com/subheeksh5599/manifest" style={{ color: "#9ca3af", textDecoration: "none" }}>GitHub</a>
-              <a href="https://github.com/subheeksh5599/manifest/blob/main/README.md" style={{ color: "#9ca3af", textDecoration: "none" }}>README</a>
-            </div>
-          </div>
-        </div>
-        <div style={{ paddingTop: 24, display: "flex", justifyContent: "space-between", fontSize: 11, color: "#6b7280" }}>
-          <span>No wallet. No funds. No mocks.</span>
-          <span>MIT — 2026</span>
-        </div>
-      </div>
-    </footer>
+{/* BEGIN: Footer */}
+<footer className="bg-[#1a1a1a] text-white pt-16 pb-12">
+<div className="max-w-[1240px] mx-auto px-6">
+<div className="grid grid-cols-2 md:grid-cols-6 gap-8 pb-16 border-b border-neutral-800">
+<div className="col-span-2 space-y-4">
+<div className="text-xl font-bold tracking-tight text-white">manifest</div>
+<div className="flex items-center space-x-4 text-neutral-400 pt-2">
+<a className="hover:text-white transition-colors" href="https://github.com/subheeksh5599/manifest">
+<svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"></path></svg>
+</a>
+<a className="hover:text-white transition-colors" href="#">
+<svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"></path></svg>
+</a>
+</div>
+</div>
+<div className="space-y-3">
+<h5 className="text-[12px] font-bold uppercase tracking-wider text-white">Product</h5>
+<ul className="space-y-2 text-[12px] text-neutral-400">
+<li><Link className="hover:text-white transition-colors" href="/plan">Plan builder</Link></li>
+<li><Link className="hover:text-white transition-colors" href="/tape">No-Trade Tape</Link></li>
+<li><Link className="hover:text-white transition-colors" href="/evidence">Evidence pack</Link></li>
+</ul>
+</div>
+<div className="space-y-3">
+<h5 className="text-[12px] font-bold uppercase tracking-wider text-white">On-chain</h5>
+<ul className="space-y-2 text-[12px] text-neutral-400">
+<li><a className="hover:text-white transition-colors" href="https://explorer.solana.com/address/pTpaE75ubNyv9voydPJNaEfmv3GbmcN5bvZBfnRtdiA?cluster=devnet">Program</a></li>
+<li><a className="hover:text-white transition-colors" href="https://explorer.solana.com/address/rDt5XPbutXYPtMgox2AGepKGtDVvBkuhaHiCgU3oxh3?cluster=devnet">Plan (filled)</a></li>
+<li><a className="hover:text-white transition-colors" href="https://explorer.solana.com/address/7hBCzAdqrsNUmQ4VGEvvHjjSGMurQARVB5emjbYHVmsj?cluster=devnet">Refusal receipt</a></li>
+</ul>
+</div>
+<div className="space-y-3">
+<h5 className="text-[12px] font-bold uppercase tracking-wider text-white">Inspect</h5>
+<ul className="space-y-2 text-[12px] text-neutral-400">
+<li><Link className="hover:text-white transition-colors" href="/mint/XsDoVfqeBukxuZHWhdvWHBhgEHjGNst4MLodqsJHzoB">TSLAx mint</Link></li>
+<li><Link className="hover:text-white transition-colors" href="/mint/Xsc9qvGR1efVDFGLrVsmkzv3qi45LTBjeUKSPmx9qEh">NVDAx mint</Link></li>
+</ul>
+</div>
+<div className="space-y-3">
+<h5 className="text-[12px] font-bold uppercase tracking-wider text-white">Source</h5>
+<ul className="space-y-2 text-[12px] text-neutral-400">
+<li><a className="hover:text-white transition-colors" href="https://github.com/subheeksh5599/manifest">GitHub</a></li>
+<li><a className="hover:text-white transition-colors" href="https://github.com/subheeksh5599/manifest/blob/main/README.md">README</a></li>
+</ul>
+</div>
+</div>
+<div className="pt-8 text-center text-[11px] text-neutral-500">
+        No wallet. No funds. No mocks. MIT — 2026
+</div>
+</div>
+</footer>
+{/* END: Footer */}
+    </>
   );
 }
