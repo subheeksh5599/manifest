@@ -5,7 +5,7 @@
 **Exit terms for tokenized equities on Solana, read from the mint itself.**
 
 [![Live](https://img.shields.io/badge/demo-live-145FE4?style=flat-square)](https://manifest-mocha-six.vercel.app)
-[![Tests](https://img.shields.io/badge/tests-411%20passing-2E7D32?style=flat-square)](#proof)
+[![Tests](https://img.shields.io/badge/tests-423%20passing-2E7D32?style=flat-square)](#proof)
 [![Program](https://img.shields.io/badge/devnet-on--chain%20record-14F195?style=flat-square)](https://explorer.solana.com/address/pTpaE75ubNyv9voydPJNaEfmv3GbmcN5bvZBfnRtdiA?cluster=devnet)
 |[![Verifier](https://img.shields.io/badge/independent%20verifier-30%20checks-2E7D32?style=flat-square)](#proof)|
 [![License](https://img.shields.io/badge/license-MIT-303136?style=flat-square)](LICENSE)
@@ -107,6 +107,7 @@ looks like: it moves, and the slot is the only thing that pins it.
 | Tape | Append-only ledger of readings, with the slot each was taken at | [/tape](https://manifest-mocha-six.vercel.app/tape) |
 | Evidence | Every claim mapped to the command that reproduces it | [/evidence](https://manifest-mocha-six.vercel.app/evidence) |
 | Verification | Four refusals and the ablation, evaluated on the click | [/verify](https://manifest-mocha-six.vercel.app/verify) |
+| Compare | One company at both issuers, priced at your size, with the rail between them | [/api/compare?size=100000000](https://manifest-mocha-six.vercel.app/api/compare?size=100000000) |
 | Health | Each dependency checked separately, failing loudly | [/api/health](https://manifest-mocha-six.vercel.app/api/health) |
 
 ## Why bytes, not parsed JSON
@@ -150,8 +151,8 @@ cd manifest/app && npm install && npm test
 ```
 
 ```
-ℹ tests 411
-ℹ pass  411
+ℹ tests 423
+ℹ pass  423
 ℹ fail  0
 ```
 
@@ -378,6 +379,60 @@ balance, both deposits are confirmed, and the recorded transaction is counted in
 its own logs — `cross tx holds 2 swaps in one transaction · counted 2 SwapV2
 instruction logs`.
 
+### The same company at both issuers, priced
+
+One company's token, two issuers, two markets, and neither market knows the other
+exists. At the size in the box, after the mint fee actually in force and the
+pool's own fee:
+
+```
+issuer A  bp5Jto1AxiWzaB1D6kGwancaptGgPgGNkzhLRgN1tXE
+  0 withheld at 0 bps · 1,000,000,000 into the pool · 49,440,507 lands
+  19.9340 tokens per SOL · spot 0.050166 SOL per token · you land 0.049441  (-1.45%)
+
+issuer B  3UjmfmbJgrw9AJbBuFZn1wZcY7sdXhC8i2bRap751yVi
+  10,000,000 withheld at 100 bps · 990,000,000 into the pool · 46,929,563 lands
+  20.7985 tokens per SOL · spot 0.048080 SOL per token · you land 0.046930  (-2.39%)
+  · 300 bps already scheduled for epoch 1168
+
+apart by 535 bps at this size — A lands more than B
+```
+
+Two things worth reading twice. The pools quote the token *differently* — 19.93
+tokens per SOL against 20.80 — and issuer B's pool prices it higher while landing
+the holder less, because the mint's own 100 bps comes off before the pool sees
+anything. And the fee does not hit both issuers equally: 1.45% of the price is
+lost between the spot and the landing at issuer A, 2.39% at issuer B. A screen
+that showed a price without that would be showing the wrong number twice.
+
+![The same company at both issuers: withheld, into the pool, lands, spot against landed, the spread, and the rail](docs/screenshots/compare-issuers.png)
+
+`node scripts/compare_live.mjs` re-prices both issuers against devnet and then
+against the pool client library's own quote, which is the part that keeps the
+screen honest:
+
+```
+node scripts/compare_live.mjs
+
+  PASS  both issuers could be priced
+  PASS  issuer A pool trades that issuer's mint
+  PASS  issuer A: the screen's landing is the library's own quote  difference 0 lamports
+  PASS  issuer B pool trades that issuer's mint
+  PASS  issuer B: the screen's landing is the library's own quote  difference 0 lamports
+  PASS  issuer A: what lands does not exceed the pool's spot
+  PASS  issuer B: what lands does not exceed the pool's spot
+  PASS  the whole answer survives being sent as JSON
+  PASS  the rail is priced
+  PASS  the rail is two swaps in one transaction
+  PASS  the rail's cost is the sum of its two legs' fees
+  PASS  one lamport of tampering is caught by the same comparison  difference 1
+
+12/12 checks passed
+```
+
+The last line is the point of the other eleven: move one issuer's landing by a
+single lamport and the comparison against the library stops holding.
+
 ## Honesty table
 
 | Claim | Status | How to check |
@@ -393,6 +448,8 @@ instruction logs`.
 | **An issuer redemption window** | **Not claimed** | That path is off chain, so it is never shown as achievable. |
 | **A second issuer for the same company, on mainnet** | **Not observed** | No second issuer is read there, so no route there is shown. |
 | A real second route, on devnet | Done | `python3 scripts/verify_pools.py` |
+| The same company priced at each issuer, fee-adjusted, at your size | Done, on devnet | `node scripts/compare_live.mjs` · `/api/compare?size=…` |
+| That price, checked against the pool library's own quote | Done | `node scripts/compare_live.mjs` — 0 lamports apart on both issuers |
 | **The exit across issuers, in one transaction** | **Done, on devnet** | `node scripts/pools_devnet.mjs cross 0.1` · the `2MiQBYX…` record above |
 | On-chain reading record (devnet) | Done | `solana program show pTpaE75ubNyv9voydPJNaEfmv3GbmcN5bvZBfnRtdiA --url devnet` |
 | The fee is measured on devnet, not computed | Done | `node scripts/replica_devnet.mjs exit` |
@@ -406,10 +463,13 @@ instruction logs`.
 ```
 app/lib/exit-terms.mjs        read the mint; epoch-selected fee; exact TLV read
 app/lib/exit-engine.mjs       quote -> landing; six checks; route comparison
-app/lib/*.test.mjs            411 tests, including a live read and the matrices
+app/lib/pool-account.mjs      a pool read from its bytes, and a swap quoted from it
+app/lib/compare-engine.mjs    one company, two issuers, priced at the caller's size
+app/lib/*.test.mjs            423 tests, including a live read and the matrices
 app/lib/*.matrix.test.mjs     the fee arithmetic, the epoch rule and the routes
                               across their domains, not at sample points
 app/app/exit/                 the desk
+app/app/api/compare/          one company priced at both issuers, on the request
 app/app/issuers/              the cross-issuer board
 app/app/tape/                 the reading ledger
 app/app/evidence/             claim -> artifact -> command
@@ -428,6 +488,9 @@ scripts/prove_onchain.mjs     builds the devnet scenario and shows the refusal
 scripts/replica_devnet.mjs    two real devnet issuers, and the fee measured
 scripts/pools_devnet.mjs      real pools for both issuers, and the crossing
 scripts/verify_pools.py       both pools and the crossing, checked against devnet
+scripts/compare_live.mjs      both issuers priced, against the pool library's own quote
+scripts/pool_layout.mjs       derives the pool layout, then proves it on a live pool
+scripts/pool_quote_check.mjs  the app's quote, against the library's quote
 scripts/check_no_secrets.py   refuses credentials on the way in, not after
 ```
 
@@ -438,7 +501,7 @@ scripts/check_no_secrets.py   refuses credentials on the way in, not after
 | Read | Solana mainnet RPC, `getAccountInfo` base64 + jsonParsed |
 | Pricing | A public quote aggregator, at the requested size |
 | App | Next.js 16, React 19, TypeScript strict |
-| Tests | `node --test` (411), a Python verifier (30 checks), 14 devnet pool checks |
+| Tests | `node --test` (423), a Python verifier (30 checks), 14 devnet pool checks, 12 live comparison checks |
 | Assets | Token-2022 mints from two issuers |
 
 ## License
