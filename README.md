@@ -7,7 +7,7 @@
 [![Live](https://img.shields.io/badge/demo-live-145FE4?style=flat-square)](https://manifest-mocha-six.vercel.app)
 [![Tests](https://img.shields.io/badge/tests-423%20passing-2E7D32?style=flat-square)](#proof)
 [![Program](https://img.shields.io/badge/devnet-on--chain%20record-14F195?style=flat-square)](https://explorer.solana.com/address/pTpaE75ubNyv9voydPJNaEfmv3GbmcN5bvZBfnRtdiA?cluster=devnet)
-|[![Verifier](https://img.shields.io/badge/independent%20verifier-30%20checks-2E7D32?style=flat-square)](#proof)|
+|[![Verifier](https://img.shields.io/badge/independent%20verifier-31%20checks-2E7D32?style=flat-square)](#proof)|
 [![License](https://img.shields.io/badge/license-MIT-303136?style=flat-square)](LICENSE)
 [![Solana](https://img.shields.io/badge/Solana-Token--2022-9945FF?style=flat-square)](https://solana.com)
 
@@ -184,7 +184,7 @@ $ python3 scripts/verify_receipts.py
   mints read            6
   charged at the exit   1
   a change scheduled    1
-  checks                30/30 passed
+  checks                31/31 passed
 ```
 
 `scripts/verify_receipts.py` is a deliberately **independent** implementation.
@@ -202,7 +202,7 @@ run exits non-zero:
 
 ```
   FAIL  docs address PresTj4Yc2…                                not on devnet · README.md
-  checks                29/30 passed
+  checks                30/31 passed
   1 check(s) FAILED: a published number did not reproduce
 ```
 
@@ -576,7 +576,7 @@ scripts/check_no_secrets.py   refuses credentials on the way in, not after
 | Read | Solana mainnet RPC, `getAccountInfo` base64 + jsonParsed |
 | Pricing | A public quote aggregator, at the requested size |
 | App | Next.js 16, React 19, TypeScript strict |
-| Tests | `node --test` (423), a Python verifier (30 checks), 14 devnet pool checks, 12 live comparison checks, 13 clone checks |
+| Tests | `node --test` (423), a Python verifier (31 checks), 14 devnet pool checks, 12 live comparison checks, 13 clone checks |
 | Assets | Token-2022 mints from two issuers |
 
 ## License
