@@ -208,3 +208,25 @@ details.q .q-b { margin-top: 8px; color: #6b7280; font-size: 13px; line-height: 
   .gn-asset-table { overflow-x: auto; }
   .gn-asset-table > * { min-width: 580px; }
 }
+
+/* The desk, the tape and the runner set their rows out with inline grid
+   templates, because the column widths are part of what the row says. Below
+   this width the label sits above its value instead and every row reads top to
+   bottom. !important is deliberate: those templates are inline. */
+@media (max-width: 760px) {
+  .gn-main [style*="grid-template-columns"] { grid-template-columns: minmax(0, 1fr) !important; }
+  .gn-main input[type="range"] { min-height: 30px; }
+  /* Some of those rows are flex with a space-between, so the rule above never
+     reaches them and the value wraps mid-phrase instead. */
+  .gn-main .stack-sm {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 3px !important;
+  }
+}
+
+/* One treatment for the three states any screen can be in, so that a page does
+   not invent its own. */
+.state-card { border: 1px solid var(--color-hairline); border-radius: 2px; padding: 16px; margin-bottom: 16px; }
+.state-error { border-color: var(--color-refuse); }
+.state-title { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 6px; }

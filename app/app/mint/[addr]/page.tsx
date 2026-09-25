@@ -50,7 +50,7 @@ export default async function MintPage({ params }: { params: Promise<{ addr: str
       </div>
 
       {err && (
-        <div style={{ padding: "12px 16px", background: "rgba(255,77,77,0.06)", borderRadius: 8, fontSize: 13, color: "var(--color-refuse)" }}>
+        <div className="state-card state-error" style={{ marginBottom: 16 }}>
           {err}
         </div>
       )}

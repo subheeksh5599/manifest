@@ -40,3 +40,7 @@ venv/
 .vscode/
 yarn-debug.log*
 yarn-error.log*
+
+# The tape server-side log is runtime state, not a fixture. The committed
+# fixture is app/data/readings.jsonl.
+app/data/tape.jsonl

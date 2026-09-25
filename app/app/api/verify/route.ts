@@ -57,9 +57,11 @@ async function attempt(
   size: string,
   bounds: { max_impact_bps: number; max_total_cost_bps: number },
   rpcUrl: string,
-  network: string
+  network: string,
+  expect: "ROUTE" | "REFUSE" | null = null
 ) {
-  const row: any = { id, what, mint, size, network, bounds };
+  const row: any = { id, what, mint, size, network, bounds, expect };
+  const started = performance.now();
   try {
     const terms = await readExitTermsCached(mint, { rpcUrl, ua: RPC_UA });
     row.epoch = terms.epoch;
@@ -98,6 +100,10 @@ async function attempt(
     row.verdict = "ERROR";
     row.error = (e as Error).message;
   }
+  row.ms = Math.round(performance.now() - started);
+  // A case that declares what it must return turns this page into a test run:
+  // a refusal that should have routed is a failing check, not a data point.
+  row.as_expected = expect === null ? null : row.verdict === expect;
   return row;
 }
 
@@ -140,19 +146,19 @@ export async function GET() {
 
   const [classicMint, overSize, atSize, devnetReplica] = await Promise.all([
     attempt("classic_mint", "a mint the fee extension cannot exist on", CLASSIC_MINT, normal,
-      { max_impact_bps: 300, max_total_cost_bps: 1000 }, MAINNET, "mainnet"),
+      { max_impact_bps: 300, max_total_cost_bps: 1000 }, MAINNET, "mainnet", "REFUSE"),
     attempt("over_bound", "the same exit at a hundred times the depth", FEE_MINT, big,
-      { max_impact_bps: 300, max_total_cost_bps: 1000 }, MAINNET, "mainnet"),
+      { max_impact_bps: 300, max_total_cost_bps: 1000 }, MAINNET, "mainnet", "REFUSE"),
     attempt("acceptance", "a real holding, at a real size", FEE_MINT, normal,
-      { max_impact_bps: 300, max_total_cost_bps: 1000 }, MAINNET, "mainnet"),
+      { max_impact_bps: 300, max_total_cost_bps: 1000 }, MAINNET, "mainnet", "ROUTE"),
     attempt("devnet_replica", "the replica issuer, read on devnet", DEVNET_FEE_MINT, normal,
-      { max_impact_bps: 300, max_total_cost_bps: 1000 }, DEVNET, "devnet"),
+      { max_impact_bps: 300, max_total_cost_bps: 1000 }, DEVNET, "devnet", null),
   ]);
 
   // A bound the holder sets, not a property of the chain: the same exit is fine
   // to someone willing to pay a percent and a refusal to someone who is not.
   const tightBound = await attempt("bound_is_the_holders", "the same holding under a stricter bound", FEE_MINT, normal,
-    { max_impact_bps: 300, max_total_cost_bps: 50 }, MAINNET, "mainnet");
+    { max_impact_bps: 300, max_total_cost_bps: 50 }, MAINNET, "mainnet", "REFUSE");
 
   let ablation = null;
   try {
@@ -176,6 +182,12 @@ export async function GET() {
       cases,
       refusals: refusals.length,
       distinct_refusals: [...new Set(refusals.map((c) => c.refusal))],
+      // The rollup: how many cases declared an outcome, how many hit it, and the
+      // wall time of the whole run.
+      checked: cases.filter((c) => c.expect !== null).length,
+      met: cases.filter((c) => c.as_expected === true).length,
+      all_as_expected: cases.filter((c) => c.expect !== null).every((c) => c.as_expected === true),
+      total_ms: cases.reduce((a, c) => a + (c.ms ?? 0), 0),
       ablation,
       on_chain:
         "The devnet program records a reading and refuses one that stops matching: verify_reading returns ReadingScheduleChanged (6003) once the issuer moves the fee. scripts/replica_devnet.mjs reproduces it.",

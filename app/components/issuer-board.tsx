@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 type Row = {
   mint: string;
@@ -55,10 +57,24 @@ const n = (v?: string | null) => {
   }
 };
 
+/** what fraction of the pool's quote never reaches the holder, at this size */
+function costPct(r: Row): number | null {
+  if (r.error || r.quote_error || !r.quote_out || !r.lands) return null;
+  try {
+    const quoted = BigInt(r.quote_out);
+    if (quoted <= 0n) return null;
+    const lost = quoted - BigInt(r.lands);
+    return Number((lost * 10000n) / quoted) / 100;
+  } catch {
+    return null;
+  }
+}
+
 export default function IssuerBoard() {
   const [data, setData] = useState<Board | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [busy, setBusy] = useState(true);
+  const router = useRouter();
 
   useEffect(() => {
     let alive = true;
@@ -97,20 +113,21 @@ export default function IssuerBoard() {
 
   return (
     <div>
-      <div style={{ marginBottom: 24 }}>
+      <div style={{ marginBottom: 20 }}>
         <div className="label-mono" style={{ marginBottom: 8, color: "var(--color-brand-blue)" }}>Issuers</div>
         <h1 className="heading-sm" style={{ margin: 0 }}>Same asset class, different exit</h1>
         {data && (
           <p className="mono" style={{ fontSize: 12, color: "var(--color-graphite)", marginTop: 8 }}>
-            {data.observed} of {data.requested} mints read · one whole token quoted per mint
+            {data.observed} of {data.requested} mints read · one whole token quoted per mint · every row opens that
+            mint&apos;s own terms
           </p>
         )}
       </div>
 
-      {busy && <div className="mono" style={{ fontSize: 13, color: "var(--color-graphite)" }}>Reading every mint</div>}
+      {busy && <div className="state-card mono" style={{ fontSize: 13, color: "var(--color-graphite)" }}>Reading every mint</div>}
       {err && (
-        <div style={{ padding: "12px 16px", background: "rgba(255,77,77,0.06)", borderRadius: 8, fontSize: 13, color: "var(--color-refuse)" }}>
-          {err}
+        <div className="state-card state-error">
+          <p className="mono" style={{ fontSize: 12, color: "var(--color-refuse)", margin: 0 }}>{err}</p>
         </div>
       )}
 
@@ -133,41 +150,60 @@ export default function IssuerBoard() {
           <table style={{ width: "100%", borderCollapse: "collapse" }}>
             <thead>
               <tr>
-                {["issuer", "symbol", "fee now", "not yet in force", "quote", "withheld", "lands", "levers", "keys", "paused", "hook"].map((h) => (
+                {["issuer", "symbol", "fee now", "not yet in force", "quote", "withheld", "lands", "cost", "levers", "keys", "paused", "hook"].map((h) => (
                   <th key={h} className="label-mono" style={th}>{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
-              {data.rows.map((r) => (
-                <tr key={r.mint}>
-                  <td style={{ ...td, color: "var(--color-onyx)" }}>{r.issuer}</td>
-                  <td style={{ ...td, fontWeight: 700 }}>{r.symbol}</td>
-                  <td style={{ ...td, color: r.fee_in_force_bps ? "#8a5a00" : "var(--color-graphite)" }}>
-                    {r.error ? "—" : `${r.fee_in_force_bps} bps`}
-                  </td>
-                  <td style={{ ...td, color: r.fee_pending_bps ? "#8a5a00" : "var(--color-graphite)" }}>
-                    {r.fee_pending_bps ? `${r.fee_pending_bps} bps @ ${r.fee_pending_epoch}` : "—"}
-                  </td>
-                  <td style={td}>{r.quote_error ? `no route` : n(r.quote_out)}</td>
-                  <td style={{ ...td, color: "var(--color-refuse)" }}>{n(r.withheld)}</td>
-                  <td style={{ ...td, fontWeight: 700 }}>{n(r.lands)}</td>
-                  <td style={td}>{r.levers ?? "—"}</td>
-                  <td style={{ ...td, color: r.keys === 1 ? "#8a5a00" : "var(--color-graphite)" }}>{r.keys ?? "—"}</td>
-                  <td style={td}>{r.paused === null || r.paused === undefined ? "—" : r.paused ? "yes" : "no"}</td>
-                  <td style={td}>{r.hook ? "installed" : "none"}</td>
-                </tr>
-              ))}
+              {data.rows.map((r) => {
+                const cost = costPct(r);
+                return (
+                  <tr
+                    key={r.mint}
+                    onClick={() => router.push(`/mint/${r.mint}`)}
+                    style={{ cursor: "pointer" }}
+                    title={`open ${r.symbol}'s terms`}
+                  >
+                    <td style={{ ...td, color: "var(--color-onyx)" }}>{r.issuer}</td>
+                    <td style={{ ...td, fontWeight: 700 }}>
+                      <Link href={`/mint/${r.mint}`} style={{ color: "var(--color-onyx)" }}>
+                        {r.symbol}
+                      </Link>
+                    </td>
+                    <td style={{ ...td, color: r.fee_in_force_bps ? "#8a5a00" : "var(--color-graphite)" }}>
+                      {r.error ? "—" : `${r.fee_in_force_bps} bps`}
+                    </td>
+                    <td style={{ ...td, color: r.fee_pending_bps ? "#8a5a00" : "var(--color-graphite)" }}>
+                      {r.fee_pending_bps ? `${r.fee_pending_bps} bps @ ${r.fee_pending_epoch}` : "—"}
+                    </td>
+                    <td style={td}>{r.quote_error ? "no route" : n(r.quote_out)}</td>
+                    <td style={{ ...td, color: "var(--color-refuse)" }}>{n(r.withheld)}</td>
+                    <td style={{ ...td, fontWeight: 700 }}>{n(r.lands)}</td>
+                    <td style={{ ...td, fontWeight: 700, color: cost && cost > 0 ? "#8a5a00" : "var(--color-graphite)" }}>
+                      {cost === null ? "—" : `${cost.toFixed(2)}%`}
+                    </td>
+                    <td style={td}>{r.levers ?? "—"}</td>
+                    <td style={{ ...td, color: r.keys === 1 ? "#8a5a00" : "var(--color-graphite)" }}>{r.keys ?? "—"}</td>
+                    <td style={td}>{r.paused === null || r.paused === undefined ? "—" : r.paused ? "yes" : "no"}</td>
+                    <td style={td}>{r.hook ? "installed" : "none"}</td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
       )}
 
-      <p style={{ marginTop: 16, fontSize: 11, color: "var(--color-graphite)", maxWidth: "70ch" }}>
-        Every value above is read from the mint at request time. A mint with no transfer-fee
-        extension reports 0 bps, which is a different statement from a fee of zero that someone
-        intends to raise later.
-      </p>
+      <details style={{ marginTop: 16 }}>
+        <summary className="label-mono" style={{ fontSize: 10, cursor: "pointer" }}>How to read this table</summary>
+        <p style={{ margin: "8px 0 0", fontSize: 11, color: "var(--color-graphite)", maxWidth: "70ch" }}>
+          Every value is read from the mint at request time. Cost is the share of the pool&apos;s own quote that does not
+          reach the holder at this size, so it reflects the fee that is actually in force rather than the one that was
+          announced. A mint with no transfer-fee extension reports 0 bps, which is a different statement from a fee of
+          zero that someone intends to raise later.
+        </p>
+      </details>
     </div>
   );
 }
