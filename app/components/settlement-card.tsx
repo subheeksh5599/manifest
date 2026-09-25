@@ -72,6 +72,15 @@ type TxRead = {
 
 const USDC = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v";
 
+/** A percentage keeps three significant digits; a raw float is not a reading. */
+const pct = (v: string | number | null | undefined) => {
+  if (v === null || v === undefined || v === "") return "—";
+  const x = Number(v);
+  if (!Number.isFinite(x)) return String(v);
+  if (x === 0) return "0%";
+  return `${String(Number(x.toPrecision(3)))}%`;
+};
+
 const n = (v: string | number | null | undefined, dp = 9) => {
   if (v === null || v === undefined) return "—";
   const x = Number(v);
@@ -458,7 +467,7 @@ export default function SettlementCard({
               route {data.quote.route_labels.join(" → ") || "unknown"}
             </span>
             <span style={{ color: "var(--color-graphite)" }}>
-              impact {data.quote.price_impact_pct ?? "—"}
+              impact {pct(data.quote.price_impact_pct)}
             </span>
             <span style={{ color: "var(--color-graphite)" }}>hops {data.quote.hops.length}</span>
             {data.settlement.pending_bps != null && (

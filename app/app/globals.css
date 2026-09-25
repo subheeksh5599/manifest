@@ -271,6 +271,20 @@ details.q .q-b { margin-top: 8px; color: #6b7280; font-size: 13px; line-height: 
 .dash-cols { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 18px; align-items: start; }
 .dash-cols > * { min-width: 0; }
 
+/* The shared primary rule only carries ink. Scoped here so the landing page keeps
+   its own, and so a dashboard button reads as a button: it has room around its
+   label, and it says when it cannot be pressed. */
+.shell-main .btn-primary {
+  padding: 9px 14px;
+  border: 1px solid #000;
+  border-radius: 2px;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.2;
+  cursor: pointer;
+}
+.shell-main .btn-primary:disabled { background: var(--color-ash); border-color: var(--color-ash); color: #fff; cursor: not-allowed; }
+
 /* Long, unbroken reads wrap rather than overflow. */
 .mono, code, .label-mono, .state-card p, .flow-value { overflow-wrap: anywhere; }
 

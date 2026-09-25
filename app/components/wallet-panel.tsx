@@ -181,7 +181,7 @@ export default function WalletPanel({ onChange }: { onChange?: (w: WalletRead | 
 
       {hasProvider === false && !address && (
         <p className="mono" style={{ fontSize: 11, color: "var(--color-graphite)", marginTop: 8 }}>
-          No wallet extension detected. Install one, or paste any address into Replace to read it
+          No wallet extension detected. Install one, or paste any address into the box to read it
           without connecting.
         </p>
       )}

@@ -35,6 +35,23 @@ type Chart = {
 };
 
 const short = (s: string, n = 4) => (s.length > n * 2 + 3 ? `${s.slice(0, n)}…${s.slice(-n)}` : s);
+
+/**
+ * A source line names where a number came from. The full URL is still on the
+ * element as its title, but printing every pool address and query string turns a
+ * provenance line into a wall of text, so the path keeps its tail and loses the
+ * middle.
+ */
+const shortUrl = (u: string) => {
+  try {
+    const x = new URL(u);
+    const p = x.pathname;
+    const tail = p.length > 26 ? `${p.slice(0, 12)}…${p.slice(-12)}` : p;
+    return `${x.host}${tail}`;
+  } catch {
+    return u.length > 48 ? `${u.slice(0, 45)}…` : u;
+  }
+};
 const money = (v: number | null | undefined, dp = 4) =>
   v === null || v === undefined ? "—" : `$${v.toFixed(dp)}`;
 
@@ -186,8 +203,12 @@ export default function PriceChart({
         )}
       </div>
       {d.sources?.candles && (
-        <div className="mono" style={{ fontSize: 9, color: "var(--color-ash)", marginTop: 3, wordBreak: "break-all" }}>
-          {d.sources.candles.url} · read {d.sources.candles.at.slice(11, 19)}Z
+        <div
+          className="mono"
+          style={{ fontSize: 9, color: "var(--color-ash)", marginTop: 3, overflowWrap: "anywhere" }}
+          title={d.sources.candles.url}
+        >
+          {shortUrl(d.sources.candles.url)} · read {d.sources.candles.at.slice(11, 19)}Z
         </div>
       )}
     </div>
