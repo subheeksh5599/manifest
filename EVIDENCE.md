@@ -12,7 +12,7 @@ Rust tests, **30** receipt checks, **14** pool checks, **5** hostile checks.
 | Exit terms are read from live mints, not from a database | stdout, `app/data/readings.jsonl` | `python3 scripts/verify_receipts.py` |
 | Every fee figure is re-derived from raw account bytes by a second implementation | stdout, 30 checks | `python3 scripts/verify_receipts.py --check` |
 | Every address and signature these documents quote resolves on chain | stdout, `docs address` / `docs signature` rows | `python3 scripts/verify_receipts.py --check` |
-| That check is load-bearing: one wrong character in a quoted address fails the run | 25/25 becomes 24/25, exit 1 | change a character of any quoted mint, re-run |
+| That check is load-bearing: one wrong character in a quoted address fails the run | 30/30 becomes 29/30, exit 1 | change a character of any quoted mint, re-run |
 | All registered mints resolve, with the slot each reading was taken at | `app/data/registry.json` | `curl -s localhost:3000/api/registry` |
 | A classic mint can never be read as a fee-bearing one | `app/lib/exit-terms.mjs` | `cd app && npm test` |
 | Four refusals, four distinct reasons, evaluated on the request | `/api/verify` response | `curl -s localhost:3000/api/verify` |
