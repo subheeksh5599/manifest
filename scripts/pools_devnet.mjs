@@ -503,6 +503,78 @@ async function cross() {
 }
 
 /** Write the live pool fields (vaults, mints, price) into the state file. */
+async function dump() {
+  const wallet = loadWallet();
+  const c = conn();
+  const cl = client(wallet, c);
+  const state = loadState();
+  for (const key of ["issuer_a", "issuer_b"]) {
+    const pool = await cl.getPool(state[key].pool);
+    const d = pool.getData();
+    Object.assign(state[key], {
+      tokenMintA: d.tokenMintA.toBase58(),
+      tokenMintB: d.tokenMintB.toBase58(),
+      tokenVaultA: d.tokenVaultA.toBase58(),
+      tokenVaultB: d.tokenVaultB.toBase58(),
+      liquidity: d.liquidity.toString(),
+      sqrtPrice: d.sqrtPrice.toString(),
+      tickCurrentIndex: d.tickCurrentIndex,
+      feeRate: d.feeRate,
+      tickSpacing: d.tickSpacing,
+    });
+    console.log(key, "vaults", d.tokenVaultA.toBase58(), d.tokenVaultB.toBase58(),
+                "liquidity", d.liquidity.toString(), "tick", d.tickCurrentIndex);
+  }
+  saveState(state);
+}
+
+async function inspect() {
+  const wallet = loadWallet();
+  const c = conn();
+  const cl = client(wallet, c);
+  const state = loadState();
+  const key = process.argv[3] || "issuer_a";
+  const entry = state[key];
+  const mint = new PublicKey(loadReplica()[key].mint);
+  const pool = await cl.getPool(entry.pool);
+  const d = pool.getData();
+  const initialTick = entry.tick;
+  const lower = TickUtil.getInitializableTickIndex(initialTick - RANGE_TICKS, TICK_SPACING);
+  const upper = TickUtil.getInitializableTickIndex(initialTick + RANGE_TICKS, TICK_SPACING);
+  const aIsIssuer = d.tokenMintA.equals(mint);
+  const tokenMaxA = aIsIssuer ? new BN(Math.round(LIQUIDITY_TOKENS * 1e9)) : new BN(Math.round(LIQUIDITY_TOKENS * PRICE_SOL_PER_TOKEN * 1e9));
+  const tokenMaxB = aIsIssuer ? new BN(Math.round(LIQUIDITY_TOKENS * PRICE_SOL_PER_TOKEN * 1e9)) : new BN(Math.round(LIQUIDITY_TOKENS * 1e9));
+  const { lowerBound, upperBound } = PriceMath.getSlippageBoundForSqrtPrice(d.sqrtPrice, Percentage.fromFraction(1, 100));
+
+  console.log("pool tokenA:", d.tokenMintA.toBase58(), "tokenB:", d.tokenMintB.toBase58());
+  console.log("tokenMaxA  :", tokenMaxA.toString(), " tokenMaxB:", tokenMaxB.toString());
+  console.log("range      :", lower, "->", upper, " current tick:", d.tickCurrentIndex);
+  console.log("current price (B per A):", PriceMath.sqrtPriceX64ToPrice(d.sqrtPrice, 9, 9).toString());
+
+  const { tx } = await pool.openPosition(
+    lower, upper,
+    { tokenMaxA, tokenMaxB, minSqrtPrice: lowerBound[0], maxSqrtPrice: upperBound[0] },
+    wallet.publicKey, wallet.publicKey
+  );
+  const built = await tx.build();
+  const t = built.transaction ? built.transaction : built;
+  const ixs = t.instructions || t.message.compiledInstructions;
+  console.log("\ninstructions in the tx:", ixs.length);
+  const PROGS = {
+    "whirLbMiicVdio4qvUfM5KAg6Ct8VwpYzGff3uctyCc": "WHIRLPOOL",
+    "11111111111111111111111111111111": "system",
+    "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA": "token",
+    "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb": "token-2022",
+    "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL": "ATA",
+  };
+  ixs.forEach((ix, i) => {
+    const pid = (ix.programId || t.message.staticAccountKeys[ix.programIdIndex]).toBase58();
+    const data = Buffer.from(ix.data || []);
+    console.log(`  [${i}] ${(PROGS[pid] || pid).padEnd(11)} data ${data.subarray(0, 8).toString("hex")} len ${data.length}`);
+    if (i === 3) console.log("      full hex:", data.toString("hex"));
+  });
+}
+
 /**
  * Send the same instruction with data written here, keeping the account list the
  * SDK produced. The point is to separate the data from the accounts: if the
@@ -635,7 +707,7 @@ async function manual() {
 }
 
 const phase = process.argv[2] || "show";
-const run = { show, create, manual, swap, cross }[phase];
+const run = { show, create, manual, swap, cross, dump, inspect }[phase];
 if (!run) {
   console.error("usage: node pool.js [show|create|swap]");
   process.exit(2);
