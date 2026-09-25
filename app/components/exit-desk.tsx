@@ -75,6 +75,35 @@ type Exit = {
   error?: string;
 };
 
+type ReplicaIssuer = {
+  mint: string;
+  fee_bps: number | null;
+  pool: string;
+  pool_exists: boolean;
+  pool_owner_is_whirlpool: boolean;
+  vault_quote: { address: string; lamports_or_units: string; exists: boolean };
+  vault_issuer: { address: string; lamports_or_units: string; exists: boolean };
+  deposit_confirmed: boolean;
+};
+
+type Replica = {
+  network: string;
+  slot: number;
+  issuer_a: ReplicaIssuer;
+  issuer_b: ReplicaIssuer;
+  cross_issuer: {
+    sig: string;
+    from: string;
+    to: string;
+    legs_in_one_transaction: number;
+    confirmed: boolean;
+    slot: number | null;
+    touches_whirlpool: boolean;
+    measured: { issuer_b_spent: string; issuer_a_received: string; quote_asset: string; quote_asset_left_behind: string };
+  };
+  both_pools_live: boolean;
+};
+
 const n = (v: string | null | undefined) => {
   if (v === null || v === undefined) return "—";
   try {
@@ -97,6 +126,23 @@ export default function ExitDesk({ entries }: { entries: RegistryEntry[] }) {
   const [busy, setBusy] = useState(false);
   const [data, setData] = useState<Exit | null>(null);
   const [err, setErr] = useState<string | null>(null);
+  const [rep, setRep] = useState<Replica | null>(null);
+
+  // The replica lives on devnet and is read on the request like everything else.
+  useEffect(() => {
+    let live = true;
+    void (async () => {
+      try {
+        const r = await fetch("/api/replica", { cache: "no-store" });
+        if (r.ok && live) setRep((await r.json()) as Replica);
+      } catch {
+        // the desk still works without it; nothing is invented to fill the gap
+      }
+    })();
+    return () => {
+      live = false;
+    };
+  }, []);
 
   const evaluate = useCallback(async (m: string, s: string) => {
     setBusy(true);
@@ -316,6 +362,49 @@ export default function ExitDesk({ entries }: { entries: RegistryEntry[] }) {
               ))}
             </div>
           </div>
+
+          {/* the same shape, recreated on devnet, with the route across issuers */}
+          {rep && (
+            <div className="card" style={{ padding: 20, marginBottom: 16 }}>
+              <div className="label-mono" style={{ fontSize: 10, marginBottom: 4 }}>
+                The route across issuers · devnet
+              </div>
+              <p style={{ margin: "0 0 12px", fontSize: 11, color: "var(--color-graphite)" }}>
+                Two issuers, each with its own pool against wrapped SOL, both holding real
+                liquidity{rep.both_pools_live ? "" : " (one is not live right now)"}.
+              </p>
+              <div style={{ display: "grid", gap: 8 }}>
+                {[rep.issuer_b, rep.issuer_a].map((x, i) => (
+                  <div key={x.pool} style={{ display: "grid", gridTemplateColumns: "160px 1fr", gap: 12, fontSize: 12, alignItems: "baseline" }}>
+                    <code className="mono" style={{ color: "var(--color-onyx)" }}>
+                      {i === 0 ? "issuer B" : "issuer A"} {short(x.pool, 5, 4)}
+                    </code>
+                    <span className="mono" style={{ color: "var(--color-graphite)" }}>
+                      issuer vault {n(x.vault_issuer.lamports_or_units)} · quote vault {n(x.vault_quote.lamports_or_units)}
+                      {x.pool_owner_is_whirlpool ? "" : " · not a pool"}
+                    </span>
+                  </div>
+                ))}
+                <div style={{ display: "grid", gridTemplateColumns: "160px 1fr", gap: 12, fontSize: 12, alignItems: "baseline", marginTop: 4 }}>
+                  <code className="mono" style={{ color: "var(--color-onyx)" }}>one transaction</code>
+                  <span className="mono" style={{ color: rep.cross_issuer.confirmed ? "#2E7D32" : "var(--color-refuse)" }}>
+                    {rep.cross_issuer.legs_in_one_transaction} swaps · sold {n(rep.cross_issuer.measured.issuer_b_spent)} of issuer B
+                    · landed {n(rep.cross_issuer.measured.issuer_a_received)} of issuer A
+                    · {rep.cross_issuer.confirmed ? "confirmed on chain" : "not confirmed"}
+                  </span>
+                </div>
+              </div>
+              <a
+                className="mono"
+                href={`https://explorer.solana.com/tx/${rep.cross_issuer.sig}?cluster=devnet`}
+                target="_blank"
+                rel="noreferrer"
+                style={{ display: "inline-block", marginTop: 12, fontSize: 11, color: "var(--color-graphite)" }}
+              >
+                {short(rep.cross_issuer.sig, 12, 6)} ↗
+              </a>
+            </div>
+          )}
 
           {/* the mint's levers */}
           <div className="card" style={{ padding: 20 }}>
