@@ -3,7 +3,7 @@
 Recorded on the live site, no terminal, no GitHub. Clicks and narration only.
 Every label below is a real control and every number was read from the live build.
 
-Total 1:50. The first 35 seconds are the whole argument; everything after that is
+Total 2:20. The first 35 seconds are the whole argument; everything after that is
 a judge convincing themselves.
 
 ---
@@ -71,7 +71,27 @@ A refusal that names its reason is worth more than a number with no provenance."
 
 ---
 
-## 1:25 — Watch the checks run
+## 1:35 — The route across issuers
+
+**Do:** keep scrolling past **Exit routes** to the card headed
+**The route across issuers · devnet**.
+
+**Say:** "On mainnet there is no second issuer of this company to route to, and the
+desk says exactly that. So I built the shape where one exists: two issuers, each
+with a real pool, both quoted against wrapped SOL, both holding real liquidity.
+Those vault balances are read on this page load, not stored."
+
+**Do:** point at the **one transaction** line, then click the signature link.
+
+**Say:** "And the exit across them is one transaction. Sell into B's pool, spend
+what comes back into A's pool. A hundred million of B in, ninety-four million of
+A out, two swaps, with no gap between the legs for anything to happen in. That
+transaction is linked here, and the verifier counts the two swaps inside its own
+logs rather than taking my word for it."
+
+---
+
+## 1:55 — Watch the checks run
 
 **Do:** click **Verification** in the left nav. Press **Run again**.
 
@@ -93,7 +113,7 @@ million micro-units on that exit, so it is doing work rather than sitting there.
 
 ---
 
-## 1:50 — Close
+## 2:20 — Close
 
 **Say:** "One percent off a billion units today, three percent off it tomorrow,
 and the two numbers that say so are in the mint's own account bytes. That is the
@@ -103,9 +123,10 @@ way out."
 
 ## What not to say
 
-- Do not claim a swap was executed. A pool executes swaps; this is the layer that
-  tells you what will land first. The README's honesty table says this in the same
-  words.
+- Do not claim a swap was executed on mainnet. One was executed on devnet, and the
+  beat above is about that one: the crossing moved issuer B's mint into issuer A's
+  mint in a single transaction, and the verifier counts the two swaps inside it.
+  The product's own mainnet surface reads and prices; it does not sign.
 - Do not claim mainnet execution. The program and the two-issuer replica run on
   devnet, and the reads come from mainnet.
 - Do not say "insurance" or "guaranteed". Nothing here pays out.
