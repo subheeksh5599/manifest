@@ -4,8 +4,9 @@ Every claim in this repository maps to a command a judge can run, with no
 credentials and no funds. If a row does not reproduce, that is a real bug in the
 repository rather than a rounding difference, and it should be treated that way.
 
-The counts are the counts as they run on a clean clone: **411** node tests, **10**
-Rust tests, **30** receipt checks, **14** pool checks, **5** hostile checks.
+The counts are the counts as they run on a clean clone: **423** node tests, **10**
+Rust tests, **30** receipt checks, **14** pool checks, **12** live comparison
+checks, **5** hostile checks.
 
 | claim | artifact | command |
 |---|---|---|
@@ -21,6 +22,11 @@ Rust tests, **30** receipt checks, **14** pool checks, **5** hostile checks.
 | Both replica issuers have a real pool on devnet, owned by the pool program | stdout, 14 checks | `python3 scripts/verify_pools.py` |
 | An exit leaves issuer B's mint and arrives in issuer A's, in one transaction | 2 `SwapV2` logs in one transaction | `python3 scripts/verify_pools.py` |
 | That route is executable from a clean clone, not just recorded | a new devnet signature | `node scripts/pools_devnet.mjs cross 0.01` |
+| One company is priced at both issuers, after the fee in force, at the caller's size | `/api/compare` response | `curl '…/api/compare?size=100000000'` |
+| That price is the pool library's own quote, to the lamport, on both issuers | stdout, 12 checks | `node scripts/compare_live.mjs` |
+| One lamport of tampering with that price is caught | `difference 1`, same command | `node scripts/compare_live.mjs` |
+| The pool fields are read from bytes at offsets proved against the library | stdout, ten fields agreeing | `node scripts/pool_layout.mjs` |
+| What lands never exceeds the pool's own spot price | `app/lib/compare-engine.test.mjs` | `cd app && npm test` |
 | The devnet program records a reading and refuses a stale one | signature `bBz4KBZ1…`, then `6003` | `node scripts/prove_onchain.mjs` |
 | A published number is refused by the chain, not by a database | two devnet signatures | same command, second half |
 | The refusal system survives a hostile run | stdout, 5 checks in separate processes | `python3 scripts/adversarial_gate.py` |
