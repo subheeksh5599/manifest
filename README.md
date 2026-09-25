@@ -431,7 +431,7 @@ scripts/check_no_secrets.py   refuses credentials on the way in, not after
 | Read | Solana mainnet RPC, `getAccountInfo` base64 + jsonParsed |
 | Pricing | A public quote aggregator, at the requested size |
 | App | Next.js 16, React 19, TypeScript strict |
-| Tests | `node --test` (404) plus a Python verifier (25 checks) |
+| Tests | `node --test` (411), a Python verifier (30 checks), 14 devnet pool checks |
 | Assets | Token-2022 mints from two issuers |
 
 ## License
