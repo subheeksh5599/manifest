@@ -1,6 +1,0 @@
-# Backed xStock Token-2022 mints (mint addresses only; ticker is never the identity).
-XsDoVfqeBukxuZHWhdvWHBhgEHjGNst4MLodqsJHzoB
-XsCPL9dNWBMvFtTmwcCA5v3xWPSMEBCszbQdiLLq6aN
-XsvNBAYkrDRNhA7wPHQfX3ZUXZyZLdnCQDfHZ56bzpg
-Xsc9qvGR1efVDFGLrVsmkzv3qi45LTBjeUKSPmx9qEh
-XsueG8BtpquVJX9LVLLEGuViXUungE6WmK5YZ3p3bd1

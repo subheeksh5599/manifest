@@ -5,7 +5,7 @@ const nav = [
   { label: "Overview", href: "/", icon: "◆" },
   { label: "Exit Desk", href: "/exit", icon: "⇥" },
   { label: "Issuers", href: "/issuers", icon: "◫" },
-  { label: "No-Trade Tape", href: "/tape", icon: "▤" },
+  { label: "Tape", href: "/tape", icon: "▤" },
   { label: "Mint Inspector", href: `/mint/XsDoVfqeBukxuZHWhdvWHBhgEHjGNst4MLodqsJHzoB`, icon: "◎" },
   { label: "Evidence", href: "/evidence", icon: "⚙" },
 ];
