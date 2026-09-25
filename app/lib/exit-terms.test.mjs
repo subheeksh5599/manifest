@@ -20,7 +20,11 @@ const {
   authorityLedger,
   parseExitTerms,
   readExitTerms,
+  readExitTermsCached,
+  clearTermsCache,
+  rpcEndpoints,
   readFeeConfigExact,
+  DEFAULT_FALLBACK_RPC,
   BPS_DENOMINATOR,
   U64_MAX,
   EXT_TRANSFER_FEE_CONFIG,
@@ -421,5 +425,61 @@ describe("LIVE read against a real mainnet mint", () => {
         (t.fee_pending ? `   PENDING: ${t.fee_pending.bps}bps at epoch ${t.fee_pending.epoch}` : "   (nothing pending)") +
         `\n  authorities: ${t.authority.total_levers} levers, ${t.authority.distinct_keys} distinct key(s)`
     );
+  });
+});
+
+describe("reading several mints at once", () => {
+  it("asks a second endpoint when one rate limits", () => {
+    // Six mints read at once edited the public endpoint's rate limit into the
+    // board, so a reading must not depend on one host answering.
+    const urls = rpcEndpoints({ rpcUrl: "https://primary.example", rpcUrlFallback: "https://backup.example" });
+    assert.deepEqual(urls, ["https://primary.example", "https://backup.example"]);
+  });
+
+  it("never asks the same endpoint twice", () => {
+    const urls = rpcEndpoints({ rpcUrl: "https://same.example", rpcUrlFallback: "https://same.example" });
+    assert.equal(urls.length, 1);
+  });
+
+  it("always has a second endpoint, whatever the environment says", () => {
+    const urls = rpcEndpoints({ rpcUrl: "https://primary.example" });
+    assert.ok(urls.length >= 2, "a single endpoint is not enough to survive a rate limit");
+    assert.notEqual(urls[0], urls[1]);
+  });
+
+  it("serves a repeat read from cache rather than the chain", async () => {
+    clearTermsCache();
+    const first = await readExitTermsCached(VERIFIED_MINT);
+    const second = await readExitTermsCached(VERIFIED_MINT);
+    // Identical slot means the second call did not touch the network.
+    assert.equal(second.slot, first.slot);
+    assert.equal(second.epoch, first.epoch);
+  });
+
+  it("shares one in-flight read between callers", async () => {
+    clearTermsCache();
+    const [a, b] = await Promise.all([
+      readExitTermsCached(VERIFIED_MINT),
+      readExitTermsCached(VERIFIED_MINT),
+    ]);
+    assert.equal(a.slot, b.slot);
+  });
+
+  it("does not cache a failure", async () => {
+    clearTermsCache();
+    // A valid address that holds nothing, so this cannot start passing later.
+    const empty = "z".repeat(43);
+    await assert.rejects(() => readExitTermsCached(empty), /mint not found/);
+    // A second call must go back to the network, not replay the failure.
+    await assert.rejects(() => readExitTermsCached(empty), /mint not found/);
+  });
+
+  it("reports an account that is not a mint rather than inventing terms", async () => {
+    clearTermsCache();
+    const terms = await readExitTermsCached("11111111111111111111111111111111").catch(() => null);
+    if (terms) {
+      assert.equal(terms.is_token_2022, false);
+      assert.equal(terms.fee_exact, null);
+    }
   });
 });

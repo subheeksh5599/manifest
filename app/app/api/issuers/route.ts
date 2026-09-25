@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { loadRegistry } from "@/lib/registry";
-import { readExitTerms } from "@/lib/exit-terms.mjs";
+import { readExitTerms, readExitTermsCached } from "@/lib/exit-terms.mjs";
 import { landingAmount } from "@/lib/exit-engine.mjs";
+import { mapLimit } from "@/lib/rpc";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -44,11 +45,12 @@ async function quote(mint: string, size: string) {
 export async function GET() {
   const entries = loadRegistry();
 
-  const rows = await Promise.all(
-    entries.map(async (e) => {
+  // Two mints in flight at a time. Six at once trips the public endpoint's rate
+  // limit, and a comparison board with holes in it is worse than a slower one.
+  const rows = await mapLimit(entries, 2, async (e) => {
       const size = (10n ** BigInt(e.decimals)).toString();
       try {
-        const terms: any = await readExitTerms(e.mint, { rpcUrl: RPC_URL, ua: RPC_USER_AGENT });
+        const terms: any = await readExitTermsCached(e.mint, { rpcUrl: RPC_URL, ua: RPC_USER_AGENT });
         const q = await quote(e.mint, size);
         const eff = terms.fee_effective ?? null;
         const landing = q.ok ? landingAmount(BigInt((q as any).out_amount), terms) : null;
@@ -83,11 +85,10 @@ export async function GET() {
           route_labels: q.ok ? (q as any).labels : [],
           error: null,
         };
-      } catch (err) {
-        return { mint: e.mint, symbol: e.symbol, name: e.name, issuer: e.issuer, error: (err as Error).message };
-      }
-    })
-  );
+    } catch (err) {
+      return { mint: e.mint, symbol: e.symbol, name: e.name, issuer: e.issuer, error: (err as Error).message };
+    }
+  });
 
   const observed = rows.filter((r) => !("error" in r && r.error));
   const issuers = [...new Set(observed.map((r: any) => r.issuer))];

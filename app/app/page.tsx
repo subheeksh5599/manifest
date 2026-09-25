@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { loadRegistry } from "@/lib/registry";
-import { readExitTerms } from "@/lib/exit-terms.mjs";
+import { readExitTerms, readExitTermsCached } from "@/lib/exit-terms.mjs";
 import { exitVerdict } from "@/lib/exit-engine.mjs";
 
 export const dynamic = "force-dynamic";
@@ -29,7 +29,7 @@ async function heroRead() {
 
   const size = (10n ** BigInt(entry.decimals + 3)).toString();
   try {
-    const terms: any = await readExitTerms(entry.mint, { rpcUrl: RPC_URL, ua: RPC_USER_AGENT });
+    const terms: any = await readExitTermsCached(entry.mint, { rpcUrl: RPC_URL, ua: RPC_USER_AGENT });
     let quote: any = null;
     try {
       const r = await fetch(

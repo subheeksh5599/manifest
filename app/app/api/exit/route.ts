@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { readExitTerms } from "@/lib/exit-terms.mjs";
+import { readExitTerms, readExitTermsCached } from "@/lib/exit-terms.mjs";
 import { exitVerdict, routeExit } from "@/lib/exit-engine.mjs";
 
 export const runtime = "nodejs";
@@ -60,7 +60,7 @@ export async function GET(req: Request) {
 
   let terms;
   try {
-    terms = await readExitTerms(mint, { rpcUrl: RPC_URL, ua: RPC_USER_AGENT });
+    terms = await readExitTermsCached(mint, { rpcUrl: RPC_URL, ua: RPC_USER_AGENT });
   } catch (e) {
     return NextResponse.json({ error: `chain read failed: ${(e as Error).message}` }, { status: 502 });
   }

@@ -1,149 +1,217 @@
+<div align="center">
+
 # Manifest
 
+**Exit terms for tokenized equities on Solana, read from the mint itself.**
+
 [![Live](https://img.shields.io/badge/demo-live-145FE4?style=flat-square)](https://manifest-mocha-six.vercel.app)
-[![Tests](https://img.shields.io/badge/tests-554%20passing-2E7D32?style=flat-square)](https://github.com/subheeksh5599/manifest)
+[![Tests](https://img.shields.io/badge/tests-79%20passing-2E7D32?style=flat-square)](#proof)
+[![Verifier](https://img.shields.io/badge/independent%20verifier-17%20checks-2E7D32?style=flat-square)](#proof)
 [![License](https://img.shields.io/badge/license-MIT-303136?style=flat-square)](LICENSE)
 [![Solana](https://img.shields.io/badge/Solana-Token--2022-9945FF?style=flat-square)](https://solana.com)
-[![Program](https://img.shields.io/badge/devnet-deployed-14F195?style=flat-square)](https://explorer.solana.com/address/pTpaE75ubNyv9voydPJNaEfmv3GbmcN5bvZBfnRtdiA?cluster=devnet)
 
-A recurring buy that fills at a verified price, or refuses on-chain. Manifest schedules purchases of tokenized equities on Solana. Every plan is checked against live Token-2022 extension state at the moment of the trade. When a check fails, the transaction never leaves your machine and the refusal is published as a receipt anyone can re-verify by re-reading the chain.
+</div>
 
-## What it does
+A tokenized equity can be trading at 100 basis points on the way out while the
+mint already carries a 300 basis point schedule scheduled to take effect at a
+named epoch. Both values are public, both are in the account bytes, and almost
+nothing shows either of them.
 
-Manifest evaluates preflight plans against real Solana mainnet Token-2022 issuer mints. Seven invariants are checked against live state at request time.
+Manifest reads the exit terms out of the mint and reports three numbers in
+order: **what the pool quoted**, **what the mint withholds**, and **what lands**.
+A quote is not a payout, and the difference is the product.
 
-| Surface | Link |
-|---|---|
-| Plan builder | https://manifest-mocha-six.vercel.app/plan |
-| Refusal tape | https://manifest-mocha-six.vercel.app/tape |
-| Mint truth cards | https://manifest-mocha-six.vercel.app/mint/XsDoVfqeBukxuZHWhdvWHBhgEHjGNst4MLodqsJHzoB |
-| Evidence pack | https://manifest-mocha-six.vercel.app/evidence |
-| Market prices | https://manifest-mocha-six.vercel.app |
+## See it in one command
 
-## How it works
-
-```
-Plan (7 bounds) -> inspect() -> 6 invariant checks -> ACCEPT | REFUSE
+```bash
+curl -s 'https://manifest-mocha-six.vercel.app/api/exit?mint=PresTj4Yc2bAR197Er7wz4UUKSfqt6FryBEdAriBoQB&size=1000000000'
 ```
 
-Checks run in priority order. First failure wins:
+Real output, unedited, one request to mainnet:
 
-| # | Check | Condition |
+```json
+{
+  "mint": "PresTj4Y…", "size": "1000000000", "slot": 450311310, "epoch": "1042",
+  "quote": { "venue": "pool", "out_amount": "162733915", "price_impact_bps": 0 },
+  "verdict": {
+    "verdict": "ROUTE",
+    "landing": {
+      "quoted_out":   "162733915",
+      "schedule_bps": 100,
+      "withheld":     "1627339",
+      "lands":        "161106576",
+      "pending_bps":  300,
+      "pending_epoch": "1043",
+      "withheld_after_pending": "4882017"
+    }
+  }
+}
+```
+
+At slot 450311310 the pool quoted 162,733,915. The mint withheld 1,627,339.
+What landed was 161,106,576. Once the announced schedule takes effect at epoch
+1043, the same exit withholds 4,882,017 — three times as much.
+
+Both numbers move with the pool, so run the command for the current ones. The
+schedule numbers do not: they change only when the issuer signs a new one.
+
+## The one fact that matters
+
+```
+$ node --test app/lib/exit-terms.test.mjs
+  LIVE PresTj4Y…  slot=450306499 epoch=1042
+  older=100bps@1039  newer=300bps@1043
+  IN FORCE NOW: 100bps   PENDING: 300bps at epoch 1043
+  authorities: 8 levers, 1 distinct key(s)
+```
+
+Token-2022's `TransferFeeConfig` carries **two** schedules. The one in force at
+epoch *E* is the newer schedule when *E* is at or past `newer.epoch`, and the
+older one otherwise. That single rule is why an announced increase is readable
+today, before it is charged.
+
+## Surfaces
+
+| Surface | What it answers | Link |
 |---|---|---|
-| 1 | mint_identity | Registry entry exists and symbol matches plan |
-| 2 | multiplier_freshness | Plan multiplier snapshot == live card multiplier (numeric) |
-| 3 | issuer_levers | Mint not paused and no transfer hook program |
-| 4 | reference_regime | ref_age_secs <= max_ref_age_secs |
-| 5 | exit_at_size | route_cost_bps <= exit_bound_bps |
-| 6 | policy | requested_size <= per_trade_cap |
+| Exit Desk | Three numbers, six checks, every route | [/exit](https://manifest-mocha-six.vercel.app/exit) |
+| Issuer Board | Every registry mint, read live, grouped by issuer | [/issuers](https://manifest-mocha-six.vercel.app/issuers) |
+| Mint Inspector | Both fee schedules and the key behind each authority | [/mint/XsDoVfqe…](https://manifest-mocha-six.vercel.app/mint/XsDoVfqeBukxuZHWhdvWHBhgEHjGNst4MLodqsJHzoB) |
+| Tape | Append-only ledger of readings, with the slot each was taken at | [/tape](https://manifest-mocha-six.vercel.app/tape) |
+| Evidence | Every claim mapped to the command that reproduces it | [/evidence](https://manifest-mocha-six.vercel.app/evidence) |
 
-## On-chain program (devnet)
+## Why bytes, not parsed JSON
 
-Program ID: `pTpaE75ubNyv9voydPJNaEfmv3GbmcN5bvZBfnRtdiA`
+`getAccountInfo` with `jsonParsed` returns u64 fields as JSON numbers. A u64
+maximum fee can be `2^64-1`, which a double cannot hold. The parsed read returns
+`18446744073709551616` — one more than the chain stores.
 
-The Anchor program enforces preflight invariants on-chain. Four instructions:
+The fee fields are therefore lifted from the account bytes. The
+`TransferFeeConfig` extension is 108 bytes at TLV offset 166:
 
-| Instruction | What it does |
-|---|---|
-| `create_plan` | Creates a PDA-bound plan with mint, amount, slippage, multiplier snapshot |
-| `preflight` | Reads Token-2022 extension state from the mint, checks pausable/transfer_hook/multiplier, reverts on failure |
-| `record_fill` | Records a successful fill against a Ready plan |
-| `record_refusal` | Writes a permanent refusal receipt with reason code and the live value that tripped it |
+```
+[  0: 32] transfer_fee_config_authority
+[ 32: 64] withdraw_withheld_authority
+[ 64: 72] withheld_amount        u64
+[ 72: 90] older  epoch u64, maximum_fee u64, basis points u16
+[ 90:108] newer  epoch u64, maximum_fee u64, basis points u16
+```
 
-Explorer links:
-- [Program](https://explorer.solana.com/address/pTpaE75ubNyv9voydPJNaEfmv3GbmcN5bvZBfnRtdiA?cluster=devnet)
-- [Plan (filled)](https://explorer.solana.com/address/rDt5XPbutXYPtMgox2AGepKGtDVvBkuhaHiCgU3oxh3?cluster=devnet)
-- [Fill receipt](https://explorer.solana.com/address/67t8p3KmxtNnyc21LCwABvpy4kQsroN2JvoCm8f3ESsA?cluster=devnet)
-- [Refusal receipt](https://explorer.solana.com/address/7hBCzAdqrsNUmQ4VGEvvHjjSGMurQARVB5emjbYHVmsj?cluster=devnet)
+## Exit checks
 
-## Quickstart
+Run in this order. The first failure becomes the verdict; the rest are still
+recorded, because knowing which other conditions also fail is useful.
+
+| # | Check | Refusal code |
+|---|---|---|
+| 1 | `mint_is_token_2022` | `mint_not_token_2022` |
+| 2 | `mint_not_paused` | `mint_paused` |
+| 3 | `no_transfer_hook_program` | `transfer_hook_installed` |
+| 4 | `exit_route_exists` | `no_exit_route` |
+| 5 | `impact_within_bound` | `impact_over_bound` |
+| 6 | `fee_does_not_consume_position` | `fee_consumes_position` |
+
+A refusal is a different statement from a zero, and it carries a name.
+
+## Proof
 
 ```bash
 git clone https://github.com/subheeksh5599/manifest.git
-cd manifest/app
-npm install
-npm run build
-node --test lib/engine.test.mjs lib/engine.test.extra.mjs
+cd manifest/app && npm install && npm run build
+node --test lib/exit-terms.test.mjs lib/exit-engine.test.mjs
 ```
 
-### Run devnet tests
-
-```bash
-cd manifest
-source .venv/bin/activate
-python3 scripts/devnet_full_test.py
+```
+ℹ tests 79
+ℹ pass  79
+ℹ fail  0
 ```
 
-## Proof -- 554 tests, 0 failures
+Reading six mints at once tripped the public endpoint's rate limit, which showed
+as a comparison board with holes in it. Reads now take a second endpoint when the
+first refuses, run with a ceiling on how many are in flight, and repeat a recent
+result for 90 seconds instead of re-reading the chain. Every surface still prints
+the slot the reading came from, so a cached number is never presented as a fresh
+one.
 
 ```
-i tests 554
-i pass  554
-i fail  0
+$ python3 scripts/verify_receipts.py
+  PASS  ANDURIL: maximum fee is exactly 2^64-1                  18446744073709551615
+  PASS  ANDURIL: the same value through a float is wrong        18446744073709551616
+  PASS  ANDURIL: the two schedules are ordered                  1039 -> 1043
+  PASS  ANDURIL: schedule in force at epoch 1042                100 bps @ epoch 1039
+
+  mints read            6
+  charged at the exit   1
+  a change scheduled    1
+  checks                17/17 passed
 ```
 
-| Suite | Count | Coverage |
-|---|---|---|
-| engine.test.mjs | 133 | 6 individual invariants, boundary values, priority ordering, card state |
-| engine.test.extra.mjs | 421 | 240 property-based, 30 boundary sweeps, 15 priority pairs, 10 slot edges, 6 determinism |
+`scripts/verify_receipts.py` is a deliberately **independent** implementation.
+It walks the Token-2022 TLV region in Python and re-derives both schedules from
+raw account bytes. It does not import the TypeScript module, so a bug there
+cannot hide behind itself. If the two disagree, the site is wrong.
+
+```
+$ python3 scripts/adversarial_gate.py
+  PASS  ablation_understates_the_exit  —  300bps vs 100bps -> overstates the exit by 40,000,000,000 micro-units
+  PASS  read_follows_the_bytes         —  100 -> 65535 bps from the bytes alone
+  PASS  zero_cap_charges_nothing       —  a zero maximum fee charges nothing, and the bytes say so
+  PASS  absent_fee_is_not_a_schedule   —  reads as absent, so nothing is scheduled rather than zero
+  PASS  missing_mint_is_not_zero       —  sGCjibff… holds nothing, so no reading is invented
+
+  5/5 hostile checks passed
+```
+
+The first check is the ablation: ignore the not-yet-in-force schedule and the
+same position is priced wrong by 40,000,000,000 micro-units. That is what makes
+the epoch read load-bearing rather than decorative.
 
 ## Honesty table
 
-| Claim | Status | How to verify |
+| Claim | Status | How to check |
 |---|---|---|
-| Reads live mainnet state | Done | Visit any mint truth card -- data is from live RPC |
-| Preflight evaluation | Done | POST to /api/preflight with a plan body |
-| Live prices via Jupiter V3 | Done | Visit landing page market ticker or /api/prices |
-| 554 tests, 0 failures | Done | Run `node --test lib/*.test.mjs` |
-| Plan builder with spot price | Done | Select a mint in /plan -- price + estimated fill shown |
-| Anchor program deployed (devnet) | Done | [Explorer](https://explorer.solana.com/address/pTpaE75ubNyv9voydPJNaEfmv3GbmcN5bvZBfnRtdiA?cluster=devnet) |
-| create_plan on-chain | Done | PDA created and verified |
-| preflight on-chain | Done | Token-2022 extension checks pass/fail on devnet |
-| record_fill on-chain | Done | Fill receipt written to chain |
-| record_refusal on-chain | Done | Refusal receipt with reason code written to chain |
-| Real mainnet transaction broadcast | Not claimed | Preflight evaluates; no mainnet wallet integration |
+| Exit terms read from mainnet mints | Done | `curl https://manifest-mocha-six.vercel.app/api/issuers` |
+| Fee schedule selected by epoch | Done | `node --test app/lib/exit-terms.test.mjs` |
+| u64 fee fields read from account bytes | Done | `python3 scripts/verify_receipts.py --check` |
+| Quote priced down to what lands | Done | `curl '…/api/exit?mint=…&size=…'` |
+| Two issuers read and compared live | Done | `curl https://manifest-mocha-six.vercel.app/api/issuers` |
+| Readings recorded with their slot | Done | `tail -3 app/data/readings.jsonl` |
+| Independent Python verifier agrees | Done | `python3 scripts/verify_receipts.py` |
+| **Executing a swap on mainnet** | **Not claimed** | The site reads and prices. It does not sign. |
+| **An issuer redemption window** | **Not claimed** | That path is off chain, so it is never shown as achievable. |
+| **A second issuer for the same company** | **Not claimed** | Reported as not observed until one is read on chain. |
+| **An on-chain program for routing** | **Not claimed** | An Anchor program exists in the repo from an earlier design. It is not wired to this product and no page claims it. |
+| **Underwriting, insurance, or payout** | **Not claimed** | This is a read-and-price layer. |
 
 ## Architecture
 
 ```
-programs/preflight/         Anchor program (Solana devnet)
-  src/lib.rs                Program entry: create_plan, preflight, record_fill, record_refusal
-  src/state/plan.rs         Plan account struct
-  src/state/tape_entry.rs   TapeEntry account struct (fills + refusals)
-  src/error.rs              Custom error codes
+app/lib/exit-terms.mjs        read the mint; epoch-selected fee; exact TLV read
+app/lib/exit-engine.mjs       quote -> landing; six checks; route comparison
+app/lib/*.test.mjs            79 tests, including a live read
+app/app/exit/                 the desk
+app/app/issuers/              the cross-issuer board
+app/app/tape/                 the reading ledger
+app/app/evidence/             claim -> artifact -> command
+app/app/mint/[addr]/          one mint, in full
+app/data/registry.json        identity only, so nothing measured can go stale
+app/data/readings.jsonl       appended by the verifier, never hand-written
 
-scripts/                    Python backend
-  preflight.py              Off-chain evaluator (7 invariants against mainnet)
-  mint_truth.py             Token-2022 extension reader (mainnet)
-  rpc.py                    JSON-RPC helper with UA header
-  devnet_test.py            Devnet integration test
-  devnet_full_test.py       Full flow test (create -> preflight -> fill/refuse)
-
-app/                        Next.js frontend
-  app/page.tsx              Landing page with market ticker
-  app/plan/                 Plan builder dashboard
-  app/tape/                 Refusal tape ledger
-  app/evidence/             Verifiable claims
-  app/mint/[addr]/          Live Token-2022 state reader
-  app/api/prices/           Jupiter V3 price proxy
-  app/api/preflight/        Evaluation endpoint
-  lib/engine.ts             Pure evaluation function (inspect + allChecks)
-  lib/engine.test.mjs       133 unit tests
-  lib/engine.test.extra.mjs 421 combinatorial tests
+scripts/verify_receipts.py    independent Python re-derivation of the fee fields
+scripts/adversarial_gate.py   five hostile checks, including the ablation
 ```
 
 ## Stack
 
 | Layer | Tool |
 |---|---|
-| Smart contract | Anchor 0.30.1, Rust |
-| Frontend | Next.js 16, React 19 |
-| Evaluation | TypeScript pure function + Python evaluator |
-| Prices | Jupiter V3 Price API |
-| RPC | Public Solana mainnet + devnet |
-| Tokens | Token-2022 xStocks (Backed Finance) |
-| Tests | Node --test (built-in) |
+| Read | Solana mainnet RPC, `getAccountInfo` base64 + jsonParsed |
+| Pricing | Jupiter quote API at the requested size |
+| App | Next.js 16, React 19, TypeScript strict |
+| Tests | `node --test` (72) plus a Python verifier (17 checks) |
+| Assets | Token-2022 mints from two issuers |
 
 ## License
 
-MIT -- 2026
+MIT — 2026

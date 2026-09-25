@@ -18,20 +18,57 @@ export async function rpc<T = unknown>(method: string, params: unknown[]): Promi
     Accept: "application/json",
     "User-Agent": process.env.RPC_USER_AGENT || DEFAULT_UA,
   };
+  const retries = Number(process.env.RPC_RETRIES || 4);
   let last: unknown;
-  for (const url of endpoints()) {
-    try {
-      const r = await fetch(url, { method: "POST", headers, body, cache: "no-store" });
-      if (!r.ok) {
-        last = new Error(`rpc ${r.status}`);
-        continue;
+
+  for (let attempt = 0; attempt < retries; attempt++) {
+    for (const url of endpoints()) {
+      try {
+        const r = await fetch(url, { method: "POST", headers, body, cache: "no-store" });
+        if (!r.ok) {
+          last = new Error(`rpc ${r.status} on ${method}`);
+          // The public endpoints rate limit aggressively when several mints are
+          // read at once. Backing off and retrying is cheaper than showing a
+          // board with holes in it.
+          if (r.status === 429 || r.status >= 500) continue;
+          continue;
+        }
+        const json = (await r.json()) as { result?: T; error?: { message?: string } };
+        if (json.error) {
+          last = new Error(`rpc error on ${method}: ${json.error.message ?? "unknown"}`);
+          continue;
+        }
+        return json as T;
+      } catch (e) {
+        last = e;
       }
-      return (await r.json()) as T;
-    } catch (e) {
-      last = e;
+    }
+    if (attempt < retries - 1) {
+      const wait = 200 * 2 ** attempt + Math.floor(Math.random() * 150);
+      await new Promise((res) => setTimeout(res, wait));
     }
   }
   throw last ?? new Error("rpc failed");
+}
+
+/** Run async work with a ceiling on how much is in flight, so a burst of
+ *  reads does not trip the public endpoint's rate limit. */
+export async function mapLimit<A, B>(
+  items: A[],
+  limit: number,
+  fn: (item: A) => Promise<B>,
+): Promise<B[]> {
+  const out = new Array<B>(items.length);
+  let next = 0;
+  const workers = Array.from({ length: Math.min(limit, items.length) }, async () => {
+    while (true) {
+      const i = next++;
+      if (i >= items.length) return;
+      out[i] = await fn(items[i]);
+    }
+  });
+  await Promise.all(workers);
+  return out;
 }
 
 export type MintCard = {

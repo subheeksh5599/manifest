@@ -263,20 +263,51 @@ export function parseExitTerms(mint, rawAccountInfo, slot, epoch) {
 const DEFAULT_UA =
   "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
 
-async function rpc(method, params, url, ua) {
-  const r = await fetch(url, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Accept: "application/json",
-      "User-Agent": ua,
-    },
-    body: JSON.stringify({ jsonrpc: "2.0", id: 1, method, params }),
-  });
-  if (!r.ok) throw new Error(`rpc ${r.status} on ${method}`);
-  const j = await r.json();
-  if (j.error) throw new Error(`rpc error on ${method}: ${j.error.message}`);
-  return j.result;
+export const DEFAULT_FALLBACK_RPC = "https://solana-rpc.publicnode.com";
+
+function rpcEndpoints(opts = {}) {
+  const seen = new Set();
+  return [
+    opts.rpcUrl || process.env.RPC_URL || "https://api.mainnet-beta.solana.com",
+    opts.rpcUrlFallback || process.env.RPC_URL_FALLBACK || DEFAULT_FALLBACK_RPC,
+  ].filter((u) => u && !seen.has(u) && seen.add(u));
+}
+
+async function rpc(method, params, urls, ua, tries = 5) {
+  const list = Array.isArray(urls) ? urls : [urls];
+  let last;
+  for (let attempt = 0; attempt < tries; attempt++) {
+    // Cycle endpoints as well as attempts, so a rate limit on one host does not
+    // decide whether a mint can be read at all.
+    const url = list[attempt % list.length];
+    try {
+      const r = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+          "User-Agent": ua,
+        },
+        body: JSON.stringify({ jsonrpc: "2.0", id: 1, method, params }),
+      });
+      if (!r.ok) {
+        last = new Error(`rpc ${r.status} on ${method}`);
+        // Reading several mints at once trips the public endpoint's rate limit.
+        // Waiting and asking again beats reporting a mint that could not be read.
+        if (r.status === 429 || r.status >= 500) throw last;
+        throw last;
+      }
+      const j = await r.json();
+      if (j.error) throw new Error(`rpc error on ${method}: ${j.error.message}`);
+      return j.result;
+    } catch (e) {
+      last = e;
+      if (attempt < tries - 1) {
+        await new Promise((res) => setTimeout(res, 200 * 2 ** attempt + Math.floor(Math.random() * 150)));
+      }
+    }
+  }
+  throw last ?? new Error(`rpc failed on ${method}`);
 }
 
 /**
@@ -284,13 +315,13 @@ async function rpc(method, params, url, ua) {
  * The epoch is fetched in the same call so the two can never disagree.
  */
 export async function readExitTerms(mint, opts = {}) {
-  const url = opts.rpcUrl || process.env.RPC_URL || "https://api.mainnet-beta.solana.com";
+  const urls = rpcEndpoints(opts);
   const ua = opts.ua || process.env.RPC_USER_AGENT || DEFAULT_UA;
 
   const [acct, raw, epochInfo] = await Promise.all([
-    rpc("getAccountInfo", [mint, { encoding: "jsonParsed", commitment: "confirmed" }], url, ua),
-    rpc("getAccountInfo", [mint, { encoding: "base64", commitment: "confirmed" }], url, ua),
-    rpc("getEpochInfo", [{}], url, ua),
+    rpc("getAccountInfo", [mint, { encoding: "jsonParsed", commitment: "confirmed" }], urls, ua),
+    rpc("getAccountInfo", [mint, { encoding: "base64", commitment: "confirmed" }], urls, ua),
+    rpc("getEpochInfo", [{}], urls, ua),
   ]);
 
   if (!acct?.value) throw new Error(`mint not found: ${mint}`);
@@ -321,6 +352,40 @@ export async function readExitTerms(mint, opts = {}) {
   return terms;
 }
 
+/* ------------------------------------------------------------------ */
+/* A short cache. Exit terms change when an issuer changes them, which */
+/* is rare; a burst of page views should not become a burst of reads.  */
+/* Every surface still reports the slot a reading was taken at.        */
+/* ------------------------------------------------------------------ */
+
+const TERMS_TTL_MS = Number(process.env.EXIT_TERMS_TTL_MS || 90_000);
+const termsCache = new Map();
+
+export async function readExitTermsCached(mint, opts = {}) {
+  const now = Date.now();
+  const hit = termsCache.get(mint);
+  if (hit) {
+    if (hit.value && now - hit.at < TERMS_TTL_MS) return hit.value;
+    if (hit.inflight) return hit.inflight; // share one in-flight read
+  }
+  const inflight = readExitTerms(mint, opts).then(
+    (value) => {
+      termsCache.set(mint, { at: Date.now(), value, inflight: null });
+      return value;
+    },
+    (err) => {
+      termsCache.delete(mint); // never cache a failure
+      throw err;
+    },
+  );
+  termsCache.set(mint, { at: now, value: hit?.value ?? null, inflight });
+  return inflight;
+}
+
+export function clearTermsCache() {
+  termsCache.clear();
+}
+
 export default {
   BPS_DENOMINATOR,
   U64_MAX,
@@ -335,4 +400,7 @@ export default {
   authorityLedger,
   parseExitTerms,
   readExitTerms,
+  readExitTermsCached,
+  clearTermsCache,
+  rpcEndpoints,
 };

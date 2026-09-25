@@ -1,4 +1,4 @@
-import { readExitTerms } from "@/lib/exit-terms.mjs";
+import { readExitTerms, readExitTermsCached } from "@/lib/exit-terms.mjs";
 import DashboardLayout from "@/components/dashboard-layout";
 
 export const dynamic = "force-dynamic";
@@ -9,7 +9,7 @@ export default async function MintPage({ params }: { params: Promise<{ addr: str
   let terms: any = null;
   let err: string | null = null;
   try {
-    terms = await readExitTerms(addr, {
+    terms = await readExitTermsCached(addr, {
       rpcUrl: process.env.RPC_URL,
       ua: process.env.RPC_USER_AGENT,
     });
