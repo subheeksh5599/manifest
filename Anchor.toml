@@ -2,7 +2,7 @@
 channel = "stable"
 
 [programs.devnet]
-manifest_preflight = "pTpaE75ubNyv9voydPJNaEfmv3GbmcN5bvZBfnRtdiA"
+manifest_exit_terms = "pTpaE75ubNyv9voydPJNaEfmv3GbmcN5bvZBfnRtdiA"
 
 [provider]
 cluster = "devnet"

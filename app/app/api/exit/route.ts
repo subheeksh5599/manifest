@@ -89,16 +89,20 @@ export async function GET(req: Request) {
     unavailable_reason: "no_second_issuer_observed",
   };
 
-  const routes = routeExit([
-    poolQuote ?? { venue: "pool", available: false, unavailable_reason: poolError ?? "no_route" },
-    secondIssuer,
-    issuerRoute,
-  ]);
+  const bounds = { max_impact_bps: 300, max_total_cost_bps: 1000 };
 
-  const verdict = exitVerdict(terms, poolQuote, BigInt(size), {
-    max_impact_bps: 300,
-    max_total_cost_bps: 1000,
-  });
+  const verdict = exitVerdict(terms, poolQuote, BigInt(size), bounds);
+
+  // The same terms price every route, so a route can never report a landing
+  // that disagrees with the verdict above it.
+  const routes = routeExit(
+    [
+      poolQuote ?? { venue: "pool", available: false, unavailable_reason: poolError ?? "no_route" },
+      secondIssuer,
+      issuerRoute,
+    ],
+    { terms, epoch: terms.epoch ?? null }
+  );
 
   return new NextResponse(
     j({

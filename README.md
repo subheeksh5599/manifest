@@ -5,7 +5,8 @@
 **Exit terms for tokenized equities on Solana, read from the mint itself.**
 
 [![Live](https://img.shields.io/badge/demo-live-145FE4?style=flat-square)](https://manifest-mocha-six.vercel.app)
-[![Tests](https://img.shields.io/badge/tests-79%20passing-2E7D32?style=flat-square)](#proof)
+[![Tests](https://img.shields.io/badge/tests-404%20passing-2E7D32?style=flat-square)](#proof)
+[![Program](https://img.shields.io/badge/devnet-on--chain%20record-14F195?style=flat-square)](https://explorer.solana.com/address/pTpaE75ubNyv9voydPJNaEfmv3GbmcN5bvZBfnRtdiA?cluster=devnet)
 [![Verifier](https://img.shields.io/badge/independent%20verifier-17%20checks-2E7D32?style=flat-square)](#proof)
 [![License](https://img.shields.io/badge/license-MIT-303136?style=flat-square)](LICENSE)
 [![Solana](https://img.shields.io/badge/Solana-Token--2022-9945FF?style=flat-square)](https://solana.com)
@@ -117,15 +118,23 @@ A refusal is a different statement from a zero, and it carries a name.
 
 ```bash
 git clone https://github.com/subheeksh5599/manifest.git
-cd manifest/app && npm install && npm run build
-node --test lib/exit-terms.test.mjs lib/exit-engine.test.mjs
+cd manifest/app && npm install && npm test
 ```
 
 ```
-ℹ tests 79
-ℹ pass  79
+ℹ tests 404
+ℹ pass  404
 ℹ fail  0
 ```
+
+```
+$ cd manifest && cargo test --manifest-path programs/exit_terms/Cargo.toml --lib
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out
+```
+
+The Rust tests parse a real mint's TLV region — the fee config sits behind two
+other extensions in that account, so the fixture exercises the walk rather than
+a lookup at a fixed offset.
 
 Reading six mints at once tripped the public endpoint's rate limit, which showed
 as a comparison board with holes in it. Reads now take a second endpoint when the
@@ -167,6 +176,47 @@ The first check is the ablation: ignore the not-yet-in-force schedule and the
 same position is priced wrong by 40,000,000,000 micro-units. That is what makes
 the epoch read load-bearing rather than decorative.
 
+## The record, on devnet
+
+A number on a website is a claim. The same number written by a program is a
+record with a slot that anyone can re-check. The program takes the mint account
+and writes down what it read.
+
+| Instruction | What it does |
+|---|---|
+| `record_reading` | Walks the mint's TLV region, selects the schedule in force by epoch, and writes size, withheld and lands to a PDA |
+| `verify_reading` | Recomputes the same numbers from the mint and **refuses** if they no longer match the record |
+
+Program `pTpaE75ubNyv9voydPJNaEfmv3GbmcN5bvZBfnRtdiA`, devnet.
+
+Reproduced end to end on devnet, against a mint given a schedule that is not yet
+in force — the product's own premise, built rather than asserted:
+
+```
+chain epoch      1166
+older            100 bps @ epoch 1166
+newer            300 bps @ epoch 1168
+=> in force      100 bps
+=> pending       300 bps @ epoch 1168
+
+record_reading   ok   2t6LWz9xzUWE2HqcxYHkbzjikcb5f4HageuL4atvAYduAuE7HjjyRmbWncBUB4WBoMjdjquW4pvroMKWU4qToGg1
+  bps in force       100        (chain says 100)
+  bps pending        300        (chain says 300)
+  maximum fee        18446744073709551615   exact 2^64-1: true
+  withheld           10000000   computed: 10000000
+  lands              990000000  = size - withheld: 990000000
+
+verify_reading   PASS 5FKnnV5QYtz5wAK1Dh6CY4LxtxUjHG5oyQutg3wkywBpz7MmAJe8VkcbUoHQPSxH8KuRhf618PWjmbAhNc97uGrJ
+
+fee changed to 500 bps
+verify_reading   REFUSED
+  Error Code: ReadingScheduleChanged. Error Number: 6003.
+  Error Message: the pending schedule is not the one the reading recorded.
+```
+
+The last line is the one that matters. A published number that stops being true
+is refused by the chain, not by a database.
+
 ## Honesty table
 
 | Claim | Status | How to check |
@@ -181,7 +231,9 @@ the epoch read load-bearing rather than decorative.
 | **Executing a swap on mainnet** | **Not claimed** | The site reads and prices. It does not sign. |
 | **An issuer redemption window** | **Not claimed** | That path is off chain, so it is never shown as achievable. |
 | **A second issuer for the same company** | **Not claimed** | Reported as not observed until one is read on chain. |
-| **An on-chain program for routing** | **Not claimed** | An Anchor program exists in the repo from an earlier design. It is not wired to this product and no page claims it. |
+| On-chain reading record (devnet) | Done | `solana program show pTpaE75ubNyv9voydPJNaEfmv3GbmcN5bvZBfnRtdiA --url devnet` |
+| A reading that stops reproducing is refused | Done | The `verify_reading` refusal above, error 6003 |
+| **Executing the exit itself on-chain** | **Not claimed** | The program records and verifies a reading. It does not move tokens. |
 | **Underwriting, insurance, or payout** | **Not claimed** | This is a read-and-price layer. |
 
 ## Architecture
@@ -189,7 +241,9 @@ the epoch read load-bearing rather than decorative.
 ```
 app/lib/exit-terms.mjs        read the mint; epoch-selected fee; exact TLV read
 app/lib/exit-engine.mjs       quote -> landing; six checks; route comparison
-app/lib/*.test.mjs            79 tests, including a live read
+app/lib/*.test.mjs            404 tests, including a live read and the matrices
+app/lib/*.matrix.test.mjs     the fee arithmetic, the epoch rule and the routes
+                              across their domains, not at sample points
 app/app/exit/                 the desk
 app/app/issuers/              the cross-issuer board
 app/app/tape/                 the reading ledger
@@ -197,6 +251,11 @@ app/app/evidence/             claim -> artifact -> command
 app/app/mint/[addr]/          one mint, in full
 app/data/registry.json        identity only, so nothing measured can go stale
 app/data/readings.jsonl       appended by the verifier, never hand-written
+
+programs/exit_terms/          the Anchor program (devnet)
+  src/lib.rs                  read_fee_config, record_reading, verify_reading
+  src/state/reading.rs        the 166-byte record
+  src/fixture.rs              a real mint's TLV region, embedded unchanged
 
 scripts/verify_receipts.py    independent Python re-derivation of the fee fields
 scripts/adversarial_gate.py   five hostile checks, including the ablation

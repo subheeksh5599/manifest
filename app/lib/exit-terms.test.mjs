@@ -346,6 +346,7 @@ describe("readFeeConfigExact", () => {
     const body = Uint8Array.from((bodyHex.match(/../g) || []).map((h) => parseInt(h, 16)));
     const buf = new Uint8Array(166 + 4 + body.length + 4);
     const dv = new DataView(buf.buffer);
+    buf[165] = 1; // account type: mint. Extensions only exist on a mint.
     dv.setUint16(166, EXT_TRANSFER_FEE_CONFIG, true);
     dv.setUint16(168, body.length, true);
     buf.set(body, 170);
@@ -385,6 +386,7 @@ describe("readFeeConfigExact", () => {
     // TLV: one permanent-delegate entry, then the terminator. 166 + (4 + 32) + 4.
     const buf = new Uint8Array(206);
     const dv = new DataView(buf.buffer);
+    buf[165] = 1;
     dv.setUint16(166, EXT_PERMANENT_DELEGATE, true);
     dv.setUint16(168, 32, true);
     dv.setUint16(202, 0, true);

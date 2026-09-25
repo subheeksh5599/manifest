@@ -118,6 +118,10 @@ function decodeBase64(b64) {
  *   [ 90:108] newer_transfer_fee         epoch u64, maximum_fee u64, bps u16
  */
 export function readFeeConfigExact(bytes) {
+  // Only a mint carries extensions, and only a Token-2022 mint at that. Without
+  // this guard an account with a plausible-looking TLV region would be read as
+  // if it had exit terms, which is the one thing this read must never do.
+  if (bytes.length < MINT_TLV_START || bytes[165] !== 1) return null;
   let p = MINT_TLV_START;
   const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
   while (p + 4 <= bytes.length) {

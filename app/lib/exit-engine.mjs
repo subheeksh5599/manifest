@@ -141,14 +141,19 @@ function costBps(notional, landing) {
  * issuer's redemption window is a promise made off-chain, and a second issuer
  * only exists when one is actually observed on chain.
  */
-export function routeExit(routes) {
+export function routeExit(routes, context = {}) {
   const scored = [];
   for (const r of routes) {
     if (!r.available) {
       scored.push({ ...r, achievable_now: false, lands: null });
       continue;
     }
-    const landing = landingAmount(BigInt(r.out_amount), r.terms ?? {}, r.epoch ?? null);
+    // The fee comes from the mint, not from the route. Reading it off the route
+    // let a caller that forgot to attach terms price a fee of zero, which made
+    // the best route disagree with the verdict on the same page.
+    const terms = r.terms ?? context.terms ?? {};
+    const epoch = r.epoch ?? context.epoch ?? null;
+    const landing = landingAmount(BigInt(r.out_amount), terms, epoch);
     const impact = r.price_impact_bps ?? 0;
     scored.push({
       ...r,

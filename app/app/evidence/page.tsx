@@ -45,6 +45,18 @@ export default function EvidencePage() {
       note: "Quoted, withheld, lands. Plus the full check list and every route with its reason for being reachable or not.",
     },
     {
+      claim: "A reading is written by a program, not by the site",
+      artifact: "programs/exit_terms/src/lib.rs",
+      cmd: "cargo test --manifest-path programs/exit_terms/Cargo.toml --lib",
+      note: "Ten tests, including a walk over a real mint's TLV region. The fee config sits behind two other extensions in that account, so the fixture exercises the walk rather than a lookup at a fixed offset.",
+    },
+    {
+      claim: "A reading that stops reproducing is refused by the chain",
+      artifact: "program pTpaE75ubNyv9voydPJNaEfmv3GbmcN5bvZBfnRtdiA (devnet)",
+      cmd: "solana program show pTpaE75ubNyv9voydPJNaEfmv3GbmcN5bvZBfnRtdiA --url devnet",
+      note: "record_reading writes the schedule in force, what is pending, the withheld amount and what lands. verify_reading recomputes them from the mint and refuses with ReadingScheduleChanged when the issuer moves the fee.",
+    },
+    {
       claim: "The readings on the tape are the verifier's own output",
       artifact: "app/data/readings.jsonl",
       cmd: "tail -3 app/data/readings.jsonl",

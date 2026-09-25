@@ -35,6 +35,6 @@ jobs:
           curl -sSfL https://release.anza.xyz/v3.1.14/install | sh
           echo "$HOME/.local/share/solana/install/active_release/bin" >> "$GITHUB_PATH"
       - name: build-sbf
-        run: cargo build-sbf --manifest-path programs/preflight/Cargo.toml
+        run: cargo build-sbf --manifest-path programs/exit_terms/Cargo.toml
       - name: test
-        run: cargo test --manifest-path programs/preflight/Cargo.toml --lib
+        run: cargo test --manifest-path programs/exit_terms/Cargo.toml --lib
