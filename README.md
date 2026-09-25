@@ -41,7 +41,13 @@ signature. Every kept segment, every removed one, and the reason for each is in
 > the file below it. The copy at [`demo/media/manifest-demo.mp4`](demo/media/manifest-demo.mp4)
 > is there so the file survives the link.
 
-**Contents** · [PreStocks integration](#prestocks-integration) · [See it in one command](#see-it-in-one-command) · [The one fact that matters](#the-one-fact-that-matters) · [Screenshots](#screenshots) · [Surfaces](#surfaces) · [Exit checks](#exit-checks) · [Proof](#proof) · [The record, on devnet](#the-record-on-devnet) · [What this is not](#honesty-table) · [Stack](#stack) · [License](#license)
+| Start here | And |
+|---|---|
+| [PreStocks integration](#prestocks-integration) | [Proof](#proof) |
+| [See it in one command](#see-it-in-one-command) | [The record, on devnet](#the-record-on-devnet) |
+| [The one fact that matters](#the-one-fact-that-matters) | [What this is not](#what-this-is-not) |
+| [Screenshots](#screenshots) | [Exit checks](#exit-checks) |
+| [Surfaces](#surfaces) | [Stack](#stack) · [License](#license) |
 
 ## PreStocks integration
 
@@ -584,7 +590,7 @@ That hash is the point: it is the same .so that is deployed to devnet. The build
 in CI reproduces the program that is running, byte for byte, and the asset URL is
 where a judge can pick it up — <https://github.com/subheeksh5599/manifest/releases/download/program-build/manifest_exit_terms.so>.
 
-## Honesty table
+## What this is not
 
 | Claim | Status | How to check |
 |---|---|---|

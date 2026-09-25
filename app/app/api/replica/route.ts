@@ -1,37 +1,12 @@
 import { NextResponse } from "next/server";
 import replica from "@/data/replica-devnet.json";
+import { devnetRpc as rpc } from "@/lib/devnet-rpc";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-const DEVNET_RPC = process.env.DEVNET_RPC_URL || "https://api.devnet.solana.com";
 const WHIRLPOOL_PROGRAM = "whirLbMiicVdio4qvUfM5KAg6Ct8VwpYzGff3uctyCc";
-const USER_AGENT =
-  process.env.RPC_USER_AGENT ||
-  "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
-
-let id = 0;
-
-/**
- * One call to the devnet RPC.
- *
- * The route holds no state and no cache: every number below is read from the
- * chain on the request, so the page cannot keep showing something that stopped
- * being true.
- */
-async function rpc(method: string, params: unknown[]): Promise<any> {
-  const r = await fetch(DEVNET_RPC, {
-    method: "POST",
-    headers: { "content-type": "application/json", "user-agent": USER_AGENT },
-    body: JSON.stringify({ jsonrpc: "2.0", id: ++id, method, params }),
-    cache: "no-store",
-  });
-  if (!r.ok) throw new Error(`${method} returned ${r.status}`);
-  const body = await r.json();
-  if (body.error) throw new Error(`${method}: ${body.error.message}`);
-  return body.result;
-}
 
 async function vaultBalance(address: string): Promise<{ lamports_or_units: string; exists: boolean }> {
   try {

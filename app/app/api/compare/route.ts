@@ -3,6 +3,7 @@ import replica from "@/data/replica-devnet.json";
 import { readFeeConfigExact, selectFeeSchedule } from "@/lib/exit-terms.mjs";
 import { readPoolAccount, POOL_PROGRAM } from "@/lib/pool-account.mjs";
 import { compareIssuers } from "@/lib/compare-engine.mjs";
+import { devnetRpc as rpc, devnetEpoch } from "@/lib/devnet-rpc";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -13,34 +14,17 @@ export const revalidate = 0;
  *
  * Every number this route returns is read from devnet on the request: each
  * issuer's mint bytes for the fee schedule actually in force, each pool's bytes
- * for the price and the depth. Nothing is cached and nothing is remembered
- * between requests, so a schedule that changes at an epoch changes here too.
+ * for the price and the depth. No price, schedule or balance is cached or
+ * remembered between requests, so a schedule that changes at an epoch changes
+ * here too. The only value kept for a moment is the epoch itself, which moves on
+ * a two-day clock and is what picks the schedule in force.
  *
  * Where this cannot price an issuer it says so by name - "exit_terms_unreadable",
  * "pool_state_unreadable" - rather than filling the space with a plausible
  * figure. A wrong price is worse than a refusal.
  */
 
-const DEVNET_RPC = process.env.DEVNET_RPC_URL || "https://api.devnet.solana.com";
 const DEFAULT_SIZE = "100000000";
-const USER_AGENT =
-  process.env.RPC_USER_AGENT ||
-  "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
-
-let id = 0;
-
-async function rpc(method: string, params: unknown[]): Promise<any> {
-  const r = await fetch(DEVNET_RPC, {
-    method: "POST",
-    headers: { "content-type": "application/json", "user-agent": USER_AGENT },
-    body: JSON.stringify({ jsonrpc: "2.0", id: ++id, method, params }),
-    cache: "no-store",
-  });
-  if (!r.ok) throw new Error(`${method} returned ${r.status}`);
-  const body = await r.json();
-  if (body.error) throw new Error(`${method}: ${body.error.message}`);
-  return body.result;
-}
 
 async function accountBytes(address: string): Promise<{ bytes: Uint8Array; owner: string } | null> {
   const v = await rpc("getAccountInfo", [address, { encoding: "base64", commitment: "confirmed" }]);
@@ -57,8 +41,7 @@ export async function GET(req: Request) {
   const size = BigInt(sizeParam);
 
   try {
-    const epochInfo = await rpc("getEpochInfo", [{ commitment: "confirmed" }]);
-    const epoch = epochInfo?.epoch ?? null;
+    const epoch = await devnetEpoch();
 
     const issuers: any[] = [];
     const rail: Record<string, any> = {};
