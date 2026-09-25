@@ -189,30 +189,41 @@ and writes down what it read.
 
 Program `pTpaE75ubNyv9voydPJNaEfmv3GbmcN5bvZBfnRtdiA`, devnet.
 
-Reproduced end to end on devnet, against a mint given a schedule that is not yet
-in force — the product's own premise, built rather than asserted:
+Reproduce the whole thing from nothing:
+
+```bash
+cd scripts && npm install && cd ..
+node scripts/prove_onchain.mjs
+```
+
+That creates a mint, gives it a fee announced for a future epoch, records a
+reading, verifies it, moves the fee and shows verification refuse. Real output
+from that script, on devnet:
 
 ```
-chain epoch      1166
-older            100 bps @ epoch 1166
-newer            300 bps @ epoch 1168
-=> in force      100 bps
-=> pending       300 bps @ epoch 1168
+mint created      D5oVtn8g9anzdKPXYTPDtt9f67WWwRLoVPp5eWbp4MmT
+fee announced     older 100 bps @ epoch 1166   newer 300 bps @ epoch 1168
+                  => in force 100 bps, pending 300 bps @ epoch 1168
 
-record_reading   ok   2t6LWz9xzUWE2HqcxYHkbzjikcb5f4HageuL4atvAYduAuE7HjjyRmbWncBUB4WBoMjdjquW4pvroMKWU4qToGg1
-  bps in force       100        (chain says 100)
-  bps pending        300        (chain says 300)
-  maximum fee        18446744073709551615   exact 2^64-1: true
-  withheld           10000000   computed: 10000000
-  lands              990000000  = size - withheld: 990000000
+record_reading    ok   bBz4KBZ1HvKLoSfZzoaNx5U8SkuBxTw9GbruvmGxL6ZLCKSjt3FDL99AMggViZ7GdyeHxKNhsnH33UzbGYZyMV7
+  bps in force    100  (chain says 100)
+  bps pending     300  (chain says 300)
+  maximum fee     18446744073709551615  exact 2^64-1: true
+  withheld        10000000  computed: 10000000
+  lands           990000000 = size - withheld: 990000000
+  matches the mint: true
 
-verify_reading   PASS 5FKnnV5QYtz5wAK1Dh6CY4LxtxUjHG5oyQutg3wkywBpz7MmAJe8VkcbUoHQPSxH8KuRhf618PWjmbAhNc97uGrJ
+verify_reading    PASS 3r7DQej4Xh9hZUSnmJJqT8PsEWKWEno2NZzGLL7X4mo4cjdgXmRpm7bBDrmguhJyNk8CpsYb8744oUNbgr8ZXqX
 
-fee changed to 500 bps
-verify_reading   REFUSED
+fee moved to      500 bps @ epoch 1168
+verify_reading    REFUSED
   Error Code: ReadingScheduleChanged. Error Number: 6003.
   Error Message: the pending schedule is not the one the reading recorded.
 ```
+
+Note what the chain wrote when the fee was announced: `newer 300 bps @ epoch 1168`
+while the chain was at epoch 1166. A fee really is written ahead of the epoch it
+takes effect in, which is the premise this product is built on.
 
 The last line is the one that matters. A published number that stops being true
 is refused by the chain, not by a database.
@@ -259,6 +270,7 @@ programs/exit_terms/          the Anchor program (devnet)
 
 scripts/verify_receipts.py    independent Python re-derivation of the fee fields
 scripts/adversarial_gate.py   five hostile checks, including the ablation
+scripts/prove_onchain.mjs     builds the devnet scenario and shows the refusal
 ```
 
 ## Stack

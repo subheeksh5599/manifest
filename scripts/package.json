@@ -1,0 +1,10 @@
+{
+  "name": "manifest-scripts",
+  "private": true,
+  "type": "module",
+  "description": "Verification scripts. The app itself needs none of this.",
+  "dependencies": {
+    "@solana/spl-token": "^0.4.9",
+    "@solana/web3.js": "^1.95.0"
+  }
+}
