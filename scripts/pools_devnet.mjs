@@ -280,6 +280,121 @@ async function create() {
   console.log("\nstate written to", STATE);
 }
 
+async function swap() {
+  const wallet = loadWallet();
+  const replica = loadReplica();
+  const c = conn();
+  const cl = client(wallet, c);
+  const state = loadState();
+
+  const key = "issuer_b";
+  const s = state[key];
+  if (!s || !s.pool) throw new Error(`${key} has no pool; run create first`);
+
+  const mint = new PublicKey(replica[key].mint);
+  const pool = await cl.getPool(s.pool);
+  const wsol = await getOrCreateAssociatedTokenAccount(
+    c, wallet, NATIVE_MINT, wallet.publicKey, false, "confirmed", {}, TOKEN_PROGRAM_ID
+  );
+  const tok = await ensureMintTokens(wallet, c, mint.toBase58(), 2);
+
+  const amount = new BN(Math.round(SWAP_TOKENS * 1e9));
+  const slippage = Percentage.fromFraction(1, 100); // 1%
+
+  const poolKey = new PublicKey(s.pool);
+  const quote = await swapQuoteByInputToken(
+    pool, mint, amount, slippage, ORCA_WHIRLPOOL_PROGRAM_ID, cl.getFetcher()
+  );
+  console.log("quote");
+  console.log("  in      ", amount.toString(), "of the issuer mint");
+  console.log("  out     ", quote.estimatedAmountOut.toString(), "lamports of wSOL");
+  console.log("  pool fee", quote.estimatedFeeAmount.toString(), "at", quote.estimatedFeeRateMin.toString(), "bps");
+
+  const before = await c.getTokenAccountBalance(wsol.address);
+  const beforeTok = await c.getTokenAccountBalance(tok.address);
+
+  // Assembled here rather than through the client. The same client chose the
+  // by-token-amounts deposit path, and the quote it hands back is the raw one, so
+  // the instruction is built from the quote's own fields.
+  const dq = pool.getData();
+  const mintOwnerA = (await c.getAccountInfo(dq.tokenMintA)).owner;
+  const mintOwnerB = (await c.getAccountInfo(dq.tokenMintB)).owner;
+  const swapIx = sdk.WhirlpoolIx.swapV2Ix(cl.getContext().program, {
+    whirlpool: poolKey,
+    tokenMintA: dq.tokenMintA,
+    tokenMintB: dq.tokenMintB,
+    tokenOwnerAccountA: wsol.address,
+    tokenOwnerAccountB: tok.address,
+    tokenVaultA: dq.tokenVaultA,
+    tokenVaultB: dq.tokenVaultB,
+    tokenProgramA: mintOwnerA,
+    tokenProgramB: mintOwnerB,
+    oracle: PDAUtil.getOracle(ORCA_WHIRLPOOL_PROGRAM_ID, poolKey).publicKey,
+    tokenAuthority: wallet.publicKey,
+    amount: quote.amount,
+    otherAmountThreshold: quote.otherAmountThreshold,
+    sqrtPriceLimit: quote.sqrtPriceLimit,
+    amountSpecifiedIsInput: quote.amountSpecifiedIsInput,
+    aToB: quote.aToB,
+    tickArray0: quote.tickArray0,
+    tickArray1: quote.tickArray1,
+    tickArray2: quote.tickArray2,
+  });
+
+  const tx = new Transaction().add(swapIx);
+  tx.feePayer = wallet.publicKey;
+  const bh = await c.getLatestBlockhash("confirmed");
+  tx.recentBlockhash = bh.blockhash;
+  tx.sign(wallet);
+  const sig = await c.sendRawTransaction(tx.serialize(), { skipPreflight: false });
+  await c.confirmTransaction(sig, "confirmed");
+  console.log("\nswapped:", sig);
+
+  const after = await c.getTokenAccountBalance(wsol.address);
+  const afterTok = await c.getTokenAccountBalance(tok.address);
+  const landed = BigInt(after.value.amount) - BigInt(before.value.amount);
+  const spent = BigInt(beforeTok.value.amount) - BigInt(afterTok.value.amount);
+  const quoted = BigInt(quote.estimatedAmountOut.toString());
+  console.log("  spent          ", spent.toString(), "of the issuer mint");
+
+  // What the mint withheld on the leg into the pool. The fee is credited to the
+  // vault's own transfer-fee extension, so it is read where it actually lands.
+  const vaults = [
+    ["tokenVaultA (wSOL)", pool.getData().tokenVaultA],
+    ["tokenVaultB (issuer)", pool.getData().tokenVaultB],
+  ];
+  let withheld = null;
+  let vault = null;
+  for (const [name, addr] of vaults) {
+    const acct = await c.getAccountInfo(addr, "confirmed");
+    let found = null;
+    if (acct && acct.data.length > 166) {
+      let p = 166;
+      while (p + 4 <= acct.data.length) {
+        const type = acct.data.readUInt16LE(p);
+        const len = acct.data.readUInt16LE(p + 2);
+        if (type === 2 && len >= 8) { found = acct.data.readBigUInt64LE(p + 4); break; }
+        p += 4 + len;
+      }
+    }
+    console.log(`  ${name}: ${addr.toBase58()} withheld=${found === null ? "none" : found.toString()}`);
+    if (found !== null) { withheld = found; vault = addr; }
+  }
+
+  console.log("\nmeasured");
+  console.log("  quoted out        ", quoted.toString());
+  console.log("  landed            ", landed.toString());
+  console.log("  shortfall         ", (quoted - landed).toString());
+  console.log("  withheld into vault", withheld === null ? "not found" : withheld.toString());
+  console.log("  agrees            ", quoted === landed);
+
+  s.swap_sig = sig;
+  s.swap_tokens = amount.toString();
+  s.quoted_out = quoted.toString();
+  s.landed = landed.toString();
+  saveState(state);
+}
+
 /**
  * Cross-issuer exit in one transaction.
  *
@@ -422,7 +537,7 @@ async function manual() {
 }
 
 const phase = process.argv[2] || "show";
-const run = { show, create, manual }[phase];
+const run = { show, create, manual, swap }[phase];
 if (!run) {
   console.error("usage: node pool.js [show|create|swap]");
   process.exit(2);
