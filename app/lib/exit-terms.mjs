@@ -21,15 +21,25 @@
  *     second charge is levied on the amount already reduced by the first.
  */
 
+export const TOKEN_2022_PROGRAM = "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb";
+export const TOKEN_PROGRAM = "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA";
+
 export const BPS_DENOMINATOR = 10000n;
 export const U64_MAX = 18446744073709551615n;
 
-// Extension type IDs, Token-2022 spec. Used when parsing raw TLV bytes.
+// Extension type IDs, Token-2022 spec, verified against the live mint layout.
 export const EXT_TRANSFER_FEE_CONFIG = 1;
-export const EXT_TRANSFER_HOOK = 13;
-export const EXT_PERMANENT_DELEGATE = 10;
-export const EXT_PAUSABLE = 20;
-export const EXT_SCALED_UI_AMOUNT = 6;
+export const EXT_DEFAULT_ACCOUNT_STATE = 6;
+export const EXT_PERMANENT_DELEGATE = 12;
+export const EXT_TRANSFER_HOOK = 14;
+export const EXT_METADATA_POINTER = 18;
+export const EXT_TOKEN_METADATA = 19;
+export const EXT_SCALED_UI_AMOUNT = 25;
+
+// Mint account layout: 82 bytes of base mint, padded to 165, an account_type
+// byte at 165, then TLV entries from 166 (u16 type, u16 length, body).
+export const MINT_TLV_START = 166;
+export const TRANSFER_FEE_CONFIG_LEN = 108;
 
 function toBig(v, fallback = 0n) {
   if (v === null || v === undefined || v === "") return fallback;
@@ -82,6 +92,50 @@ export function selectFeeSchedule(older, newer, epoch) {
     // kept for callers that want to show the superseded schedule too
     superseded: other,
   };
+}
+
+function decodeBase64(b64) {
+  if (typeof Buffer !== "undefined") return new Uint8Array(Buffer.from(b64, "base64"));
+  const bin = atob(b64);
+  const out = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i += 1) out[i] = bin.charCodeAt(i);
+  return out;
+}
+
+/**
+ * Read the fee config straight out of the account bytes.
+ *
+ * jsonParsed is not enough here. It returns u64 values as JSON numbers, and a
+ * u64 maximum fee can be 2^64-1, which a double cannot hold: 2^64-1 comes back
+ * as 18446744073709551616. For a product whose claim is that the number is
+ * right, the bytes are the only acceptable source.
+ *
+ * TransferFeeConfig body, 108 bytes, verified against mainnet:
+ *   [  0: 32] transfer_fee_config_authority
+ *   [ 32: 64] withdraw_withheld_authority
+ *   [ 64: 72] withheld_amount            u64
+ *   [ 72: 90] older_transfer_fee         epoch u64, maximum_fee u64, bps u16
+ *   [ 90:108] newer_transfer_fee         epoch u64, maximum_fee u64, bps u16
+ */
+export function readFeeConfigExact(bytes) {
+  let p = MINT_TLV_START;
+  const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+  while (p + 4 <= bytes.length) {
+    const etype = view.getUint16(p, true);
+    const elen = view.getUint16(p + 2, true);
+    if (etype === 0 && elen === 0) return null;
+    if (etype === EXT_TRANSFER_FEE_CONFIG && elen >= TRANSFER_FEE_CONFIG_LEN) {
+      const v = new DataView(bytes.buffer, bytes.byteOffset + p + 4, TRANSFER_FEE_CONFIG_LEN);
+      const u64 = (off) => v.getBigUint64(off, true);
+      return {
+        withheld_amount: u64(64),
+        older: { epoch: u64(72), maximum_fee: u64(80), bps: v.getUint16(88, true) },
+        newer: { epoch: u64(90), maximum_fee: u64(98), bps: v.getUint16(106, true) },
+      };
+    }
+    p += 4 + elen;
+  }
+  return null;
 }
 
 /** Normalise a schedule from either the parsed RPC shape or the internal one. */
@@ -162,10 +216,16 @@ export function parseExitTerms(mint, rawAccountInfo, slot, epoch) {
 
   const sel = selectFeeSchedule(fee.olderTransferFee, fee.newerTransferFee, epoch);
 
+  const owner = rawAccountInfo?.owner ?? null;
+
   const terms = {
     mint,
     slot,
     epoch: toBig(epoch),
+    owner,
+    // The fee extension only exists on Token-2022. Without that program there is
+    // no scheduled exit cost, so this product has no premise on that mint.
+    is_token_2022: owner === null ? null : owner === TOKEN_2022_PROGRAM,
     decimals: info.decimals ?? null,
     supply: info.supply ?? null,
     fee_older: scheduleFrom(fee.olderTransferFee),
@@ -188,6 +248,8 @@ export function parseExitTerms(mint, rawAccountInfo, slot, epoch) {
     new_multiplier: scaled.newMultiplier ?? null,
     symbol: meta.symbol ?? null,
     name: meta.name ?? null,
+    // false means the u64 fee fields came from JSON numbers and may be imprecise
+    fee_exact: null,
   };
 
   terms.authority = authorityLedger(terms);
@@ -225,18 +287,47 @@ export async function readExitTerms(mint, opts = {}) {
   const url = opts.rpcUrl || process.env.RPC_URL || "https://api.mainnet-beta.solana.com";
   const ua = opts.ua || process.env.RPC_USER_AGENT || DEFAULT_UA;
 
-  const [acct, epochInfo] = await Promise.all([
+  const [acct, raw, epochInfo] = await Promise.all([
     rpc("getAccountInfo", [mint, { encoding: "jsonParsed", commitment: "confirmed" }], url, ua),
+    rpc("getAccountInfo", [mint, { encoding: "base64", commitment: "confirmed" }], url, ua),
     rpc("getEpochInfo", [{}], url, ua),
   ]);
 
   if (!acct?.value) throw new Error(`mint not found: ${mint}`);
-  return parseExitTerms(mint, acct.value, acct.context?.slot ?? null, epochInfo.epoch);
+
+  const terms = parseExitTerms(mint, acct.value, acct.context?.slot ?? null, epochInfo.epoch);
+
+  // Let the bytes override the parsed numbers. See readFeeConfigExact.
+  const b64 = raw?.value?.data?.[0];
+  if (b64) {
+    try {
+      const exact = readFeeConfigExact(decodeBase64(b64));
+      if (exact) {
+        terms.fee_older = scheduleFrom(exact.older);
+        terms.fee_newer = scheduleFrom(exact.newer);
+        terms.withheld_amount = exact.withheld_amount.toString();
+        const sel = selectFeeSchedule(terms.fee_older, terms.fee_newer, terms.epoch);
+        terms.fee_effective = sel.effective;
+        terms.fee_pending = sel.pending;
+        terms.fee_schedule_reason = sel.reason;
+        terms.fee_exact = true;
+      }
+    } catch {
+      // A failed byte read must not silently masquerade as an exact one.
+      terms.fee_exact = false;
+    }
+  }
+
+  return terms;
 }
 
 export default {
   BPS_DENOMINATOR,
   U64_MAX,
+  MINT_TLV_START,
+  TRANSFER_FEE_CONFIG_LEN,
+  EXT_TRANSFER_FEE_CONFIG,
+  readFeeConfigExact,
   selectFeeSchedule,
   normalizeSchedule,
   feeFor,

@@ -20,8 +20,11 @@ const {
   authorityLedger,
   parseExitTerms,
   readExitTerms,
+  readFeeConfigExact,
   BPS_DENOMINATOR,
   U64_MAX,
+  EXT_TRANSFER_FEE_CONFIG,
+  EXT_PERMANENT_DELEGATE,
 } = exitTerms;
 
 // The mint verified on 25 Sep 2026, mainnet slot 450299340.
@@ -208,6 +211,7 @@ describe("authorityLedger", () => {
 // parseExitTerms — the shape the app consumes
 // ---------------------------------------------------------------
 const PARSED_BODY = {
+  owner: "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb",
   data: {
     parsed: {
       info: {
@@ -266,6 +270,10 @@ describe("parseExitTerms", () => {
     assert.equal(t.transfer_hook_authority, ONE_KEY);
   });
 
+  it("records the owning program, which decides whether a fee extension can exist", () => {
+    assert.equal(t.is_token_2022, true);
+  });
+
   it("carries the withheld amount", () => {
     assert.equal(t.withheld_amount, "1875519083");
   });
@@ -315,6 +323,72 @@ describe("ablation: ignoring the epoch schedule misprices the exit", () => {
 });
 
 // ---------------------------------------------------------------
+// readFeeConfigExact — the u64 fields come from bytes, not JSON numbers
+// ---------------------------------------------------------------
+describe("readFeeConfigExact", () => {
+  // The TransferFeeConfig body exactly as read from mainnet, 108 bytes.
+  const BODY_HEX =
+    "078daaa78203d77bc823b96863da4d8651c643fc10eb6cbe5b9787e056da4bdd" +
+    "078daaa78203d77bc823b96863da4d8651c643fc10eb6cbe5b9787e056da4bdd" +
+    "17cfc77400000000" +
+    "0f04000000000000" +
+    "ffffffffffffffff" +
+    "6400" +
+    "1304000000000000" +
+    "ffffffffffffffff" +
+    "2c01";
+
+  function mintBuffer(bodyHex) {
+    const body = Uint8Array.from((bodyHex.match(/../g) || []).map((h) => parseInt(h, 16)));
+    const buf = new Uint8Array(166 + 4 + body.length + 4);
+    const dv = new DataView(buf.buffer);
+    dv.setUint16(166, EXT_TRANSFER_FEE_CONFIG, true);
+    dv.setUint16(168, body.length, true);
+    buf.set(body, 170);
+    dv.setUint16(170 + body.length, 0, true);
+    return buf;
+  }
+
+  const exact = readFeeConfigExact(mintBuffer(BODY_HEX));
+
+  it("lifts the withheld amount out of the bytes", () => {
+    assert.equal(exact.withheld_amount, 1959251735n);
+  });
+
+  it("lifts both schedules with their exact epochs", () => {
+    assert.equal(exact.older.epoch, 1039n);
+    assert.equal(exact.newer.epoch, 1043n);
+  });
+
+  it("reads the basis points from the byte after the maximum fee", () => {
+    assert.equal(exact.older.bps, 100);
+    assert.equal(exact.newer.bps, 300);
+  });
+
+  it("reports 2^64-1 exactly, which a JSON number cannot", () => {
+    assert.equal(exact.older.maximum_fee, 18446744073709551615n);
+    assert.equal(exact.newer.maximum_fee, 18446744073709551615n);
+    assert.notEqual(exact.older.maximum_fee, 18446744073709551616n);
+  });
+
+  it("documents why the bytes are required", () => {
+    // A u64 maximum fee cannot survive a round trip through a double:
+    assert.equal(Number(18446744073709551615n), 18446744073709551616);
+    // ...which is the off-by-one the parsed read would have published.
+  });
+
+  it("returns null when the mint carries no fee config", () => {
+    // TLV: one permanent-delegate entry, then the terminator. 166 + (4 + 32) + 4.
+    const buf = new Uint8Array(206);
+    const dv = new DataView(buf.buffer);
+    dv.setUint16(166, EXT_PERMANENT_DELEGATE, true);
+    dv.setUint16(168, 32, true);
+    dv.setUint16(202, 0, true);
+    assert.equal(readFeeConfigExact(buf), null);
+  });
+});
+
+// ---------------------------------------------------------------
 // LIVE — the numbers the product shows come from the chain
 // ---------------------------------------------------------------
 describe("LIVE read against a real mainnet mint", () => {
@@ -335,6 +409,10 @@ describe("LIVE read against a real mainnet mint", () => {
     // the epoch rule picks.
     const sel = selectFeeSchedule(t.fee_older, t.fee_newer, t.epoch);
     assert.equal(t.fee_effective?.bps, sel.effective?.bps);
+
+    // The u64 fee fields must come from the bytes, not from JSON numbers.
+    assert.equal(t.fee_exact, true, "a live read must report exact fee fields");
+    assert.equal(t.fee_older.maximum_fee, 18446744073709551615n);
 
     console.log(
       `\n  LIVE ${VERIFIED_MINT.slice(0, 8)}…  slot=${t.slot} epoch=${t.epoch}\n` +
