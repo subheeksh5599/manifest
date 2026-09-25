@@ -143,8 +143,8 @@ cd manifest/app && npm install && npm test
 ```
 
 ```
-ℹ tests 404
-ℹ pass  404
+ℹ tests 411
+ℹ pass  411
 ℹ fail  0
 ```
 
