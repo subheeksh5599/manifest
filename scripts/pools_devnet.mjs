@@ -404,6 +404,104 @@ async function swap() {
  * cannot be taken out from under the route between the legs, and the mint's fee is
  * charged on the way out of B and again on the way into A.
  */
+async function cross() {
+  const wallet = loadWallet();
+  const c = conn();
+  const cl = client(wallet, c);
+  const program = cl.getContext().program;
+  const replica = loadReplica();
+  const state = loadState();
+
+  const amount = new BN(Math.round((Number(process.argv[3]) || 0.1) * 1e9));
+  const slippage = Percentage.fromFraction(1, 100);
+
+  // The token program for each side is the program that owns that mint, which is
+  // also what the instruction is handed as token_program_a / token_program_b.
+  const mk = async (addr) => {
+    const pool = await cl.getPool(addr);
+    const d = pool.getData();
+    const progA = (await c.getAccountInfo(d.tokenMintA)).owner;
+    const progB = (await c.getAccountInfo(d.tokenMintB)).owner;
+    return {
+      pool, d, progA, progB,
+      ataA: getAssociatedTokenAddressSync(d.tokenMintA, wallet.publicKey, false, progA),
+      ataB: getAssociatedTokenAddressSync(d.tokenMintB, wallet.publicKey, false, progB),
+    };
+  };
+
+  const B = await mk(new PublicKey(state.issuer_b.pool));
+  const A = await mk(new PublicKey(state.issuer_a.pool));
+
+  // Leg 1: the issuer's own mint into its pool, out as wSOL.
+  const mintB = new PublicKey(replica.issuer_b.mint);
+  const q1 = await swapQuoteByInputToken(B.pool, mintB, amount, slippage, ORCA_WHIRLPOOL_PROGRAM_ID, cl.getFetcher());
+  console.log("leg 1  in ", amount.toString(), "of issuer B");
+  console.log("       out", q1.estimatedAmountOut.toString(), "lamports of wSOL, pool fee", q1.estimatedFeeAmount.toString());
+
+  // Leg 2: that wSOL into issuer A's pool, out as issuer A's mint. Held back a
+  // little, because the second leg has to be funded by what the first leg lands.
+  const mid = new BN(q1.estimatedAmountOut.toString()).muln(995).divn(1000);
+  const mintA = new PublicKey(replica.issuer_a.mint);
+  const q2 = await swapQuoteByInputToken(A.pool, NATIVE_MINT, mid, slippage, ORCA_WHIRLPOOL_PROGRAM_ID, cl.getFetcher());
+  console.log("leg 2  in ", mid.toString(), "lamports of wSOL");
+  console.log("       out", q2.estimatedAmountOut.toString(), "of issuer A, pool fee", q2.estimatedFeeAmount.toString());
+
+  const beforeTokB = await c.getTokenAccountBalance(B.ataB).catch(() => null);
+  const beforeTokA = await c.getTokenAccountBalance(A.ataB).catch(() => null);
+  const beforeWs = await c.getTokenAccountBalance(B.ataA);
+
+  const leg1 = sdk.WhirlpoolIx.swapV2Ix(program, {
+    whirlpool: B.pool.getAddress(), tokenMintA: B.d.tokenMintA, tokenMintB: B.d.tokenMintB,
+    tokenOwnerAccountA: B.ataA, tokenOwnerAccountB: B.ataB,
+    tokenVaultA: B.d.tokenVaultA, tokenVaultB: B.d.tokenVaultB,
+    tokenProgramA: B.progA, tokenProgramB: B.progB,
+    oracle: PDAUtil.getOracle(ORCA_WHIRLPOOL_PROGRAM_ID, B.pool.getAddress()).publicKey,
+    tokenAuthority: wallet.publicKey,
+    amount: q1.amount, otherAmountThreshold: q1.otherAmountThreshold, sqrtPriceLimit: q1.sqrtPriceLimit,
+    amountSpecifiedIsInput: q1.amountSpecifiedIsInput, aToB: q1.aToB,
+    tickArray0: q1.tickArray0, tickArray1: q1.tickArray1, tickArray2: q1.tickArray2,
+  });
+  const leg2 = sdk.WhirlpoolIx.swapV2Ix(program, {
+    whirlpool: A.pool.getAddress(), tokenMintA: A.d.tokenMintA, tokenMintB: A.d.tokenMintB,
+    tokenOwnerAccountA: A.ataA, tokenOwnerAccountB: A.ataB,
+    tokenVaultA: A.d.tokenVaultA, tokenVaultB: A.d.tokenVaultB,
+    tokenProgramA: A.progA, tokenProgramB: A.progB,
+    oracle: PDAUtil.getOracle(ORCA_WHIRLPOOL_PROGRAM_ID, A.pool.getAddress()).publicKey,
+    tokenAuthority: wallet.publicKey,
+    amount: q2.amount, otherAmountThreshold: q2.otherAmountThreshold, sqrtPriceLimit: q2.sqrtPriceLimit,
+    amountSpecifiedIsInput: q2.amountSpecifiedIsInput, aToB: q2.aToB,
+    tickArray0: q2.tickArray0, tickArray1: q2.tickArray1, tickArray2: q2.tickArray2,
+  });
+
+  const tx = new Transaction().add(leg1, leg2);
+  tx.feePayer = wallet.publicKey;
+  const bh = await c.getLatestBlockhash("confirmed");
+  tx.recentBlockhash = bh.blockhash;
+  tx.sign(wallet);
+
+  const sig = await c.sendRawTransaction(tx.serialize(), { skipPreflight: false });
+  await c.confirmTransaction(sig, "confirmed");
+  console.log("\ncross-issuer exit in one transaction:", sig);
+
+  const afterTokB = await c.getTokenAccountBalance(B.ataB);
+  const afterTokA = await c.getTokenAccountBalance(A.ataB);
+  const afterWs = await c.getTokenAccountBalance(B.ataA);
+  console.log("\nmeasured");
+  console.log("  issuer B spent     ", (BigInt(beforeTokB.value.amount) - BigInt(afterTokB.value.amount)).toString());
+  console.log("  issuer A received  ", (BigInt(afterTokA.value.amount) - BigInt(beforeTokA.value.amount)).toString());
+  console.log("  wSOL net           ", (BigInt(afterWs.value.amount) - BigInt(beforeWs.value.amount)).toString(), "(the middle asset, left behind)");
+  console.log("  legs in the tx     ", "2 (atomic)");
+
+  state.cross = {
+    sig,
+    amount_in_b: amount.toString(),
+    issuer_b_spent: (BigInt(beforeTokB.value.amount) - BigInt(afterTokB.value.amount)).toString(),
+    issuer_a_received: (BigInt(afterTokA.value.amount) - BigInt(beforeTokA.value.amount)).toString(),
+    wsol_net: (BigInt(afterWs.value.amount) - BigInt(beforeWs.value.amount)).toString(),
+  };
+  saveState(state);
+}
+
 /** Write the live pool fields (vaults, mints, price) into the state file. */
 /**
  * Send the same instruction with data written here, keeping the account list the
@@ -537,7 +635,7 @@ async function manual() {
 }
 
 const phase = process.argv[2] || "show";
-const run = { show, create, manual, swap }[phase];
+const run = { show, create, manual, swap, cross }[phase];
 if (!run) {
   console.error("usage: node pool.js [show|create|swap]");
   process.exit(2);
