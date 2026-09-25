@@ -9,7 +9,7 @@
  * the transfer, so what actually lands is less than what was quoted. Every
  * surface in the field shows the quote.
  *
- * Pure functions only. No network, no I/O, no mocks.
+ * Pure functions. No network, no I/O.
  *
  *   node --test app/lib/exit-engine.test.mjs
  */

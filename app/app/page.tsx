@@ -431,7 +431,7 @@ export default async function Home() {
             </div>
           </div>
           <div className="pt-8 text-center text-[11px] text-neutral-500">
-            No wallet. No funds. No mocks. MIT — 2026
+            No wallet. No funds. MIT — 2026
           </div>
         </div>
       </footer>

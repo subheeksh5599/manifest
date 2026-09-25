@@ -248,8 +248,8 @@ is refused by the chain, not by a database.
 
 ## The scenario, recreated on devnet
 
-The fee schedules on mainnet belong to someone else, so the only way to show what
-happens after a schedule lands is to wait for an issuer to sign one. Devnet
+The fee schedules on mainnet belong to someone else, and showing what happens
+after a schedule lands would mean waiting for an issuer to sign one. Devnet
 removes the wait.
 
 Two issuers of one company, created as real Token-2022 mints with real
@@ -347,7 +347,7 @@ scripts/check_no_secrets.py   refuses credentials on the way in, not after
 | Layer | Tool |
 |---|---|
 | Read | Solana mainnet RPC, `getAccountInfo` base64 + jsonParsed |
-| Pricing | Jupiter quote API at the requested size |
+| Pricing | A public quote aggregator, at the requested size |
 | App | Next.js 16, React 19, TypeScript strict |
 | Tests | `node --test` (72) plus a Python verifier (17 checks) |
 | Assets | Token-2022 mints from two issuers |

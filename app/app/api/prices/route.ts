@@ -21,7 +21,7 @@ export async function GET() {
       headers: { "Accept": "application/json" },
     });
     if (!res.ok) {
-      return NextResponse.json({ error: `jupiter returned ${res.status}` }, { status: 502 });
+      return NextResponse.json({ error: `the quote source returned ${res.status}` }, { status: 502 });
     }
     const data = await res.json();
     const prices: Record<string, {

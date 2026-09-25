@@ -69,7 +69,7 @@ type Exit = {
     failed_check: string | null;
     checks: Check[];
     landing: Landing | null;
-    round_trip: { total_cost: string; effective_total_bps: number };
+    round_trip: { total_cost: string; effective_total_bps: number; capped?: boolean };
   };
   routes: { routes: Route[]; best: Route | null; achievable_count: number; unreachable_reasons: { venue: string; reason: string }[] };
   error?: string;
@@ -211,6 +211,22 @@ export default function ExitDesk({ entries }: { entries: RegistryEntry[] }) {
             <Stat label="Withheld by the mint" value={landing ? n(landing.withheld) : "—"} sub={landing ? `${landing.schedule_bps} bps` : ""} tone="warn" />
             <Stat label="Lands with the holder" value={landing ? n(landing.lands) : "—"} sub={routed ? "achievable now" : v.reason ?? ""} tone={routed ? "good" : "bad"} />
           </div>
+
+          {/* the fee, charged twice */}
+          {v.round_trip && (
+            <div style={{ padding: "14px 18px", background: "rgba(0,0,0,0.03)", borderLeft: "3px solid var(--color-brand-blue)", marginBottom: 16 }}>
+              <div className="label-mono" style={{ fontSize: 10, marginBottom: 6 }}>The fee, charged twice</div>
+              <div style={{ fontSize: 13, color: "var(--color-onyx)", lineHeight: 1.6 }}>
+                A transfer fee is withheld on every transfer, in as well as out. Together the two legs of a
+                round trip on this holding cost <strong>{n(v.round_trip.total_cost)}</strong>, which is{" "}
+                <strong>{v.round_trip.effective_total_bps} bps</strong> of the position — against{" "}
+                {landing ? landing.schedule_bps : "—"} bps for the exit alone.
+                {v.round_trip.capped && <> One leg here hit the mint's maximum fee.</>}
+                {" "}A mint is exempt, so whether the first leg was charged to you depends on how the position
+                reached you.
+              </div>
+            </div>
+          )}
 
           {/* the announced change */}
           {t.fee_pending && (

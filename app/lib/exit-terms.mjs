@@ -4,7 +4,7 @@
  * The product's whole claim: no holding is reported as worth X unless X is
  * achievable at the exit, at size, today. That claim starts here.
  *
- * Everything in this file is pure except readExitTerms(), which is the only
+ * Everything in this file is pure except readExitTerms(), which is the
  * place that touches the network. Run the tests with:
  *
  *   node --test app/lib/exit-terms.test.mjs
@@ -108,7 +108,7 @@ function decodeBase64(b64) {
  * jsonParsed is not enough here. It returns u64 values as JSON numbers, and a
  * u64 maximum fee can be 2^64-1, which a double cannot hold: 2^64-1 comes back
  * as 18446744073709551616. For a product whose claim is that the number is
- * right, the bytes are the only acceptable source.
+ * right, the bytes are the acceptable source.
  *
  * TransferFeeConfig body, 108 bytes, verified against mainnet:
  *   [  0: 32] transfer_fee_config_authority
@@ -261,7 +261,7 @@ export function parseExitTerms(mint, rawAccountInfo, slot, epoch) {
 }
 
 /* ------------------------------------------------------------------ */
-/* Network. The only impure part.                                      */
+/* Network. The impure part.                                           */
 /* ------------------------------------------------------------------ */
 
 const DEFAULT_UA =
