@@ -49,6 +49,10 @@ function assertFiniteNumber(v, name) {
  * quoted_out  the pool will send this
  * withheld    the mint's transfer fee takes this off the transfer
  * lands       the holder receives this
+ *
+ * @param {bigint|number|string} quotedOut
+ * @param {{ fee_older?: object|null, fee_newer?: object|null, epoch?: number|null }} terms
+ * @param {number|null} [epoch] evaluate at this epoch instead of the mint's own
  */
 export function landingAmount(quotedOut, terms, epoch = null) {
   const e = epoch === null ? terms.epoch : epoch;

@@ -8,7 +8,19 @@ const nav = [
   { label: "Tape", href: "/tape", icon: "▤" },
   { label: "Mint Inspector", href: `/mint/XsDoVfqeBukxuZHWhdvWHBhgEHjGNst4MLodqsJHzoB`, icon: "◎" },
   { label: "Evidence", href: "/evidence", icon: "⚙" },
+  { label: "Verification", href: "/verify", icon: "✓" },
 ];
+
+/** Which nav item a page's `active` value belongs to. */
+const ACTIVE_FOR: Record<string, string> = {
+  overview: "/",
+  exit: "/exit",
+  issuers: "/issuers",
+  tape: "/tape",
+  evidence: "/evidence",
+  verify: "/verify",
+  mints: "/mint",
+};
 
 export default function DashboardLayout({ children, active }: { children: ReactNode; active: string }) {
   return (
@@ -27,12 +39,8 @@ export default function DashboardLayout({ children, active }: { children: ReactN
 
         <nav style={{ padding: "12px 0", flex: 1 }}>
           {nav.map((n) => {
-            const isActive = active === n.label.toLowerCase()
-              || (active === "exit" && n.href === "/exit")
-              || (active === "issuers" && n.href === "/issuers")
-              || (active === "tape" && n.href === "/tape")
-              || (active === "evidence" && n.href === "/evidence")
-              || (active === "mints" && n.href.startsWith("/mint"));
+            const target = ACTIVE_FOR[active] ?? n.href;
+            const isActive = n.href === target || (target !== "/" && n.href.startsWith(target));
             return (
               <Link
                 key={n.href}
@@ -60,7 +68,7 @@ export default function DashboardLayout({ children, active }: { children: ReactN
             fontFamily: "var(--font-mono)", letterSpacing: "0.04em",
             lineHeight: 1.7,
           }}>
-            READS · mainnet
+            READS · mainnet + devnet
             <br />
             token-2022 exit terms
           </div>
