@@ -189,12 +189,12 @@ mainnet and then devnet. A definite negative fails the run; an RPC that will not
 answer does not, because a network failure is not evidence about a document.
 
 That check is load-bearing, and it was tested by breaking it. Changing one
-character of the Anduril mint address in this file turns 25/25 into 24/25 and the
+character of the Anduril mint address in this file turns 30/30 into 29/30 and the
 run exits non-zero:
 
 ```
   FAIL  docs address PresTj4Yc2…                                not on devnet · README.md
-  checks                24/25 passed
+  checks                29/30 passed
   1 check(s) FAILED: a published number did not reproduce
 ```
 
