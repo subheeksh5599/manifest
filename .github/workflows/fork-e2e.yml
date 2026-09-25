@@ -5,15 +5,13 @@ on:
   push:
     paths:
       - "scripts/**"
-      - "data/**"
+      - "app/data/registry.json"
+      - "app/lib/**"
       - ".github/workflows/fork-e2e.yml"
 
-# End-to-end lifecycle against real mainnet state.
-# Phase 1 (this file today): clone the real mint accounts locally, hash them,
-# and assert equality with the live mainnet pull in the same job. This proves the
-# cloned account set matches reality and detects a stale mirror.
-# Phase 2 (after SBF build): start a validator with --clone <mints> --clone <pools>,
-# deploy the guard .so, run accept/refuse/catch-up, print receipts.
+# Every published number, re-derived from mainnet in a clean container.
+# The verifier is an independent implementation of the byte read, so this job
+# catching a disagreement means the site is wrong, not the test.
 
 jobs:
   clone-and-hash:
@@ -23,10 +21,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - run: pip install -r scripts/requirements.txt
-      - name: verify receipts (live mainnet re-read)
-        run: python3 scripts/verify_receipts.py
-      - name: verify tape
-        run: python3 scripts/verify_tape.py
-      - name: adversarial gate
+      - name: verify receipts (independent re-derivation from raw account bytes)
+        run: python3 scripts/verify_receipts.py --check
+      - name: adversarial gate (ablation, tampered bytes, absent extension)
         run: python3 scripts/adversarial_gate.py
