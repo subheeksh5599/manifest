@@ -653,7 +653,25 @@ scripts/fork_clone.mjs        devnet state cloned into a validator, and the life
 scripts/pool_layout.mjs       derives the pool layout, then proves it on a live pool
 scripts/pool_quote_check.mjs  the app's quote, against the library's quote
 scripts/check_no_secrets.py   refuses credentials on the way in, not after
+scripts/stress_live.py        load and hostile pass against the deployed surfaces
 ```
+
+### Stress
+
+```bash
+python3 scripts/stress_live.py --requests 120 --concurrency 16
+```
+
+Two passes. The load pass sends a bounded number of requests at each endpoint at a fixed
+concurrency and prints the status mix and the latency percentiles; a single 5xx fails it. The
+hostile pass sends twelve inputs a caller should not be able to break the service with — no mint,
+a mint that is not base58, a plain SPL token, size zero, size negative, size that is not a number,
+size at 10^30, a script tag in the mint field, the wrong method — and requires each one to come
+back as JSON with a named reason rather than as a crash.
+
+It earned its place: the first run found both devnet reading routes answering a burst with `502
+{"error":"getEpochInfo returned 429"}`. The call now retries with backoff and the epoch is
+remembered for under a minute, and the same pass reports no 5xx and 13/13 hostile cases answered.
 
 ## Stack
 
