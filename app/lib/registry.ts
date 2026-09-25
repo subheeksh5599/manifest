@@ -5,11 +5,10 @@ export type RegistryEntry = {
   mint: string;
   symbol: string;
   name: string;
+  /** Who issued it. The exit terms differ by issuer, so this is the axis. */
+  issuer: string;
   decimals: number;
   issuer_program: string;
-  permanent_delegate: string | null;
-  transfer_hook_authority: string | null;
-  slot_read: number;
 };
 
 export function loadRegistry(): RegistryEntry[] {

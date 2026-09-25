@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Manifest — scheduled equity buys that verify or refuse on-chain",
+  title: "Manifest — what a tokenized equity actually pays out",
   description:
-    "Recurring buys for tokenized equities on Solana. Fill at a verified price or refuse on-chain.",
+    "Reads the exit terms out of the mint itself, then reports what lands rather than what was quoted. Token-2022 on Solana.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

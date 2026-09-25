@@ -3,7 +3,8 @@ import { ReactNode } from "react";
 
 const nav = [
   { label: "Overview", href: "/", icon: "◆" },
-  { label: "Plan Builder", href: "/plan", icon: "◈" },
+  { label: "Exit Desk", href: "/exit", icon: "⇥" },
+  { label: "Issuers", href: "/issuers", icon: "◫" },
   { label: "No-Trade Tape", href: "/tape", icon: "▤" },
   { label: "Mint Inspector", href: `/mint/XsDoVfqeBukxuZHWhdvWHBhgEHjGNst4MLodqsJHzoB`, icon: "◎" },
   { label: "Evidence", href: "/evidence", icon: "⚙" },
@@ -27,7 +28,8 @@ export default function DashboardLayout({ children, active }: { children: ReactN
         <nav style={{ padding: "12px 0", flex: 1 }}>
           {nav.map((n) => {
             const isActive = active === n.label.toLowerCase()
-              || (active === "plans" && n.href === "/plan")
+              || (active === "exit" && n.href === "/exit")
+              || (active === "issuers" && n.href === "/issuers")
               || (active === "tape" && n.href === "/tape")
               || (active === "evidence" && n.href === "/evidence")
               || (active === "mints" && n.href.startsWith("/mint"));
@@ -53,20 +55,14 @@ export default function DashboardLayout({ children, active }: { children: ReactN
         </nav>
 
         <div style={{ padding: "16px 24px", borderTop: "1px solid #2a2a2a" }}>
-          <button style={{
-            width: "100%", padding: "10px 0",
-            background: "#145FE4", color: "#fff",
-            border: "none", borderRadius: 2,
-            fontSize: 13, fontWeight: 600, cursor: "pointer",
-            transition: "background 150ms",
-          }}>
-            Connect Wallet
-          </button>
           <div style={{
-            marginTop: 12, fontSize: 10, color: "#6b7280",
+            fontSize: 10, color: "#6b7280",
             fontFamily: "var(--font-mono)", letterSpacing: "0.04em",
+            lineHeight: 1.7,
           }}>
-            DEVNET · pTpaE75u...
+            READS · mainnet
+            <br />
+            token-2022 exit terms
           </div>
         </div>
       </aside>
