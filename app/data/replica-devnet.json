@@ -1,0 +1,11 @@
+{
+  "issuer_a": {
+    "mint": "DjvERvY5tuuZzWziNSqMCdUxNeg7adfVCHVR9eQnSjGb",
+    "created": "4jnxwGmbooNp8dBkyebaEMe6WVNMg2vcBMstE2xZdCEZEnDx8cdpTYbn3bGKdVVCnGQMWSGAVN59e1AABcb1Cm1c"
+  },
+  "issuer_b": {
+    "mint": "3CeQw3Y4nEBiykxWKEnxPnmKq3GFrwrxYjFRwUTMPVgu",
+    "created": "3UtgKz4ekBHQzRnMU9pBjzqQpypH9SoRgHSS4x5XC1N6B1f58WmpsawibKdxTjquGCNM979geVRFGpxhiSRkNncH",
+    "announced": "3GXDDQQdXkHAMR1GxPcF7xzhWWkZ6LRaiSmJqUYUHPAcGkoYyAXAfmHur2iakMwfmZ1YKaGGPurhAJG1wx1XbDVD"
+  }
+}
