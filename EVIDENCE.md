@@ -6,7 +6,7 @@ repository rather than a rounding difference, and it should be treated that way.
 
 The counts are the counts as they run on a clean clone: **423** node tests, **10**
 Rust tests, **30** receipt checks, **14** pool checks, **12** live comparison
-checks, **5** hostile checks.
+checks, **13** clone checks, **5** hostile checks.
 
 | claim | artifact | command |
 |---|---|---|
@@ -34,6 +34,11 @@ checks, **5** hostile checks.
 | The app builds and serves every surface | `app/` | `cd app && npm ci && npm run build` |
 | The exit engine is pure and needs no network to be exercised | `app/lib/exit-engine.mjs` | `cd app && npm test` |
 | Each dependency is checked separately and fails loudly | `/api/health` | `curl -s localhost:3000/api/health` |
+| Devnet state is cloned into a validator and held to the original in the same run | run [36134397991](https://github.com/subheeksh5599/manifest/actions/runs/36134397991), 13/13 | `gh workflow run fork-clone.yml` |
+| The lifecycle runs against that clone: read, record, refuse | that run's `record_reading` and `verify_reading REFUSED` | same command |
+| One byte of a cloned mint's fee schedule fails the job | run [36134639005](https://github.com/subheeksh5599/manifest/actions/runs/36134639005), failure, 12/13 | `gh workflow run fork-clone.yml -f mutate=true` |
+| The program is built in CI, not on a machine, and kept as a release asset | run [36133731950](https://github.com/subheeksh5599/manifest/actions/runs/36133731950), job `build`: success | `gh release download program-build -p '*.so'` |
+| What CI built is byte-for-byte the program deployed to devnet | `sha256 2b56aad5931dfb05…` | `sha256sum` on the downloaded asset |
 | CI builds the SBF program and the frontend | `.github/workflows/build.yml` | GitHub Actions run |
 | CI re-reads live state in a fork and re-runs the checks | `.github/workflows/fork-e2e.yml` | GitHub Actions run |
 | CI runs the node suite on every push | `.github/workflows/app.yml` | GitHub Actions run |
