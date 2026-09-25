@@ -176,6 +176,22 @@ The first check is the ablation: ignore the not-yet-in-force schedule and the
 same position is priced wrong by 40,000,000,000 micro-units. That is what makes
 the epoch read load-bearing rather than decorative.
 
+## Before anything else
+
+No key is committed to this repository, and the hook is what makes that true
+rather than intended:
+
+```bash
+git config core.hooksPath .githooks
+```
+
+`scripts/check_no_secrets.py` looks for the three things that actually turn up:
+a Solana keypair (a JSON array of 64 small integers, which is an unremarkable
+looking `.json` file), a private key file, and a `.env` or an assignment naming
+a secret. It refuses the commit. A credential that was ever pushed has to be
+rotated, because removing the file does not remove it from history. The same
+check runs in CI over every tracked file, so it cannot be skipped locally.
+
 ## The record, on devnet
 
 A number on a website is a claim. The same number written by a program is a
@@ -271,6 +287,7 @@ programs/exit_terms/          the Anchor program (devnet)
 scripts/verify_receipts.py    independent Python re-derivation of the fee fields
 scripts/adversarial_gate.py   five hostile checks, including the ablation
 scripts/prove_onchain.mjs     builds the devnet scenario and shows the refusal
+scripts/check_no_secrets.py   refuses credentials on the way in, not after
 ```
 
 ## Stack

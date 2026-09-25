@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+# Refuse to commit credentials. Enable once per clone:
+#
+#   git config core.hooksPath .githooks
+#
+set -euo pipefail
+
+cd "$(git rev-parse --show-toplevel)"
+
+if ! command -v python3 >/dev/null 2>&1; then
+  echo "pre-commit: python3 is needed to check for credentials" >&2
+  exit 1
+fi
+
+python3 scripts/check_no_secrets.py
+
+# The built program and its keypair live in target/, which is ignored. This is
+# the belt for anyone who has un-ignored it.
+staged=$(git diff --cached --name-only --diff-filter=ACMR)
+if printf '%s\n' "$staged" | grep -qE '^target/'; then
+  echo "pre-commit: refusing to commit build output under target/:" >&2
+  printf '  %s\n' $(printf '%s\n' "$staged" | grep -E '^target/') >&2
+  exit 1
+fi
