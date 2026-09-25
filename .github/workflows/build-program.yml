@@ -1,0 +1,63 @@
+name: build-program
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "programs/**"
+      - ".github/workflows/build-program.yml"
+
+# The SBF build runs here and nowhere else.
+#
+# The toolchain is pinned: an older release ships a cargo that cannot parse the
+# manifest of a transitive dependency, which failed this job on every push for
+# eight days while the program itself was fine.
+#
+# The point of this workflow is that the built program is an ARTIFACT rather than
+# a fact about somebody's laptop. It is uploaded, and it is attached to a release,
+# so the .so a judge can download is the one CI built from the commit.
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: install solana
+        shell: bash
+        run: |
+          curl -sSfL https://release.anza.xyz/v3.1.14/install | sh
+          echo "$HOME/.local/share/solana/install/active_release/bin" >> "$GITHUB_PATH"
+
+      - name: build-sbf
+        run: cargo build-sbf --manifest-path programs/exit_terms/Cargo.toml
+
+      - name: host-side tests
+        run: cargo test --manifest-path programs/exit_terms/Cargo.toml --lib
+
+      - name: say what was built
+        run: |
+          ls -l programs/exit_terms/target/deploy/
+          for f in programs/exit_terms/target/deploy/*.so; do
+            echo "$f $(stat -c%s "$f") bytes sha256 $(sha256sum "$f" | cut -d' ' -f1)"
+          done
+
+      - name: keep the built program as an artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: manifest-exit-terms-so
+          path: programs/exit_terms/target/deploy/*.so
+          if-no-files-found: error
+
+      - name: attach the build to a release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release view program-build >/dev/null 2>&1 \
+            || gh release create program-build \
+                 --title "Built program" \
+                 --notes "The SBF build of the reading program, attached by CI rather than built on a machine. Every asset here was produced by the build-program workflow from a commit."
+          gh release upload program-build programs/exit_terms/target/deploy/*.so --clobber
+          gh release view program-build --json assets --jq '.assets[] | "\(.name) \(.url)"'
