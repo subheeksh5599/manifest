@@ -41,7 +41,36 @@ signature. Every kept segment, every removed one, and the reason for each is in
 > the file below it. The copy at [`demo/media/manifest-demo.mp4`](demo/media/manifest-demo.mp4)
 > is there so the file survives the link.
 
-**Contents** · [See it in one command](#see-it-in-one-command) · [The one fact that matters](#the-one-fact-that-matters) · [Screenshots](#screenshots) · [Surfaces](#surfaces) · [Exit checks](#exit-checks) · [Proof](#proof) · [The record, on devnet](#the-record-on-devnet) · [What this is not](#honesty-table) · [Stack](#stack) · [License](#license)
+**Contents** · [PreStocks integration](#prestocks-integration) · [See it in one command](#see-it-in-one-command) · [The one fact that matters](#the-one-fact-that-matters) · [Screenshots](#screenshots) · [Surfaces](#surfaces) · [Exit checks](#exit-checks) · [Proof](#proof) · [The record, on devnet](#the-record-on-devnet) · [What this is not](#honesty-table) · [Stack](#stack) · [License](#license)
+
+## PreStocks integration
+
+Discovery is the PreStocks API, `https://prestocks.com/api/prestocks`, not a hardcoded list.
+The shelf is whatever that endpoint publishes; today it is eight pre-IPO mints. Their exit terms
+are then read from the mints themselves, because the API carries no fee fields and a page that
+says "100 bps" is not a source.
+
+| Mint | In force | Scheduled | At epoch | SPV mark (from the API) | Token price (from the chain) |
+|---|---|---|---|---|---|
+| ANDURIL | 100 bps | 300 bps | 1043 | 156.88 | 164.48 |
+| ANTHROPIC | 100 bps | 300 bps | 1043 | 1058.74 | 1053.27 |
+| FIGUREAI | 100 bps | 300 bps | 1043 | 180.28 | 180.07 |
+| KALSHI | 100 bps | 300 bps | 1043 | 885.46 | 886.60 |
+| NEURALINK | 100 bps | 300 bps | 1043 | 337.13 | 449.39 |
+| OPENAI | 100 bps | 300 bps | 1043 | 1023.83 | 1296.25 |
+| POLYMARKET | 100 bps | 300 bps | 1043 | 145.74 | 153.60 |
+| SPACEX | 100 bps | none | — | 148.13 | 118.38 |
+
+Read at slot 450439688, unedited. Seven of the eight carry an increase the API does not publish:
+100 bps in force, 300 bps from epoch 1043. Every row also carries the mint's `maximum_fee`,
+which on these eight is `18446744073709551615` — the ceiling the issuer may raise the fee to
+without asking anyone, and the number that makes the scheduled one worth knowing in advance.
+
+The two columns are read from different places on purpose. The API supplies identity, the SPV
+mark, the supply and the issuer's description; the chain supplies the fee schedule, the
+authorities, the pause flag and the transfer hook. Both sit on the row at once, so the gap
+between the issuer's mark and the on-chain price is visible rather than implied: NEURALINK at
+337.13 against 449.39, SPACEX at 148.13 against 118.38.
 
 ## See it in one command
 
