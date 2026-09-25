@@ -46,9 +46,11 @@ async function fetchJson(url, { timeout = 15000, accept = "application/json", at
       return await fetchJsonOnce(url, { timeout, accept });
     } catch (e) {
       last = e;
-      // A status is an answer, so it is not retried. A silence is worth one more
-      // try: the candle source is slow, not gone.
-      if (!/did not answer within/.test(e?.message ?? "")) throw e;
+      // A 404 is an answer and is not retried. A silence or a busy 429/5xx is
+      // worth one more try: those are the two ways a free endpoint says "later".
+      const m = e?.message ?? "";
+      const retryable = /did not answer within/.test(m) || /answered (429|5\d\d)\b/.test(m);
+      if (!retryable) throw e;
       if (i < attempts - 1) await new Promise((r) => setTimeout(r, 500));
     }
   }
@@ -163,6 +165,36 @@ export async function candlesForPool(pool, { timeframe = "hour", limit = 48 } = 
     .filter((c) => Number.isFinite(c.t) && Number.isFinite(c.c))
     .sort((a, b) => a.t - b.t);
   return { candles, pool, timeframe, source: stamp(url) };
+}
+
+/**
+ * The same venue listing, from the other source.
+ *
+ * The first source is fast and gives the deepest pools, but it is a shared public
+ * endpoint and answers 429 to a datacenter address often enough to matter. This is
+ * a different host with the same information, mapped to the same shape so the
+ * caller cannot tell which one answered — except by the source it is handed.
+ */
+export async function gtPoolsForToken(mint) {
+  const url =
+    `https://api.geckoterminal.com/api/v2/networks/solana/tokens/${encodeURIComponent(mint)}` +
+    `/pools?page=1`;
+  const d = await fetchJson(url, { timeout: 20000, attempts: 2 });
+  const pairs = (d?.data ?? []).map((p) => {
+    const a = p?.attributes ?? {};
+    const name = String(a.name ?? "");
+    const [base, quote] = name.split("/").map((s) => s.trim());
+    return {
+      pair_address: a.address ?? null,
+      dex: p?.relationships?.dex?.data?.id ?? null,
+      labels: p?.relationships?.dex?.data?.id ? [p.relationships.dex.data.id] : null,
+      liquidity_usd: a.reserve_in_usd != null ? Number(a.reserve_in_usd) : null,
+      base_symbol: base || null,
+      quote_symbol: quote || null,
+      source_host: "api.geckoterminal.com",
+    };
+  }).filter((p) => p.pair_address);
+  return { pairs, source: stamp(url) };
 }
 
 /**

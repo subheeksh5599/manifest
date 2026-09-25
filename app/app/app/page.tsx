@@ -76,7 +76,7 @@ export default function OverviewPage() {
         </div>
       )}
 
-      <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1.15fr) minmax(0, 1fr)", gap: 18, alignItems: "start" }}>
+      <div className="dash-cols">
         <div>
           {mint ? (
             <SettlementCard mint={mint} wallet={wallet} />

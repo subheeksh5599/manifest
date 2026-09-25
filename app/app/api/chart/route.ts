@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
-import { candlesForPool, dexPairsForToken, jupiterPrice } from "@/lib/sources.mjs";
+import { candlesForPool, dexPairsForToken, gtPoolsForToken, jupiterPrice } from "@/lib/sources.mjs";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-export const maxDuration = 45;
+export const maxDuration = 60;
 export const revalidate = 0;
 
 const BASE58 = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/;
@@ -37,12 +37,30 @@ export async function GET(req: Request) {
     priceError = (e as Error).message;
   }
 
+  // Two listings, tried in order. The second is not a lesser source, it is a
+  // different host — and a free endpoint handing out 429s to one address still
+  // answers the other.
   let pairs: any[] = [];
   let pairError: string | null = null;
+  let poolsFrom: string | null = null;
   try {
-    pairs = (await dexPairsForToken(mint)).pairs;
+    const r = await dexPairsForToken(mint);
+    pairs = r.pairs;
+    poolsFrom = r.source?.url ?? "https://api.dexscreener.com";
   } catch (e) {
     pairError = (e as Error).message;
+  }
+  if (pairs.length === 0) {
+    try {
+      const r = await gtPoolsForToken(mint);
+      if (r.pairs.length > 0) {
+        pairs = r.pairs;
+        poolsFrom = r.source.url;
+        pairError = null;
+      }
+    } catch (e) {
+      pairError = [pairError, (e as Error).message].filter(Boolean).join(" · ");
+    }
   }
 
   // Deepest pool first: a thin pool's candles describe the pool, not the asset.
@@ -57,6 +75,7 @@ export async function GET(req: Request) {
         ok: false,
         mint,
         error: pairError ?? "no venue lists this mint, so there is no price series to draw",
+        pools_from: poolsFrom,
         stage: "venue_lookup",
         price: price.prices?.[mint] ?? null,
         price_source: price.source,
@@ -84,7 +103,7 @@ export async function GET(req: Request) {
       pools: ranked.length,
       candles,
       price: price.prices?.[mint] ?? null,
-      sources: { candles: source, pools: pairError ? null : "https://api.dexscreener.com", price: price.source },
+      sources: { candles: source, pools: poolsFrom, price: price.source },
       errors: { price: priceError, pools: pairError },
     });
   } catch (e) {

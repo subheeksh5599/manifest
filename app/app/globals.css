@@ -265,6 +265,15 @@ details.q .q-b { margin-top: 8px; color: #6b7280; font-size: 13px; line-height: 
 .shell-link-on:hover { background: var(--color-onyx); color: var(--color-white); }
 .shell-main { min-width: 0; padding: 34px 38px 72px; }
 
+/* The dashboard's two columns. minmax(0, …) and min-width on the children keep a
+   wide read — a URL, an error naming a host — from widening its column and pushing
+   the page past the viewport. */
+.dash-cols { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 18px; align-items: start; }
+.dash-cols > * { min-width: 0; }
+
+/* Long, unbroken reads wrap rather than overflow. */
+.mono, code, .label-mono, .state-card p, .flow-value { overflow-wrap: anywhere; }
+
 /* A number that carries its own provenance: the value, then the button that
    opens where it came from. */
 .src-btn {
