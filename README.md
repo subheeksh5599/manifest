@@ -7,7 +7,7 @@
 [![Live](https://img.shields.io/badge/demo-live-145FE4?style=flat-square)](https://manifest-mocha-six.vercel.app)
 [![Tests](https://img.shields.io/badge/tests-411%20passing-2E7D32?style=flat-square)](#proof)
 [![Program](https://img.shields.io/badge/devnet-on--chain%20record-14F195?style=flat-square)](https://explorer.solana.com/address/pTpaE75ubNyv9voydPJNaEfmv3GbmcN5bvZBfnRtdiA?cluster=devnet)
-|[![Verifier](https://img.shields.io/badge/independent%20verifier-25%20checks-2E7D32?style=flat-square)](#proof)|
+|[![Verifier](https://img.shields.io/badge/independent%20verifier-30%20checks-2E7D32?style=flat-square)](#proof)|
 [![License](https://img.shields.io/badge/license-MIT-303136?style=flat-square)](LICENSE)
 [![Solana](https://img.shields.io/badge/Solana-Token--2022-9945FF?style=flat-square)](https://solana.com)
 
@@ -80,13 +80,20 @@ the holder, in that order, with the schedule the issuer has already signed and n
 yet charged called out beneath them, and the round trip below that. The slot is in
 the frame.
 
+![The route across issuers: two pools with live vault balances, and one transaction holding both swaps](docs/screenshots/cross-issuer.png)
+
+The second route, on devnet. Two issuers, each with a real pool quoted against
+wrapped SOL, both vault balances read on the page load, and the exit across them
+in a single transaction: two swaps, 100,000,000 of issuer B sold and 94,306,362
+of issuer A landed, with that transaction linked beneath it.
+
 ![The verification page: four refusals with four distinct reasons](docs/screenshots/verification.png)
 
 Four refusals with four distinct reasons, each printing the live value that
 tripped it, evaluated by the request the page made rather than read from a table.
 The ablation underneath the matrix is the same run.
 
-Both frames are live reads taken at the slots they display, so the figures in them
+All three frames are live reads taken at the slots they display, so the figures in them
 are not the figures quoted elsewhere in this file. That is what a live number
 looks like: it moves, and the slot is the only thing that pins it.
 
