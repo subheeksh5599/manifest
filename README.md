@@ -176,7 +176,7 @@ $ python3 scripts/verify_receipts.py
   mints read            6
   charged at the exit   1
   a change scheduled    1
-  checks                25/25 passed
+  checks                30/30 passed
 ```
 
 `scripts/verify_receipts.py` is a deliberately **independent** implementation.
