@@ -61,11 +61,18 @@ async function attempt(
     row.epoch = terms.epoch;
     row.slot = terms.slot;
     row.schedule_bps = terms.fee_older ? null : null;
+    // A mint that cannot carry the extension is refused before any quote is
+    // relevant, so asking a venue for one would only add an error line that
+    // looks like a failure of this check rather than a consequence of it.
     let q: any = null;
-    try {
-      q = await quote(mint, size);
-    } catch (e) {
-      row.quote_error = (e as Error).message;
+    if (terms.is_token_2022 !== false) {
+      try {
+        q = await quote(mint, size);
+      } catch (e) {
+        row.quote_error = (e as Error).message;
+      }
+    } else {
+      row.quote_skipped = "not quoted: the fee extension cannot exist on this mint";
     }
     const verdict = exitVerdict(terms, q, BigInt(size), bounds);
     row.verdict = verdict.verdict;
