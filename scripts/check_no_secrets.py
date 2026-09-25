@@ -71,19 +71,44 @@ def tracked_files():
     return [f for f in out.split("\n") if f.strip()]
 
 
-def staged_content(path):
-    r = subprocess.run(
-        ["git", "show", f":{path}"], capture_output=True, text=True
-    )
+def staged_bytes(path):
+    r = subprocess.run(["git", "show", f":{path}"], capture_output=True)
     return r.stdout if r.returncode == 0 else None
 
 
-def read(path):
+def read_bytes(path):
     try:
-        with open(path, "r", encoding="utf-8", errors="replace") as fh:
+        with open(path, "rb") as fh:
             return fh.read()
     except OSError:
         return None
+
+
+def decode(raw):
+    """Decode if this is text, and say so plainly if it is not.
+
+    A guard that raises on a PNG blocks the commit it was meant to protect, and
+    the next thing anybody does is commit with the hook skipped. Decoding is
+    therefore total, and the decision about whether the file is text is made
+    here rather than in an exception handler.
+    """
+    if not raw:
+        return ""
+    if b"\x00" in raw[:8192]:
+        return None
+    return raw.decode("utf-8", errors="replace")
+
+
+def check_bytes(raw, path):
+    """The markers, looked for in the bytes.
+
+    Binaries are scanned rather than skipped: a private key inside a compiled
+    artifact is still a private key, and it is the one thing a text-only scan
+    would walk straight past.
+    """
+    if _DASHES.encode() + b"BEGIN " in raw and b"PRIVATE KEY" in raw:
+        return "a private key file, and one that a text scan would not have read"
+    return None
 
 
 def check(path, text):
@@ -126,8 +151,15 @@ def main():
 
     found = []
     for path in files:
-        text = staged_content(path) if staged else read(path)
-        reason = check(path, text)
+        raw = staged_bytes(path) if staged else read_bytes(path)
+        if raw is None:
+            continue
+
+        reason = check_bytes(raw, path)
+        if reason is None:
+            text = decode(raw)
+            if text is not None:
+                reason = check(path, text)
         if reason:
             found.append((path, reason))
 

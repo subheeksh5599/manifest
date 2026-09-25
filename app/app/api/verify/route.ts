@@ -30,6 +30,10 @@ function j(value: unknown): string {
 async function quote(mint: string, size: string) {
   const url = `${JUPITER_QUOTE}?inputMint=${mint}&outputMint=${USDC}&amount=${size}&slippageBps=50`;
   const r = await fetch(url, { headers: { Accept: "application/json" }, cache: "no-store" });
+  // A 400 from this endpoint is what "no route exists" looks like. Reporting the
+  // status code instead would read as a fault in the check rather than the
+  // answer to it, which is the opposite of the point of the row.
+  if (r.status === 400) throw new Error("no route returned for this mint");
   if (!r.ok) throw new Error(`quote endpoint returned ${r.status}`);
   const data = await r.json();
   if (!data?.outAmount) throw new Error(data?.error || data?.errorCode || "no route returned");

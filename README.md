@@ -71,6 +71,25 @@ epoch *E* is the newer schedule when *E* is at or past `newer.epoch`, and the
 older one otherwise. That single rule is why an announced increase is readable
 today, before it is charged.
 
+## On screen
+
+![The exit desk for one holding: quoted by the pool, withheld by the mint, lands with the holder](docs/screenshots/exit-desk.png)
+
+One holding at a named slot. Quoted by the pool, withheld by the mint, lands with
+the holder, in that order, with the schedule the issuer has already signed and not
+yet charged called out beneath them, and the round trip below that. The slot is in
+the frame.
+
+![The verification page: four refusals with four distinct reasons](docs/screenshots/verification.png)
+
+Four refusals with four distinct reasons, each printing the live value that
+tripped it, evaluated by the request the page made rather than read from a table.
+The ablation underneath the matrix is the same run.
+
+Both frames are live reads taken at the slots they display, so the figures in them
+are not the figures quoted elsewhere in this file. That is what a live number
+looks like: it moves, and the slot is the only thing that pins it.
+
 ## Surfaces
 
 | Surface | What it answers | Link |
