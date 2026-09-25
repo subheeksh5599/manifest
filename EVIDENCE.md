@@ -18,6 +18,9 @@ Rust tests, **30** receipt checks, **14** pool checks, **5** hostile checks.
 | Four refusals, four distinct reasons, evaluated on the request | `/api/verify` response | `curl -s localhost:3000/api/verify` |
 | The epoch read is load-bearing | `/api/verify` → `ablation` | see `docs/ABLATION.md` |
 | The product's arithmetic matches the chain | stdout, two issuers | `node scripts/replica_devnet.mjs exit` |
+| Both replica issuers have a real pool on devnet, owned by the pool program | stdout, 14 checks | `python3 scripts/verify_pools.py` |
+| An exit leaves issuer B's mint and arrives in issuer A's, in one transaction | 2 `SwapV2` logs in one transaction | `python3 scripts/verify_pools.py` |
+| That route is executable from a clean clone, not just recorded | a new devnet signature | `node scripts/pools_devnet.mjs cross 0.01` |
 | The devnet program records a reading and refuses a stale one | signature `bBz4KBZ1…`, then `6003` | `node scripts/prove_onchain.mjs` |
 | A published number is refused by the chain, not by a database | two devnet signatures | same command, second half |
 | The refusal system survives a hostile run | stdout, 5 checks in separate processes | `python3 scripts/adversarial_gate.py` |
