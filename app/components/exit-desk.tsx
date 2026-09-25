@@ -104,6 +104,52 @@ type Replica = {
   both_pools_live: boolean;
 };
 
+type CompareIssuer = {
+  label: string;
+  mint: string;
+  pool: string;
+  refused?: string;
+  mintFeeBpsInForce?: number;
+  mintFeeWithheld?: string;
+  intoPool?: string;
+  lands?: string;
+  landedPerToken?: number;
+  spotPerToken?: number | null;
+  rawOutOfPool?: string;
+  poolFeeMicro?: number;
+  pricePerToken?: number;
+  depth?: string;
+  tick?: number;
+  priceMovedPct?: number;
+  scheduleInForce?: {
+    bps: number;
+    sinceEpoch: number | null;
+    pendingBps: number | null;
+    pendingAtEpoch: number | null;
+  };
+};
+
+type Compare = {
+  size: string;
+  issuers: CompareIssuer[];
+  better?: string | null;
+  worse?: string;
+  spreadBps?: number | null;
+  landsAt?: Record<string, string>;
+  refused?: string | null;
+  rail?: {
+    available: boolean;
+    reason?: string;
+    from?: string;
+    to?: string;
+    legs?: number;
+    inOneTransaction?: boolean;
+    leg1?: { out: string; fee: string };
+    leg2?: { out: string; fee: string };
+    costOfTheRail?: string;
+  } | null;
+};
+
 const n = (v: string | null | undefined) => {
   if (v === null || v === undefined) return "—";
   try {
@@ -127,6 +173,7 @@ export default function ExitDesk({ entries }: { entries: RegistryEntry[] }) {
   const [data, setData] = useState<Exit | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [rep, setRep] = useState<Replica | null>(null);
+  const [cmp, setCmp] = useState<Compare | null>(null);
 
   // The replica lives on devnet and is read on the request like everything else.
   useEffect(() => {
@@ -143,6 +190,29 @@ export default function ExitDesk({ entries }: { entries: RegistryEntry[] }) {
       live = false;
     };
   }, []);
+
+  // The comparison is about the size the user is asking about, so it follows the
+  // size field rather than the mint. It is priced live for each keystroke that
+  // leaves a valid number, after a beat, and it keeps the last good answer on
+  // screen while the next one is in flight rather than blanking.
+  useEffect(() => {
+    if (!/^[1-9][0-9]*$/.test(size)) return;
+    let live = true;
+    const t = setTimeout(() => {
+      void (async () => {
+        try {
+          const r = await fetch(`/api/compare?size=${encodeURIComponent(size)}`, { cache: "no-store" });
+          if (r.ok && live) setCmp((await r.json()) as Compare);
+        } catch {
+          // the rest of the desk stands without it
+        }
+      })();
+    }, 250);
+    return () => {
+      live = false;
+      clearTimeout(t);
+    };
+  }, [size]);
 
   const evaluate = useCallback(async (m: string, s: string) => {
     setBusy(true);
@@ -403,6 +473,90 @@ export default function ExitDesk({ entries }: { entries: RegistryEntry[] }) {
               >
                 {short(rep.cross_issuer.sig, 12, 6)} ↗
               </a>
+            </div>
+          )}
+
+
+          {/* the same company at both issuers, priced at the size in the box */}
+          {cmp && (
+            <div className="card" style={{ padding: 20, marginBottom: 16 }}>
+              <div className="label-mono" style={{ fontSize: 10, marginBottom: 4 }}>
+                The same company at both issuers · devnet
+              </div>
+              <p style={{ margin: "0 0 12px", fontSize: 11, color: "var(--color-graphite)" }}>
+                Priced at your size, after the mint fee actually in force and the pool's own fee.
+                Both numbers are read on this page load; nothing here is remembered between visits.
+              </p>
+
+              {cmp.issuers.map((x) => (
+                <div
+                  key={x.label}
+                  style={{ display: "grid", gap: 6, borderTop: "1px solid var(--color-rule)", paddingTop: 10, marginTop: 10 }}
+                >
+                  <div style={{ display: "grid", gridTemplateColumns: "160px 1fr", gap: 12, fontSize: 12, alignItems: "baseline" }}>
+                    <code className="mono" style={{ color: "var(--color-onyx)" }}>
+                      issuer {x.label} {short(x.pool, 5, 4)}
+                    </code>
+                    {x.refused ? (
+                      <span className="mono" style={{ color: "var(--color-refuse)" }}>
+                        refused: {x.refused}
+                      </span>
+                    ) : (
+                      <span className="mono" style={{ color: "var(--color-onyx)" }}>
+                        {n(x.mintFeeWithheld)} withheld at {x.mintFeeBpsInForce ?? 0} bps · {n(x.intoPool)} into the pool
+                        · {n(x.rawOutOfPool)} out of the pool · <strong>{n(x.lands)} lands</strong>
+                      </span>
+                    )}
+                  </div>
+                  {!x.refused && (
+                    <div style={{ display: "grid", gridTemplateColumns: "160px 1fr", gap: 12, fontSize: 11, color: "var(--color-graphite)" }}>
+                      <span />
+                      <span className="mono">
+                        {x.pricePerToken ? `${x.pricePerToken.toFixed(4)} tokens per SOL` : "—"}
+                        {x.spotPerToken ? ` · spot ${x.spotPerToken.toFixed(6)} SOL per token · you land ${x.landedPerToken?.toFixed(6)}` : ""}
+                        {x.spotPerToken && x.landedPerToken
+                          ? ` (${(((x.landedPerToken - x.spotPerToken) / x.spotPerToken) * 100).toFixed(2)}% to fees and depth)`
+                          : ""}
+                        {" · depth "}{n(x.depth)}{" · tick "}{x.tick}
+                        {x.scheduleInForce?.pendingBps
+                          ? ` · ${x.scheduleInForce.pendingBps} bps already scheduled for epoch ${x.scheduleInForce.pendingAtEpoch}`
+                          : ""}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              ))}
+
+              <div style={{ display: "grid", gridTemplateColumns: "160px 1fr", gap: 12, fontSize: 12, alignItems: "baseline", marginTop: 14 }}>
+                <code className="mono" style={{ color: "var(--color-onyx)" }}>apart by</code>
+                <span className="mono" style={{ color: "var(--color-onyx)" }}>
+                  {cmp.refused
+                    ? `refused: ${cmp.refused}`
+                    : `${cmp.spreadBps} bps at this size — ${cmp.better} lands more than ${cmp.worse}`}
+                </span>
+              </div>
+
+              {cmp.rail && (
+                <div style={{ display: "grid", gridTemplateColumns: "160px 1fr", gap: 12, fontSize: 12, alignItems: "baseline", marginTop: 8 }}>
+                  <code className="mono" style={{ color: "var(--color-onyx)" }}>the rail</code>
+                  <span className="mono" style={{ color: "var(--color-graphite)" }}>
+                    {cmp.rail.available ? (
+                      <>
+                        {cmp.rail.from} → {cmp.rail.to} · leg 1 {n(cmp.rail.leg1?.out)} · leg 2 {n(cmp.rail.leg2?.out)}
+                        {" · "}
+                        {cmp.rail.legs} swaps in one transaction · costs {n(cmp.rail.costOfTheRail)}
+                      </>
+                    ) : (
+                      <>unavailable right now: {cmp.rail.reason}</>
+                    )}
+                  </span>
+                </div>
+              )}
+              <p style={{ margin: "12px 0 0", fontSize: 10, color: "var(--color-graphite)" }}>
+                These two pools were opened for this replica, so the spread is the mechanism being
+                priced rather than a dislocation in a real market. On mainnet no second issuer of
+                this company trades yet, and the desk says so instead of quoting one.
+              </p>
             </div>
           )}
 
