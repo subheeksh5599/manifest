@@ -1,0 +1,49 @@
+{
+  "issuer_a": {
+    "pool": "bp5Jto1AxiWzaB1D6kGwancaptGgPgGNkzhLRgN1tXE",
+    "created_sig": "3tJ7KtG8g9EADYqUP9dJRNUxk4PStZon85kA8GqvLnGq8s9rVQ7Qww8pKzvVzmWHZHCJwsTzSW6j81zKHmcqQor2",
+    "tick": 29952,
+    "position_sig": "5acguNjYCJdvf9AgcbsRymzpwLzHvmxx7746KEbAW9Ggytzs3aMUMgjPfm8hYbDqY5a3xifNaCnqy9XC95GbuqHG",
+    "position_mint": "C1v6kZQbTK5gANcVZUaMTbMZoSqGACRizBiXyYEKAHNz",
+    "tickLower": 29440,
+    "tickUpper": 30464,
+    "tokenMintA": "So11111111111111111111111111111111111111112",
+    "tokenMintB": "DjvERvY5tuuZzWziNSqMCdUxNeg7adfVCHVR9eQnSjGb",
+    "tokenVaultA": "2hGKTCPTeKcsE3cHWuPJZCivTdumV2BZwpuH99L5vyhg",
+    "tokenVaultB": "5i16m7wsmJ3Cs6CzA9kzG627PEicGZCVxKLPrdoy5mtZ",
+    "liquidity": "17688682241",
+    "sqrtPrice": "82369872061578034483",
+    "tickCurrentIndex": 29928,
+    "feeRate": 2000,
+    "tickSpacing": 64
+  },
+  "issuer_b": {
+    "pool": "3UjmfmbJgrw9AJbBuFZn1wZcY7sdXhC8i2bRap751yVi",
+    "created_sig": "4NnyPaDmRN4uHUL1huu89enXoQkCZSQ57vVuJtafrim5xgySCHVMff3fgGwxbJ8D9qp9MipBao71F36co8YrLr9q",
+    "tick": 29952,
+    "position_sig": "21Cpg4tmHdiRLpre7S5T6k9Yna6KEhJEKe5KpEnm54VWsxs45JuLKpRHHJa5bH5StfTw5bbGSUYioQvwmKkBBaXF",
+    "position_mint": "Bb2AcsKuhV5mFwPGnNWf9tKyzS8de33eS2iUNoaVVdmA",
+    "tickLower": 29440,
+    "tickUpper": 30464,
+    "swap_sig": "4TZje9C8Zooz6kS3uz3H7qU5wVMpfrsz5raWC31V8Ab2CmnRZov6VqATX9X7WTnpJ7zoNqLXMpjv3J3n4hTdmhLt",
+    "swap_tokens": "500000000",
+    "quoted_out": "23963245",
+    "landed": "23963245",
+    "tokenMintA": "So11111111111111111111111111111111111111112",
+    "tokenMintB": "3CeQw3Y4nEBiykxWKEnxPnmKq3GFrwrxYjFRwUTMPVgu",
+    "tokenVaultA": "BSQk8BZdop94bGyP1EWePY4Z6ZEhGpHBWddM9yYatSVq",
+    "tokenVaultB": "FGYEwnDcyDRd5bGytAJBEB5EFrfmGxXXJF4tE6t8mBcq",
+    "liquidity": "17688682241",
+    "sqrtPrice": "84116799743071772311",
+    "tickCurrentIndex": 30347,
+    "feeRate": 2000,
+    "tickSpacing": 64
+  },
+  "cross": {
+    "sig": "51JCvt7vxE7W6T8TpvzPgn1Wh7gHctwCv8MphL5Sriir5k6NVTTimVQxosoMtesdD7M7q1ezFHLKDLyDeer76LkM",
+    "amount_in_b": "10000000",
+    "issuer_b_spent": "10000000",
+    "issuer_a_received": "9405550",
+    "wsol_net": "2376"
+  }
+}
