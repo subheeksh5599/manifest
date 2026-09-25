@@ -74,6 +74,22 @@ export async function GET() {
   const issuer_a = await poolState(replica.issuer_a);
   const issuer_b = await poolState(replica.issuer_b);
 
+  const crossSig = replica.cross_issuer.sig;
+  const tx = await rpc("getTransaction", [crossSig, { encoding: "json", commitment: "confirmed", maxSupportedTransactionVersion: 0 }]);
+  const programs: string[] = (tx?.transaction?.message?.accountKeys ?? [])
+    .map((k: any) => (typeof k === "string" ? k : k?.pubkey))
+    .filter(Boolean);
+  const cross = {
+    sig: crossSig,
+    from: replica.cross_issuer.from,
+    to: replica.cross_issuer.to,
+    legs_in_one_transaction: replica.cross_issuer.legs_in_one_transaction,
+    confirmed: Boolean(tx) && !tx?.meta?.err,
+    slot: tx?.slot ?? null,
+    touches_whirlpool: programs.includes(WHIRLPOOL_PROGRAM),
+    measured: replica.cross_issuer.measured,
+  };
+
   const bothPoolsReal =
     issuer_a.pool_owner_is_whirlpool && issuer_b.pool_owner_is_whirlpool &&
     issuer_a.vault_issuer.exists && issuer_b.vault_issuer.exists;
@@ -84,6 +100,7 @@ export async function GET() {
       slot,
       issuer_a,
       issuer_b,
+      cross_issuer: cross,
       both_pools_live: bothPoolsReal,
     },
     { headers: { "cache-control": "no-store" } }
