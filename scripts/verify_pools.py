@@ -102,6 +102,51 @@ def issuer_checks(key: str, issuer: dict) -> list:
     return out
 
 
+def cross_checks(cross: dict) -> list:
+    out = []
+    sig = cross["sig"]
+    tx = rpc(
+        "getTransaction",
+        [sig, {"encoding": "json", "commitment": "confirmed", "maxSupportedTransactionVersion": 0}],
+    )
+    tx = tx or {}
+    meta = tx.get("meta") or {}
+    keys = [
+        k if isinstance(k, str) else (k or {}).get("pubkey")
+        for k in (tx.get("transaction", {}).get("message", {}).get("accountKeys") or [])
+    ]
+
+    out.append(check("cross tx confirmed", bool(tx) and meta.get("err") is None, f"{sig[:16]}… · slot {tx.get('slot', '—')}"))
+    out.append(
+        check(
+            "cross tx touches the pool program",
+            WHIRLPOOL_PROGRAM in keys,
+            "present in the account keys" if WHIRLPOOL_PROGRAM in keys else "program not in the transaction",
+        )
+    )
+
+    logs = meta.get("logMessages") or []
+    swaps = [line for line in logs if line == "Program log: Instruction: SwapV2"]
+    legs = cross["legs_in_one_transaction"]
+    out.append(
+        check(
+            f"cross tx holds {legs} swaps in one transaction",
+            len(swaps) == legs,
+            f"counted {len(swaps)} SwapV2 instruction logs",
+        )
+    )
+
+    measured = cross["measured"]
+    out.append(
+        check(
+            "cross tx moved the issuer mint out",
+            int(measured["issuer_b_spent"]) > 0 and int(measured["issuer_a_received"]) > 0,
+            f"out {measured['issuer_b_spent']} · in {measured['issuer_a_received']}",
+        )
+    )
+    return out
+
+
 def main() -> int:
     if not os.path.exists(DATA):
         print(f"no data at {DATA}")
@@ -117,6 +162,11 @@ def main() -> int:
         except RpcDown as e:
             unreachable += 1
             rows.append(check(f"{key} pools", False, f"chain did not answer: {e}"))
+    try:
+        rows.extend(cross_checks(data["cross_issuer"]))
+    except RpcDown as e:
+        unreachable += 1
+        rows.append(check("cross tx", False, f"chain did not answer: {e}"))
 
     failed = 0
     for name, ok, detail in rows:
