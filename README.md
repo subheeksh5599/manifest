@@ -151,17 +151,33 @@ $ python3 scripts/verify_receipts.py
   PASS  ANDURIL: the same value through a float is wrong        18446744073709551616
   PASS  ANDURIL: the two schedules are ordered                  1039 -> 1043
   PASS  ANDURIL: schedule in force at epoch 1042                100 bps @ epoch 1039
+  PASS  docs address PresTj4Yc2…                                mainnet · README.md
+  PASS  docs signature bBz4KBZ1Hv…                              devnet · README.md
 
   mints read            6
   charged at the exit   1
   a change scheduled    1
-  checks                17/17 passed
+  checks                25/25 passed
 ```
 
 `scripts/verify_receipts.py` is a deliberately **independent** implementation.
 It walks the Token-2022 TLV region in Python and re-derives both schedules from
 raw account bytes. It does not import the TypeScript module, so a bug there
 cannot hide behind itself. If the two disagree, the site is wrong.
+
+It also resolves every address and every signature these documents quote, against
+mainnet and then devnet. A definite negative fails the run; an RPC that will not
+answer does not, because a network failure is not evidence about a document.
+
+That check is load-bearing, and it was tested by breaking it. Changing one
+character of the Anduril mint address in this file turns 25/25 into 24/25 and the
+run exits non-zero:
+
+```
+  FAIL  docs address PresTj4Yc2…                                not on devnet · README.md
+  checks                24/25 passed
+  1 check(s) FAILED: a published number did not reproduce
+```
 
 ```
 $ python3 scripts/adversarial_gate.py
@@ -349,7 +365,7 @@ scripts/check_no_secrets.py   refuses credentials on the way in, not after
 | Read | Solana mainnet RPC, `getAccountInfo` base64 + jsonParsed |
 | Pricing | A public quote aggregator, at the requested size |
 | App | Next.js 16, React 19, TypeScript strict |
-| Tests | `node --test` (72) plus a Python verifier (17 checks) |
+| Tests | `node --test` (404) plus a Python verifier (25 checks) |
 | Assets | Token-2022 mints from two issuers |
 
 ## License

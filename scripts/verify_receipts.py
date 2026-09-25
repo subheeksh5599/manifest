@@ -21,6 +21,7 @@ import base64
 import json
 import os
 import pathlib
+import re
 import struct
 import sys
 import time
@@ -38,21 +39,38 @@ EXT_TRANSFER_FEE_CONFIG = 1
 TRANSFER_FEE_CONFIG_LEN = 108
 U64_MAX = (1 << 64) - 1
 
+DEVNET_RPC = os.environ.get("DEVNET_RPC_URL", "https://api.devnet.solana.com")
+
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 REGISTRY = ROOT / "app" / "data" / "registry.json"
 READINGS = ROOT / "app" / "data" / "readings.jsonl"
 
+# Every document that quotes an address or a signature.
+DOC_FILES = [
+    "README.md",
+    "EVIDENCE.md",
+    "docs/DEMO.md",
+    "docs/REFUSALS.md",
+    "docs/ABLATION.md",
+    "docs/SUBMISSION.md",
+]
+B58_RE = re.compile(r"[1-9A-HJ-NP-Za-km-z]{32,90}")
 
-def rpc(method: str, params: list):
+
+def rpc_at(url: str, method: str, params: list):
     body = json.dumps({"jsonrpc": "2.0", "id": 1, "method": method, "params": params}).encode()
     req = urllib.request.Request(
-        RPC, data=body, headers={"Content-Type": "application/json", "User-Agent": UA}
+        url, data=body, headers={"Content-Type": "application/json", "User-Agent": UA}
     )
     with urllib.request.urlopen(req, timeout=30) as r:
         out = json.load(r)
     if "error" in out:
         raise RuntimeError(f"{method}: {out['error']}")
     return out["result"]
+
+
+def rpc(method: str, params: list):
+    return rpc_at(RPC, method, params)
 
 
 def read_fee_config_exact(data: bytes):
@@ -102,6 +120,88 @@ def fee_for(amount: int, bps: int, maximum_fee: int) -> int:
     if bps == 0:
         return 0
     return min(amount * bps // 10000, maximum_fee)
+
+
+def doc_tokens() -> dict:
+    """Every base58-shaped token the documents quote, and which file quotes it."""
+    found: dict = {}
+    for rel in DOC_FILES:
+        path = ROOT / rel
+        if not path.exists():
+            continue
+        for m in B58_RE.finditer(path.read_text()):
+            found.setdefault(m.group(0), []).append(rel)
+    return found
+
+
+def _probe(url: str, method: str, params: list, tries: int = 3):
+    """Ask, and say whether the answerer refused rather than answered."""
+    last = ""
+    for i in range(tries):
+        try:
+            return rpc_at(url, method, params), None
+        except Exception as exc:  # noqa: BLE001 - any transport failure is the same news
+            last = str(exc)[:80]
+            time.sleep(0.6 * (i + 1))
+    return None, last
+
+
+def docs_checks() -> list:
+    """Every address and signature a document quotes must resolve on chain.
+
+    A definite negative from the chain fails the run, because a stale address in
+    a README is a real defect and a reader would find it first. An RPC that
+    cannot answer does not fail the run, because a network failure says nothing
+    about the document and a verifier that cries wolf gets ignored.
+    """
+    out: list = []
+    for token, where in sorted(doc_tokens().items()):
+        n = len(token)
+        loc = where[0]
+        if 32 <= n <= 44:
+            word = "address"
+            probes = [
+                ("mainnet", RPC, "getAccountInfo", [token, {"encoding": "base64"}]),
+                ("devnet", DEVNET_RPC, "getAccountInfo", [token, {"encoding": "base64"}]),
+            ]
+
+            def found_it(res):
+                return bool(res) and res.get("value") is not None
+
+        elif 80 <= n <= 90:
+            word = "signature"
+            opts = {"encoding": "json", "maxSupportedTransactionVersion": 0}
+            probes = [
+                ("mainnet", RPC, "getTransaction", [token, opts]),
+                ("devnet", DEVNET_RPC, "getTransaction", [token, opts]),
+            ]
+
+            def found_it(res):
+                return res is not None
+
+        else:
+            continue
+
+        ok = False
+        unreachable = False
+        detail = loc
+        for net, url, method, params in probes:
+            res, err = _probe(url, method, params)
+            if err is not None:
+                unreachable = True
+                continue
+            if found_it(res):
+                ok = True
+                detail = f"{net} · {loc}"
+                break
+            detail = f"not on {net} · {loc}"
+
+        if not ok and unreachable:
+            # Not evidence either way. Say that rather than pass it or fail it.
+            out.append((f"docs {word} {token[:10]}…", True, f"{loc} · chain did not answer, not judged"))
+        else:
+            out.append((f"docs {word} {token[:10]}…", ok, detail))
+    return out
 
 
 def main() -> int:
@@ -212,6 +312,8 @@ def main() -> int:
                 "source": "raw_tlv",
             }
         )
+
+    checks.extend(docs_checks())
 
     width = max(len(c[0]) for c in checks)
     for name, ok, detail in checks:
