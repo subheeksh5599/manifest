@@ -5,6 +5,7 @@ import { equityShelf, jupiterPrice } from "@/lib/sources.mjs";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+export const maxDuration = 45;
 export const revalidate = 0;
 
 const RPC_URL = process.env.RPC_URL || "https://api.mainnet-beta.solana.com";

@@ -5,6 +5,7 @@ import { TOKEN_2022_PROGRAM, TOKEN_PROGRAM } from "@/lib/exit-terms.mjs";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+export const maxDuration = 45;
 export const revalidate = 0;
 
 const BASE58 = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/;

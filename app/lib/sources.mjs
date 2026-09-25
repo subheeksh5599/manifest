@@ -13,7 +13,7 @@ const UA =
 /** Where the quote engine lives. Public, no key. */
 export const JUPITER = "https://lite-api.jup.ag";
 
-async function fetchJson(url, { timeout = 15000, accept = "application/json" } = {}) {
+async function fetchJsonOnce(url, { timeout, accept }) {
   const ctl = new AbortController();
   const timer = setTimeout(() => ctl.abort(), timeout);
   try {
@@ -37,6 +37,22 @@ async function fetchJson(url, { timeout = 15000, accept = "application/json" } =
   } finally {
     clearTimeout(timer);
   }
+}
+
+async function fetchJson(url, { timeout = 15000, accept = "application/json", attempts = 1 } = {}) {
+  let last;
+  for (let i = 0; i < attempts; i++) {
+    try {
+      return await fetchJsonOnce(url, { timeout, accept });
+    } catch (e) {
+      last = e;
+      // A status is an answer, so it is not retried. A silence is worth one more
+      // try: the candle source is slow, not gone.
+      if (!/did not answer within/.test(e?.message ?? "")) throw e;
+      if (i < attempts - 1) await new Promise((r) => setTimeout(r, 500));
+    }
+  }
+  throw last;
 }
 
 const stamp = (url) => ({ url, host: new URL(url).host, at: new Date().toISOString() });
@@ -131,7 +147,9 @@ export async function candlesForPool(pool, { timeframe = "hour", limit = 48 } = 
   const url =
     `https://api.geckoterminal.com/api/v2/networks/solana/pools/${encodeURIComponent(pool)}` +
     `/ohlcv/${timeframe}?limit=${limit}&currency=usd`;
-  const d = await fetchJson(url);
+  // This endpoint is slow — 11s was typical from a home connection — so it gets a
+  // wider budget and one retry rather than failing the card it feeds.
+  const d = await fetchJson(url, { timeout: 22000, attempts: 2 });
   const rows = d?.data?.attributes?.ohlcv_list ?? [];
   const candles = rows
     .map((r) => ({
