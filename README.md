@@ -328,6 +328,49 @@ extensions begin at byte 166, not 165, because of the account-type byte, so a
 walk started at 165 reads a withheld fee as no fee at all. And the withheld
 amount is extension type 2, where type 9 is NonTransferable.
 
+### The route across issuers, executed
+
+Neither replica issuer is a dead end. Each has a real pool on devnet, both quoted
+against wrapped SOL, both holding liquidity deposited through that pool's own
+liquidity instruction:
+
+| | pool | issuer-side vault |
+|---|---|---|
+| issuer A | `bp5Jto1AxiWzaB1D6kGwancaptGgPgGNkzhLRgN1tXE` | `5i16m7wsmJ3Cs6CzA9kzG627PEicGZCVxKLPrdoy5mtZ` |
+| issuer B | `3UjmfmbJgrw9AJbBuFZn1wZcY7sdXhC8i2bRap751yVi` | `FGYEwnDcyDRd5bGytAJBEB5EFrfmGxXXJF4tE6t8mBcq` |
+
+So an exit can leave one issuer's mint and arrive in the other issuer's mint, and
+it does it in a single transaction: sell into issuer B's pool, then spend what
+comes back into issuer A's pool. The middle asset cannot be taken out from under
+the route between the legs, because there is no between the legs.
+
+```
+node scripts/pools_devnet.mjs cross 0.1
+
+leg 1  in  100000000 of issuer B
+       out  4757425 lamports of wSOL, pool fee 198000
+leg 2  in   4733637 lamports of wSOL
+       out 94306362 of issuer A, pool fee 9468
+
+cross-issuer exit in one transaction: 2MiQBYXueWkDBPM4KVCeNqnGMYYJGRQ5YBmeP4AEHkeiHiTrD5nuy92EZuBg3Vu4sdHYDRdpMfGxvpbdKKvpDrMn
+
+measured
+  issuer B spent      100000000
+  issuer A received   94306362
+  wSOL net            23788 (the middle asset, left behind)
+  legs in the tx      2 (atomic)
+```
+
+The route is not free, and those numbers say what it costs: 100,000,000 in and
+94,306,362 out. Two pool fees, the mint's own 100 bps on the way out of issuer B,
+and whatever the second pool charges for the size.
+
+`python3 scripts/verify_pools.py` checks that against devnet rather than against
+the file: both pools exist and are owned by the pool program, both vaults hold a
+balance, both deposits are confirmed, and the recorded transaction is counted in
+its own logs — `cross tx holds 2 swaps in one transaction · counted 2 SwapV2
+instruction logs`.
+
 ## Honesty table
 
 | Claim | Status | How to check |
