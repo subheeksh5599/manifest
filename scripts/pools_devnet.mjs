@@ -305,8 +305,124 @@ async function create() {
  * instructions directly keeps the deposit on increase_liquidity_v2, which takes a
  * liquidity amount and two maxima and checks no price at all.
  */
+async function manual() {
+
+  const wallet = loadWallet();
+  const c = conn();
+  const cl = client(wallet, c);
+  const program = cl.getContext().program;
+  const state = loadState();
+  const key = process.argv[3] || "issuer_a";
+  const entry = state[key];
+  const poolKey = new PublicKey(entry.pool);
+  const pool = await cl.getPool(poolKey);
+  const d = pool.getData();
+  const mint = new PublicKey(loadReplica()[key].mint);
+
+  const lower = TickUtil.getInitializableTickIndex(entry.tick - RANGE_TICKS, TICK_SPACING);
+  const upper = TickUtil.getInitializableTickIndex(entry.tick + RANGE_TICKS, TICK_SPACING);
+  const aIsIssuer = d.tokenMintA.equals(mint);
+  const tokenMaxA = new BN(Math.round((aIsIssuer ? LIQUIDITY_TOKENS : LIQUIDITY_TOKENS * PRICE_SOL_PER_TOKEN) * 1e9));
+  const tokenMaxB = new BN(Math.round((aIsIssuer ? LIQUIDITY_TOKENS * PRICE_SOL_PER_TOKEN : LIQUIDITY_TOKENS) * 1e9));
+
+  const mintOwnerA = (await c.getAccountInfo(d.tokenMintA)).owner;
+  const mintOwnerB = (await c.getAccountInfo(d.tokenMintB)).owner;
+  const ataA = getAssociatedTokenAddressSync(d.tokenMintA, wallet.publicKey, false, mintOwnerA);
+  const ataB = getAssociatedTokenAddressSync(d.tokenMintB, wallet.publicKey, false, mintOwnerB);
+
+  const balA = await c.getTokenAccountBalance(ataA).catch(() => null);
+  const balB = await c.getTokenAccountBalance(ataB).catch(() => null);
+  console.log("owner ATA A:", ataA.toBase58(), balA ? balA.value.uiAmountString : "missing", "tokenA");
+  console.log("owner ATA B:", ataB.toBase58(), balB ? balB.value.uiAmountString : "missing", "tokenB");
+  console.log("tick range :", lower, "->", upper, " current:", d.tickCurrentIndex);
+  console.log("vaults     :", d.tokenVaultA.toBase58(), d.tokenVaultB.toBase58());
+
+  const taLower = PDAUtil.getTickArrayFromTickIndex(lower, TICK_SPACING, poolKey, ORCA_WHIRLPOOL_PROGRAM_ID).publicKey;
+  const taUpper = PDAUtil.getTickArrayFromTickIndex(upper, TICK_SPACING, poolKey, ORCA_WHIRLPOOL_PROGRAM_ID).publicKey;
+  for (const [nm, pk] of [["lower", taLower], ["upper", taUpper]]) {
+    const info = await c.getAccountInfo(pk);
+    console.log(`tick array ${nm}:`, pk.toBase58(), info ? "exists" : "ABSENT");
+  }
+
+  const liquidityAmount = sdk.PoolUtil.estimateLiquidityFromTokenAmounts(
+    d.tickCurrentIndex, lower, upper, { tokenA: tokenMaxA, tokenB: tokenMaxB }
+  );
+  // The deposit debits the gross amount, and a mint carrying a transfer fee debits
+  // more than the position is worth, so the ceilings have to sit above the size or
+  // the program refuses with TokenMaxExceeded. The size still comes from the estimate.
+  const maxA = tokenMaxA.muln(105).divn(100);
+  const maxB = tokenMaxB.muln(105).divn(100);
+  console.log("liquidity to mint:", liquidityAmount.toString());
+  if (liquidityAmount.isZero()) throw new Error("liquidity estimate is zero; amounts too small for the range");
+
+  const positionMint = Keypair.generate();
+  const positionPda = PDAUtil.getPosition(ORCA_WHIRLPOOL_PROGRAM_ID, positionMint.publicKey);
+  const positionTokenAccount = getAssociatedTokenAddressSync(
+    positionMint.publicKey, wallet.publicKey, false, TOKEN_PROGRAM_ID
+  );
+
+  console.log("position mint  :", positionMint.publicKey.toBase58());
+  console.log("position pda   :", positionPda.publicKey.toBase58());
+  console.log("position ATA   :", positionTokenAccount.toBase58(), "(owner=wallet, classic token program)");
+  console.log("metadata pda   :", PDAUtil.getPositionMetadata(positionMint.publicKey).publicKey.toBase58());
+  const rentForMint = await c.getMinimumBalanceForRentExemption(82);
+  console.log("mint rent (the program pays this from the wallet):", rentForMint);
+
+  const mintRent = await c.getMinimumBalanceForRentExemption(82);
+  // The program creates the position mint itself (it takes the mint as a signer and
+  // funds it from the payer), so no create-account or initialize-mint here.
+  const ixs = [
+    sdk.WhirlpoolIx.openPositionIx(program, {
+      funder: wallet.publicKey,
+      owner: wallet.publicKey,
+      positionPda,
+      positionMintAddress: positionMint.publicKey,
+      metadataPda: PDAUtil.getPositionMetadata(positionMint.publicKey).publicKey,
+      positionTokenAccount,
+      whirlpool: poolKey,
+      tickLowerIndex: lower,
+      tickUpperIndex: upper,
+    }),
+    sdk.WhirlpoolIx.increaseLiquidityV2Ix(program, {
+      whirlpool: poolKey,
+      position: positionPda.publicKey,
+      positionTokenAccount,
+      positionAuthority: wallet.publicKey,
+      tokenMintA: d.tokenMintA,
+      tokenMintB: d.tokenMintB,
+      tokenOwnerAccountA: ataA,
+      tokenOwnerAccountB: ataB,
+      tokenVaultA: d.tokenVaultA,
+      tokenVaultB: d.tokenVaultB,
+      tokenProgramA: mintOwnerA,
+      tokenProgramB: mintOwnerB,
+      tickArrayLower: taLower,
+      tickArrayUpper: taUpper,
+      liquidityAmount,
+      tokenMaxA: maxA,
+      tokenMaxB: maxB,
+    }),
+  ];
+
+  const tx = new Transaction().add(...ixs);
+  tx.feePayer = wallet.publicKey;
+  const { blockhash } = await c.getLatestBlockhash("confirmed");
+  tx.recentBlockhash = blockhash;
+  tx.sign(wallet, positionMint);
+
+  const sig = await c.sendRawTransaction(tx.serialize(), { skipPreflight: false });
+  await c.confirmTransaction(sig, "confirmed");
+  console.log("\nposition + liquidity:", sig);
+
+  entry.position_sig = sig;
+  entry.position_mint = positionMint.publicKey.toBase58();
+  entry.tickLower = lower;
+  entry.tickUpper = upper;
+  saveState(state);
+}
+
 const phase = process.argv[2] || "show";
-const run = { show, create }[phase];
+const run = { show, create, manual }[phase];
 if (!run) {
   console.error("usage: node pool.js [show|create|swap]");
   process.exit(2);
