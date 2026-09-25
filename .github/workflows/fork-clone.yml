@@ -1,0 +1,89 @@
+name: fork-clone
+
+on:
+  workflow_dispatch:
+    inputs:
+      mutate:
+        description: "Negative control: load a tampered fixture instead of the cloned mint. This run is EXPECTED TO FAIL, and that red run is the evidence."
+        type: boolean
+        default: false
+
+# Real devnet state in a validator on the runner, and the lifecycle run against it.
+#
+# The validator clones the two issuers' mints, their pools, the pools' vaults and
+# the reading program from devnet. The checks then compare the cloned bytes with a
+# devnet pull taken in the same run, read the fee schedule out of the clone, price
+# both issuers off the cloned pools, and set each price against the pool library's
+# own quote. After that the reading program is exercised for real: a reading is
+# recorded against the clone, verified, and then refused once the schedule moves.
+#
+# Dispatched with mutate=true it loads ONE account - issuer B's mint - from a file
+# with a single byte of its fee schedule changed. Everything else is identical, and
+# the job must fail. A control that cannot fail proves nothing, so both runs exist
+# and both URLs are cited in EVIDENCE.md.
+
+jobs:
+  clone:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: install solana
+        shell: bash
+        run: |
+          curl -sSfL https://release.anza.xyz/v3.1.14/install | sh
+          echo "$HOME/.local/share/solana/install/active_release/bin" >> "$GITHUB_PATH"
+
+      - name: install the scripts' client libraries
+        run: cd scripts && npm install --no-audit --no-fund
+
+      - name: set up a wallet for the local chain
+        shell: bash
+        run: |
+          if [ ! -f "$HOME/.config/solana/id.json" ]; then
+            mkdir -p "$HOME/.config/solana"
+            solana-keygen new --no-bip39-passphrase --silent -o "$HOME/.config/solana/id.json"
+          fi
+          solana address
+
+      - name: tamper with one account, for the control run
+        if: ${{ inputs.mutate }}
+        shell: bash
+        run: |
+          node scripts/fork_clone.mjs fixture --mutate --mint=B --out /tmp/mint_b_mutated.json
+          echo "FORK_MUTATED_ACCOUNT=3CeQw3Y4nEBiykxWKEnxPnmKq3GFrwrxYjFRwUTMPVgu" >> "$GITHUB_ENV"
+          echo "FORK_MUTATED_FILE=/tmp/mint_b_mutated.json" >> "$GITHUB_ENV"
+
+      - name: clone devnet state into a local validator
+        shell: bash
+        run: |
+          ARGS=$(node scripts/fork_clone.mjs plan)
+          echo "clone plan: $ARGS"
+          nohup solana-test-validator --url devnet --reset --quiet \
+            --ledger /tmp/fork-ledger $ARGS > /tmp/validator.log 2>&1 &
+          for i in $(seq 1 60); do
+            if curl -s --max-time 5 -X POST http://127.0.0.1:8899 \
+                 -H 'content-type: application/json' \
+                 -d '{"jsonrpc":"2.0","id":1,"method":"getHealth"}' | grep -q '"result"'; then
+              echo "validator up after ${i} probes"
+              exit 0
+            fi
+            sleep 3
+          done
+          echo "the validator never came up"
+          tail -30 /tmp/validator.log
+          exit 1
+
+      - name: the lifecycle against cloned state
+        run: node scripts/fork_clone.mjs check
+
+      - name: read terms, record a reading, then have it refused
+        shell: bash
+        run: |
+          solana airdrop 5 --url http://127.0.0.1:8899 || true
+          RPC_URL=http://127.0.0.1:8899 ANCHOR_WALLET="$HOME/.config/solana/id.json" \
+            node scripts/prove_onchain.mjs
+
+      - name: what the validator was doing
+        if: failure()
+        run: tail -40 /tmp/validator.log
