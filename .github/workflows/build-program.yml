@@ -37,10 +37,15 @@ jobs:
       - name: host-side tests
         run: cargo test --manifest-path programs/exit_terms/Cargo.toml --lib
 
+      # The build writes to the workspace root's target directory, not to the
+      # program's own: the manifest lives inside a workspace, so that is where
+      # cargo puts it. Looking only beside the program finds nothing, which is
+      # how this job failed the first time it ran.
       - name: say what was built
         run: |
-          ls -l programs/exit_terms/target/deploy/
-          for f in programs/exit_terms/target/deploy/*.so; do
+          ls -l target/deploy/
+          test -f target/deploy/manifest_exit_terms.so
+          for f in target/deploy/*.so; do
             echo "$f $(stat -c%s "$f") bytes sha256 $(sha256sum "$f" | cut -d' ' -f1)"
           done
 
@@ -48,7 +53,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: manifest-exit-terms-so
-          path: programs/exit_terms/target/deploy/*.so
+          path: target/deploy/*.so
           if-no-files-found: error
 
       - name: attach the build to a release
@@ -59,5 +64,5 @@ jobs:
             || gh release create program-build \
                  --title "Built program" \
                  --notes "The SBF build of the reading program, attached by CI rather than built on a machine. Every asset here was produced by the build-program workflow from a commit."
-          gh release upload program-build programs/exit_terms/target/deploy/*.so --clobber
+          gh release upload program-build target/deploy/*.so --clobber
           gh release view program-build --json assets --jq '.assets[] | "\(.name) \(.url)"'
