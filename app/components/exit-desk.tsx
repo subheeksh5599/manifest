@@ -269,7 +269,7 @@ export default function ExitDesk({ entries }: { entries: RegistryEntry[] }) {
               onChange={(e) => setMint(e.target.value.trim())}
               spellCheck={false}
               className="mono"
-              style={{ padding: "9px 11px", fontSize: 12, border: "1px solid #d4d4d8", borderRadius: 2, background: "#fff" }}
+              style={{ padding: "9px 11px", fontSize: 12, border: "1px solid #dedfe1", borderRadius: 2, background: "#fff" }}
             />
           </label>
           <label style={{ display: "grid", gap: 6 }}>
@@ -279,14 +279,14 @@ export default function ExitDesk({ entries }: { entries: RegistryEntry[] }) {
               onChange={(e) => setSize(e.target.value.trim())}
               inputMode="numeric"
               className="mono"
-              style={{ padding: "9px 11px", fontSize: 12, border: "1px solid #d4d4d8", borderRadius: 2, background: "#fff" }}
+              style={{ padding: "9px 11px", fontSize: 12, border: "1px solid #dedfe1", borderRadius: 2, background: "#fff" }}
             />
           </label>
           <button
             onClick={() => void evaluate(mint, size)}
             disabled={busy || !mint || !/^[1-9][0-9]*$/.test(size)}
             style={{
-              padding: "10px 18px", background: "#145FE4", color: "#fff", border: "none",
+              padding: "10px 18px", background: "#000", color: "#fff", border: "none",
               borderRadius: 2, fontSize: 13, fontWeight: 600,
               cursor: busy ? "wait" : "pointer", opacity: busy ? 0.6 : 1,
             }}
@@ -301,9 +301,9 @@ export default function ExitDesk({ entries }: { entries: RegistryEntry[] }) {
               onClick={() => { setMint(e.mint); void evaluate(e.mint, size); }}
               style={{
                 padding: "5px 10px", fontSize: 11, borderRadius: 2,
-                border: mint === e.mint ? "1px solid #145FE4" : "1px solid #d4d4d8",
+                border: mint === e.mint ? "1px solid #145FE4" : "1px solid #dedfe1",
                 background: mint === e.mint ? "rgba(20,95,228,0.08)" : "#fff",
-                color: mint === e.mint ? "#145FE4" : "#52525b",
+                color: mint === e.mint ? "#145FE4" : "#6b7280",
                 cursor: "pointer", fontFamily: "var(--font-mono)",
               }}
             >
@@ -386,7 +386,7 @@ export default function ExitDesk({ entries }: { entries: RegistryEntry[] }) {
               <thead>
                 <tr>
                   {["schedule", "epoch", "basis points", "maximum fee", "state"].map((h) => (
-                    <th key={h} className="label-mono" style={{ textAlign: "left", fontSize: 9, padding: "6px 8px", borderBottom: "1px solid #e4e4e7" }}>{h}</th>
+                    <th key={h} className="label-mono" style={{ textAlign: "left", fontSize: 10, padding: "6px 8px", borderBottom: "1px solid #9ca3af" }}>{h}</th>
                   ))}
                 </tr>
               </thead>
@@ -399,11 +399,11 @@ export default function ExitDesk({ entries }: { entries: RegistryEntry[] }) {
                   const inForce = t.fee_effective && sch && t.fee_effective.epoch === sch.epoch;
                   return (
                     <tr key={label as string}>
-                      <td className="mono" style={{ padding: "7px 8px", borderBottom: "1px solid #f4f4f5" }}>{label as string}</td>
-                      <td className="mono" style={{ padding: "7px 8px", borderBottom: "1px solid #f4f4f5" }}>{sch?.epoch ?? "—"}</td>
-                      <td className="mono" style={{ padding: "7px 8px", borderBottom: "1px solid #f4f4f5" }}>{sch?.bps ?? "—"}</td>
-                      <td className="mono" style={{ padding: "7px 8px", borderBottom: "1px solid #f4f4f5" }}>{sch ? n(sch.maximum_fee) : "—"}</td>
-                      <td className="mono" style={{ padding: "7px 8px", borderBottom: "1px solid #f4f4f5", color: inForce ? "#2E7D32" : "#8a5a00", fontWeight: inForce ? 700 : 400 }}>
+                      <td className="mono" style={{ padding: "7px 8px", borderBottom: "1px solid #edeff2" }}>{label as string}</td>
+                      <td className="mono" style={{ padding: "7px 8px", borderBottom: "1px solid #edeff2" }}>{sch?.epoch ?? "—"}</td>
+                      <td className="mono" style={{ padding: "7px 8px", borderBottom: "1px solid #edeff2" }}>{sch?.bps ?? "—"}</td>
+                      <td className="mono" style={{ padding: "7px 8px", borderBottom: "1px solid #edeff2" }}>{sch ? n(sch.maximum_fee) : "—"}</td>
+                      <td className="mono" style={{ padding: "7px 8px", borderBottom: "1px solid #edeff2", color: inForce ? "#2E7D32" : "#8a5a00", fontWeight: inForce ? 700 : 400 }}>
                         {inForce ? "IN FORCE" : "not in force"}
                       </td>
                     </tr>
@@ -491,7 +491,7 @@ export default function ExitDesk({ entries }: { entries: RegistryEntry[] }) {
               {cmp.issuers.map((x) => (
                 <div
                   key={x.label}
-                  style={{ display: "grid", gap: 6, borderTop: "1px solid var(--color-rule)", paddingTop: 10, marginTop: 10 }}
+                  style={{ display: "grid", gap: 6, borderTop: "1px solid var(--color-hairline)", paddingTop: 10, marginTop: 10 }}
                 >
                   <div style={{ display: "grid", gridTemplateColumns: "160px 1fr", gap: 12, fontSize: 12, alignItems: "baseline" }}>
                     <code className="mono" style={{ color: "var(--color-onyx)" }}>
@@ -509,19 +509,35 @@ export default function ExitDesk({ entries }: { entries: RegistryEntry[] }) {
                     )}
                   </div>
                   {!x.refused && (
-                    <div style={{ display: "grid", gridTemplateColumns: "160px 1fr", gap: 12, fontSize: 11, color: "var(--color-graphite)" }}>
-                      <span />
-                      <span className="mono">
-                        {x.pricePerToken ? `${x.pricePerToken.toFixed(4)} tokens per SOL` : "—"}
-                        {x.spotPerToken ? ` · spot ${x.spotPerToken.toFixed(6)} SOL per token · you land ${x.landedPerToken?.toFixed(6)}` : ""}
-                        {x.spotPerToken && x.landedPerToken
-                          ? ` (${(((x.landedPerToken - x.spotPerToken) / x.spotPerToken) * 100).toFixed(2)}% to fees and depth)`
-                          : ""}
-                        {" · depth "}{n(x.depth)}{" · tick "}{x.tick}
-                        {x.scheduleInForce?.pendingBps
-                          ? ` · ${x.scheduleInForce.pendingBps} bps already scheduled for epoch ${x.scheduleInForce.pendingAtEpoch}`
-                          : ""}
-                      </span>
+                    <div style={{ display: "grid", gap: 4 }}>
+                      {[
+                        ["price", x.pricePerToken ? `${x.pricePerToken.toFixed(4)} tokens per SOL` : "—"],
+                        ["spot", x.spotPerToken ? `${x.spotPerToken.toFixed(6)} SOL per token` : null],
+                        [
+                          "you land",
+                          x.landedPerToken != null && x.spotPerToken
+                            ? `${x.landedPerToken.toFixed(6)} SOL per token (${(((x.landedPerToken - x.spotPerToken) / x.spotPerToken) * 100).toFixed(2)}% to fees and depth)`
+                            : null,
+                        ],
+                        ["depth", n(x.depth)],
+                        ["tick", String(x.tick)],
+                        [
+                          "scheduled",
+                          x.scheduleInForce?.pendingBps
+                            ? `${x.scheduleInForce.pendingBps} bps at epoch ${x.scheduleInForce.pendingAtEpoch}`
+                            : null,
+                        ],
+                      ]
+                        .filter(([, v]) => v)
+                        .map(([k, v]) => (
+                          <div
+                            key={k as string}
+                            style={{ display: "grid", gridTemplateColumns: "160px 1fr", gap: 12, fontSize: 11, alignItems: "baseline" }}
+                          >
+                            <code className="mono" style={{ color: "var(--color-graphite)" }}>{k}</code>
+                            <span className="mono" style={{ color: "var(--color-onyx)" }}>{v}</span>
+                          </div>
+                        ))}
                     </div>
                   )}
                 </div>
@@ -565,14 +581,43 @@ export default function ExitDesk({ entries }: { entries: RegistryEntry[] }) {
             <div className="label-mono" style={{ fontSize: 10, marginBottom: 12 }}>
               Authorities · {t.authority.total_levers} levers behind {t.authority.distinct_keys} key{t.authority.distinct_keys === 1 ? "" : "s"}
             </div>
-            <div style={{ display: "grid", gap: 8 }}>
-              {t.authority.levers.map((l) => (
-                <div key={l.lever} style={{ display: "grid", gridTemplateColumns: "230px 1fr", gap: 12, fontSize: 12, alignItems: "baseline" }}>
-                  <code className="mono" style={{ color: "var(--color-onyx)" }}>{l.lever}</code>
-                  <code className="mono" style={{ color: "var(--color-graphite)", wordBreak: "break-all" }}>{l.key}</code>
+            {t.authority.distinct_keys === 1 ? (
+              <>
+                <code
+                  className="mono"
+                  style={{ display: "block", fontSize: 12, color: "var(--color-onyx)", wordBreak: "break-all" }}
+                >
+                  {t.authority.levers[0]?.key}
+                </code>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 12 }}>
+                  {t.authority.levers.map((l) => (
+                    <span
+                      key={l.lever}
+                      className="mono"
+                      style={{
+                        fontSize: 10, color: "var(--color-graphite)",
+                        border: "1px solid var(--color-hairline)", padding: "3px 7px", borderRadius: 2,
+                      }}
+                    >
+                      {l.lever}
+                    </span>
+                  ))}
                 </div>
-              ))}
-            </div>
+                <p style={{ margin: "12px 0 0", fontSize: 11, color: "var(--color-graphite)" }}>
+                  One key behind all {t.authority.total_levers} levers: it cannot move a holder&apos;s tokens, and nothing in this
+                  repository holds it.
+                </p>
+              </>
+            ) : (
+              <div style={{ display: "grid", gap: 8 }}>
+                {t.authority.levers.map((l) => (
+                  <div key={l.lever} style={{ display: "grid", gridTemplateColumns: "230px 1fr", gap: 12, fontSize: 12, alignItems: "baseline" }}>
+                    <code className="mono" style={{ color: "var(--color-onyx)" }}>{l.lever}</code>
+                    <code className="mono" style={{ color: "var(--color-graphite)", wordBreak: "break-all" }}>{l.key}</code>
+                  </div>
+                ))}
+              </div>
+            )}
             <p style={{ margin: "12px 0 0", fontSize: 11, color: "var(--color-graphite)" }}>
               Round trip on this size costs {n(v.round_trip.total_cost)} ·
               the fee is charged twice, once on the way in and once on the way out.
@@ -589,7 +634,7 @@ function Stat({ label, value, sub, tone }: { label: string; value: string; sub?:
     tone === "good" ? "#2E7D32" : tone === "warn" ? "#8a5a00" : tone === "bad" ? "var(--color-refuse)" : "var(--color-onyx)";
   return (
     <div className="card" style={{ padding: 18 }}>
-      <div className="label-mono" style={{ fontSize: 9, marginBottom: 8 }}>{label}</div>
+      <div className="label-mono" style={{ fontSize: 10, marginBottom: 8 }}>{label}</div>
       <div className="mono" style={{ fontSize: 20, fontWeight: 700, color: colour, wordBreak: "break-all" }}>{value}</div>
       {sub && <div className="mono" style={{ fontSize: 10, color: "var(--color-graphite)", marginTop: 6 }}>{sub}</div>}
     </div>

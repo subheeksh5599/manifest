@@ -82,14 +82,14 @@ export default function IssuerBoard() {
 
   const th: React.CSSProperties = {
     textAlign: "left",
-    fontSize: 9,
+    fontSize: 10,
     padding: "8px 10px",
-    borderBottom: "1px solid #e4e4e7",
+    borderBottom: "1px solid #9ca3af",
     whiteSpace: "nowrap",
   };
   const td: React.CSSProperties = {
     padding: "9px 10px",
-    borderBottom: "1px solid #f4f4f5",
+    borderBottom: "1px solid #edeff2",
     fontSize: 12,
     fontFamily: "var(--font-mono)",
     whiteSpace: "nowrap",
