@@ -80,6 +80,8 @@ today, before it is charged.
 | Mint Inspector | Both fee schedules and the key behind each authority | [/mint/XsDoVfqe…](https://manifest-mocha-six.vercel.app/mint/XsDoVfqeBukxuZHWhdvWHBhgEHjGNst4MLodqsJHzoB) |
 | Tape | Append-only ledger of readings, with the slot each was taken at | [/tape](https://manifest-mocha-six.vercel.app/tape) |
 | Evidence | Every claim mapped to the command that reproduces it | [/evidence](https://manifest-mocha-six.vercel.app/evidence) |
+| Verification | Four refusals and the ablation, evaluated on the click | [/verify](https://manifest-mocha-six.vercel.app/verify) |
+| Health | Each dependency checked separately, failing loudly | [/api/health](https://manifest-mocha-six.vercel.app/api/health) |
 
 ## Why bytes, not parsed JSON
 
@@ -244,6 +246,53 @@ takes effect in, which is the premise this product is built on.
 The last line is the one that matters. A published number that stops being true
 is refused by the chain, not by a database.
 
+## The scenario, recreated on devnet
+
+The fee schedules on mainnet belong to someone else, so the only way to show what
+happens after a schedule lands is to wait for an issuer to sign one. Devnet
+removes the wait.
+
+Two issuers of one company, created as real Token-2022 mints with real
+transfer-fee extensions:
+
+| | mint | terms |
+|---|---|---|
+| issuer A | `DjvERvY5tuuZzWziNSqMCdUxNeg7adfVCHVR9eQnSjGb` | 0 bps, nothing withheld |
+| issuer B | `3CeQw3Y4nEBiykxWKEnxPnmKq3GFrwrxYjFRwUTMPVgu` | 100 bps in force, **300 bps announced for epoch 1168** |
+
+Then the exit is measured rather than computed. Tokens move, the mint's own
+extension takes its cut, and the difference between what left and what arrived is
+read back off the account bytes and compared against the arithmetic this product
+publishes:
+
+```
+node scripts/replica_devnet.mjs exit
+
+issuer A
+  sent          100000000
+  withheld      0   the product computed 0
+  landed        100000000   the product computed 100000000
+  agrees        true
+
+issuer B
+  sent          100000000
+  withheld      1000000   the product computed 1000000
+  landed        99000000   the product computed 99000000
+  agrees        true
+  announced, not yet charged: 300 bps at epoch 1168
+  the same exit then: withheld 3000000, landed 97000000
+```
+
+The last two lines are the product's whole argument, executed: nothing is
+withheld today on issuer A, a percent is withheld on issuer B, and when the
+schedule the issuer already signed takes effect the same exit costs three times
+as much.
+
+Two things this measured that a calculation would have hidden. A token account's
+extensions begin at byte 166, not 165, because of the account-type byte, so a
+walk started at 165 reads a withheld fee as no fee at all. And the withheld
+amount is extension type 2, where type 9 is NonTransferable.
+
 ## Honesty table
 
 | Claim | Status | How to check |
@@ -259,6 +308,8 @@ is refused by the chain, not by a database.
 | **An issuer redemption window** | **Not claimed** | That path is off chain, so it is never shown as achievable. |
 | **A second issuer for the same company** | **Not claimed** | Reported as not observed until one is read on chain. |
 | On-chain reading record (devnet) | Done | `solana program show pTpaE75ubNyv9voydPJNaEfmv3GbmcN5bvZBfnRtdiA --url devnet` |
+| The fee is measured on devnet, not computed | Done | `node scripts/replica_devnet.mjs exit` |
+| Two issuers with different terms, tradeable | Done | `node scripts/replica_devnet.mjs show` |
 | A reading that stops reproducing is refused | Done | The `verify_reading` refusal above, error 6003 |
 | **Executing the exit itself on-chain** | **Not claimed** | The program records and verifies a reading. It does not move tokens. |
 | **Underwriting, insurance, or payout** | **Not claimed** | This is a read-and-price layer. |
@@ -287,6 +338,7 @@ programs/exit_terms/          the Anchor program (devnet)
 scripts/verify_receipts.py    independent Python re-derivation of the fee fields
 scripts/adversarial_gate.py   five hostile checks, including the ablation
 scripts/prove_onchain.mjs     builds the devnet scenario and shows the refusal
+scripts/replica_devnet.mjs    two real devnet issuers, and the fee measured
 scripts/check_no_secrets.py   refuses credentials on the way in, not after
 ```
 

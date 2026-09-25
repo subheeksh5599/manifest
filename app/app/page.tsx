@@ -237,7 +237,7 @@ export default async function Home() {
                 <p className="text-[12px] text-gray-600 mb-6 leading-normal">
                   The quote comes from an aggregator at the size being exited. The withheld amount
                   comes from the mint's schedule in force. What lands is the difference, and it is
-                  the only number that describes a payout.
+                  the number that describes a payout.
                 </p>
                 <ul className="text-[12px] space-y-2 border-t border-gray-100 pt-4 text-gray-800">
                   <li><strong className="font-semibold">quoted_out</strong> — the pool's arithmetic</li>

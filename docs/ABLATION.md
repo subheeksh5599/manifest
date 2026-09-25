@@ -1,32 +1,59 @@
 # Ablation
 
-Same plan, guard off. The guard is load-bearing: with the guard instruction removed, the same plan
-that refused (stale multiplier) would accept, and the receipt would report the wrong quantity for
-the user's clip. This is the proof that the invariant set does real work.
+Remove the epoch read and price the same exit again. If the number does not
+move, the read was decoration.
 
-## Paired run
+The read in question is which of the mint's two fee schedules is in force. Every
+quote that ignores the transfer-fee extension behaves as though the schedule
+never changes. Guarding the read off is exactly that: always take the older
+schedule, whatever the epoch.
 
-Guarded (from `data/tape.jsonl`, refusal record for plan `stale-mult-tslax-001`):
+## Paired run, same exit, same size
 
-- verdict: REFUSE
-- check_id: multiplier_freshness
-- live_value.mint_card.multiplier: `1`
-- plan.multiplier_snapshot: `0.5`
+Evaluated at epoch **1044**, one past the epoch the announced schedule takes
+effect, against a real mint whose schedules are 100 bps at epoch 1039 and 300 bps
+at epoch 1043. Size 1,000,000,000, quoted at 163,853,738.
 
-Guard-less (guard instruction absent):
+With the epoch read:
 
-- verdict: ACCEPT (no way to see the multiplier; the swap composes without the check)
-- unit quantity delivered would be priced at the stale plan snapshot, wrong by 2x
+    300 bps   withheld 4,915,612   lands 158,938,126
 
-## How the adversarial gate proves this
+With the epoch read removed:
 
-`scripts/adversarial_gate.py` exercises the ablation as check 4 (`guardless_would_accept`). It reads
-the same live mint state the guard would read, confirms the plan snapshot is stale, and confirms
-that the guard-less code path has no field to compare against. A judge can rerun the entire gate:
+    100 bps   withheld 1,638,537   lands 162,215,201
+
+The read is worth **3,277,075 micro-units** on this exit. A holder relying on the
+second number is short by three of them.
+
+Reproduce it with the verification route, which computes both figures in the same
+response:
+
+```bash
+curl -s localhost:3000/api/verify | python3 -c 'import json,sys; print(json.dumps(json.load(sys.stdin)["ablation"], indent=2))'
+```
+
+## Why the two numbers agree today
+
+They do not differ at epoch 1042, and the page says so rather than implying they
+always differ. While the older schedule is the one in force, ignoring the epoch
+read produces the correct answer by accident. The read only earns its place from
+the moment the announced schedule takes effect, which is why the ablation is
+evaluated at 1044 rather than at the current epoch.
+
+An ablation run at the current epoch would show a zero difference and prove
+nothing. That distinction is the whole point of running it at a named epoch.
+
+## The same ablation, independently
+
+`scripts/adversarial_gate.py` carries this as its fourth hostile check,
+`ablation_understates_the_exit`. It evaluates the pair at the sizes its own
+fixture uses and asserts the gap in the direction the product claims, so the two
+implementations have to agree:
 
 ```bash
 python3 scripts/adversarial_gate.py
 ```
 
-Exit 0 means all four hostile checks pass. Exit non-zero means the load-bearing property is broken
-and the refusal system is untrustworthy. treat that as a real bug.
+Exit zero means every hostile check passed. Exit non-zero means the load-bearing
+property is broken and the refusal system should not be trusted — treat it as a
+real bug, not as a failing test to be adjusted.
