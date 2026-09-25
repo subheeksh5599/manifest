@@ -433,6 +433,77 @@ node scripts/compare_live.mjs
 The last line is the point of the other eleven: move one issuer's landing by a
 single lamport and the comparison against the library stops holding.
 
+### Real devnet state in a validator, and the lifecycle run against it
+
+Everything above reads the live chains. This runs against a copy of them: the
+validator takes both issuers' mints, both pools, the pools' vaults and the reading
+program from devnet, and then the same run holds the copy to the original.
+
+```
+node scripts/fork_clone.mjs check
+
+  PASS  the cloned mint is byte-for-byte what the source holds  3CeQw3Y4nEBiykxWKEnxPnmKq3GFrwrxYjFRwUTMPVgu 1a02bdc86ab2a4a8…
+  PASS  the cloned pool is byte-for-byte what the source holds  3UjmfmbJgrw9AJbBuFZn1wZcY7sdXhC8i2bRap751yVi 00f37b749d4fbeef…
+  PASS  a fee schedule is readable from the cloned mint bytes
+    in force 100 bps (since epoch 1166) · 1000000 withheld on 100000000 · 300 bps announced for epoch 1168
+  PASS  the cloned pool decodes at the offsets this app uses
+  PASS  both issuers price from the cloned state
+  apart by 538 bps at this size
+  PASS  issuer A: the clone's price is the library's own quote  difference 0 lamports
+  PASS  issuer B: the clone's price is the library's own quote  difference 0 lamports
+
+the cloned account set
+  set hash f8881c8b032f760ae1a82afce316d60c22d88d8e9db34c5010f46d077ebe70c6
+
+13/13 checks passed
+```
+
+Then the program is exercised against the clone rather than described: a reading
+recorded on it, verified, and then refused once the schedule moves — the same
+three steps the devnet record shows, on a chain this repository started.
+
+The vaults are in the clone for a reason worth naming: the pool library refuses to
+price a pool whose vault accounts it cannot fetch, and if the library cannot read
+the pool then the price cannot be checked against it, which is the check that
+matters most here.
+
+### The control for that: one byte, and the job must fail
+
+A control that cannot fail proves nothing, so the same run exists in a second form.
+The validator loads issuer B's mint from a file instead of cloning it, with a
+single byte of its fee schedule changed — 100 bps becomes 0 — and everything else
+is identical:
+
+```
+  FAIL  the cloned mint is byte-for-byte what the source holds  3CeQw3Y4nEBiykxWKEnxPnmKq3GFrwrxYjFRwUTMPVgu 85b468c9ddd769e7…
+12/13 checks passed
+```
+
+That run failed, as it has to. Both runs are in CI, and their conclusions are the
+evidence:
+
+| run | conclusion |
+|---|---|
+| [fork-clone, unobstructed](https://github.com/subheeksh5599/manifest/actions/runs/36134397991) | success — 13/13 |
+| [fork-clone, one byte changed](https://github.com/subheeksh5599/manifest/actions/runs/36134639005) | failure — 12/13, on the named check |
+
+### The program is built in CI, not here
+
+The rule was that the SBF build never runs on this machine, and it was being kept
+by not building rather than by building somewhere. It builds in CI now, and what it
+built is attached to a release rather than left on a runner:
+
+```
+gh workflow run build-program.yml        →  actions/runs/36133731950    job: success
+gh release download program-build -p '*.so' -D /tmp/rel
+sha256sum /tmp/rel/manifest_exit_terms.so
+  2b56aad5931dfb05bdcb132112f8876f1e9ce51864857375ac86227fd03b2414   213,776 bytes
+```
+
+That hash is the point: it is the same .so that is deployed to devnet. The build
+in CI reproduces the program that is running, byte for byte, and the asset URL is
+where a judge can pick it up — <https://github.com/subheeksh5599/manifest/releases/download/program-build/manifest_exit_terms.so>.
+
 ## Honesty table
 
 | Claim | Status | How to check |
@@ -451,6 +522,9 @@ single lamport and the comparison against the library stops holding.
 | The same company priced at each issuer, fee-adjusted, at your size | Done, on devnet | `node scripts/compare_live.mjs` · `/api/compare?size=…` |
 | That price, checked against the pool library's own quote | Done | `node scripts/compare_live.mjs` — 0 lamports apart on both issuers |
 | **The exit across issuers, in one transaction** | **Done, on devnet** | `node scripts/pools_devnet.mjs cross 0.1` · the `2MiQBYX…` record above |
+| The lifecycle run against cloned devnet state, in one run | Done, in CI | the fork-clone run above — 13/13 |
+| That control is load-bearing: one byte changed fails the job | Done, in CI | the failure run above — 12/13 |
+| The program built in CI is the program deployed | Done | `sha256sum` matches the release asset: `2b56aad5…` |
 | On-chain reading record (devnet) | Done | `solana program show pTpaE75ubNyv9voydPJNaEfmv3GbmcN5bvZBfnRtdiA --url devnet` |
 | The fee is measured on devnet, not computed | Done | `node scripts/replica_devnet.mjs exit` |
 | Two issuers with different terms, tradeable | Done | `node scripts/replica_devnet.mjs show` |
@@ -489,6 +563,7 @@ scripts/replica_devnet.mjs    two real devnet issuers, and the fee measured
 scripts/pools_devnet.mjs      real pools for both issuers, and the crossing
 scripts/verify_pools.py       both pools and the crossing, checked against devnet
 scripts/compare_live.mjs      both issuers priced, against the pool library's own quote
+scripts/fork_clone.mjs        devnet state cloned into a validator, and the lifecycle on it
 scripts/pool_layout.mjs       derives the pool layout, then proves it on a live pool
 scripts/pool_quote_check.mjs  the app's quote, against the library's quote
 scripts/check_no_secrets.py   refuses credentials on the way in, not after
@@ -501,7 +576,7 @@ scripts/check_no_secrets.py   refuses credentials on the way in, not after
 | Read | Solana mainnet RPC, `getAccountInfo` base64 + jsonParsed |
 | Pricing | A public quote aggregator, at the requested size |
 | App | Next.js 16, React 19, TypeScript strict |
-| Tests | `node --test` (423), a Python verifier (30 checks), 14 devnet pool checks, 12 live comparison checks |
+| Tests | `node --test` (423), a Python verifier (30 checks), 14 devnet pool checks, 12 live comparison checks, 13 clone checks |
 | Assets | Token-2022 mints from two issuers |
 
 ## License
