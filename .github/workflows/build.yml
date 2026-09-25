@@ -32,7 +32,7 @@ jobs:
           # Pinned deliberately. An older release ships a cargo that cannot parse
           # the manifest of a transitive dependency, which failed this job on every
           # push for eight days while the program itself was fine.
-          curl -sSfL https://release.anza.xyz/v3.1.15/install | sh
+          curl -sSfL https://release.anza.xyz/v3.0.0/install | sh
           echo "$HOME/.local/share/solana/install/active_release/bin" >> "$GITHUB_PATH"
       - name: build-sbf
         run: cargo build-sbf --manifest-path programs/preflight/Cargo.toml
