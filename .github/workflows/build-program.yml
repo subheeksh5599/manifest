@@ -49,13 +49,10 @@ jobs:
             echo "$f $(stat -c%s "$f") bytes sha256 $(sha256sum "$f" | cut -d' ' -f1)"
           done
 
-      - name: keep the built program as an artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: manifest-exit-terms-so
-          path: target/deploy/*.so
-          if-no-files-found: error
-
+      # Deliberately a release asset rather than a workflow artifact: this
+      # account's Actions artifact storage is full, and a release asset is the
+      # more durable copy anyway - it outlives the run that produced it and it
+      # has a URL that does not expire.
       - name: attach the build to a release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
