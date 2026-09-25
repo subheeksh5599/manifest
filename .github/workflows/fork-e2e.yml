@@ -6,6 +6,8 @@ on:
     paths:
       - "scripts/**"
       - "app/data/registry.json"
+      - "app/data/replica-devnet.json"
+      - "app/data/pools-devnet.json"
       - "app/lib/**"
       - ".github/workflows/fork-e2e.yml"
 
