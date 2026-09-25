@@ -45,14 +45,10 @@ ROOT = pathlib.Path(__file__).resolve().parent.parent
 REGISTRY = ROOT / "app" / "data" / "registry.json"
 READINGS = ROOT / "app" / "data" / "readings.jsonl"
 
-# Every document that quotes an address or a signature.
+# Every document that quotes an address or a signature. The README is the only
+# one now: the addresses it quotes are the ones a reader can go and check.
 DOC_FILES = [
     "README.md",
-    "EVIDENCE.md",
-    "docs/DEMO.md",
-    "docs/REFUSALS.md",
-    "docs/ABLATION.md",
-    "docs/SUBMISSION.md",
 ]
 B58_RE = re.compile(r"[1-9A-HJ-NP-Za-km-z]{32,90}")
 

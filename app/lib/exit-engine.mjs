@@ -55,19 +55,23 @@ function assertFiniteNumber(v, name) {
  * @param {number|null} [epoch] evaluate at this epoch instead of the mint's own
  */
 export function landingAmount(quotedOut, terms, epoch = null) {
+  // The venue returns its amounts as strings, and a caller should be able to pass
+  // one straight through. feeFor already accepts that; this used to subtract from
+  // whatever it was handed, so a string threw "Cannot mix BigInt and other types".
+  const quoted = typeof quotedOut === "bigint" ? quotedOut : BigInt(quotedOut);
   const e = epoch === null ? terms.epoch : epoch;
   const sel = selectFeeSchedule(terms.fee_older, terms.fee_newer, e);
-  const withheld = feeFor(quotedOut, sel.effective);
+  const withheld = feeFor(quoted, sel.effective);
   return {
-    quoted_out: quotedOut,
+    quoted_out: quoted,
     schedule_bps: sel.effective ? sel.effective.bps : 0,
     schedule_epoch: sel.effective ? sel.effective.epoch : null,
     withheld,
-    lands: quotedOut - withheld,
+    lands: quoted - withheld,
     pending_bps: sel.pending ? sel.pending.bps : null,
     pending_epoch: sel.pending ? sel.pending.epoch : null,
     // what the same exit would cost once the announced schedule takes effect
-    withheld_after_pending: sel.pending ? feeFor(quotedOut, sel.pending) : null,
+    withheld_after_pending: sel.pending ? feeFor(quoted, sel.pending) : null,
   };
 }
 

@@ -73,21 +73,21 @@ today, before it is charged.
 
 ## On screen
 
-![The exit desk for one holding: quoted by the pool, withheld by the mint, lands with the holder](docs/screenshots/exit-desk.png)
+![The dashboard: connect a wallet, pick a holding, and watch quote, withholding and receipt priced live](docs/screenshots/app.png)
 
 One holding at a named slot. Quoted by the pool, withheld by the mint, lands with
 the holder, in that order, with the schedule the issuer has already signed and not
 yet charged called out beneath them, and the round trip below that. The slot is in
 the frame.
 
-![The route across issuers: two pools with live vault balances, and one transaction holding both swaps](docs/screenshots/cross-issuer.png)
+![Any mint, decoded: both transfer fee schedules read out of the account bytes, with the epoch each one starts](docs/screenshots/analyze.png)
 
 The second route, on devnet. Two issuers, each with a real pool quoted against
 wrapped SOL, both vault balances read on the page load, and the exit across them
 in a single transaction: two swaps, 100,000,000 of issuer B sold and 94,306,362
 of issuer A landed, with that transaction linked beneath it.
 
-![The verification page: four refusals with four distinct reasons](docs/screenshots/verification.png)
+![Every claim run on the click: declared against returned, with four distinct refusal reasons](docs/screenshots/proof.png)
 
 Four refusals with four distinct reasons, each printing the live value that
 tripped it, evaluated by the request the page made rather than read from a table.
@@ -101,12 +101,12 @@ looks like: it moves, and the slot is the only thing that pins it.
 
 | Surface | What it answers | Link |
 |---|---|---|
-| Exit Desk | Three numbers, six checks, every route | [/exit](https://manifest-mocha-six.vercel.app/exit) |
-| Issuer Board | Every registry mint, read live, grouped by issuer | [/issuers](https://manifest-mocha-six.vercel.app/issuers) |
-| Mint Inspector | Both fee schedules and the key behind each authority | [/mint/XsDoVfqe…](https://manifest-mocha-six.vercel.app/mint/XsDoVfqeBukxuZHWhdvWHBhgEHjGNst4MLodqsJHzoB) |
-| Tape | Append-only ledger of readings, with the slot each was taken at | [/tape](https://manifest-mocha-six.vercel.app/tape) |
-| Evidence | Every claim mapped to the command that reproduces it | [/evidence](https://manifest-mocha-six.vercel.app/evidence) |
-| Verification | Four refusals and the ablation, evaluated on the click | [/verify](https://manifest-mocha-six.vercel.app/verify) |
+| Dashboard | Sidebar shell: your wallet, live sources, the shelf, a price series | [/app](https://manifest-mocha-six.vercel.app/app) |
+| Settlement | Quote, withholding, receipt — every number with the source it came from | [/settle](https://manifest-mocha-six.vercel.app/settle) |
+| Assets | Every mint this can price, and what leaving each one costs | [/assets](https://manifest-mocha-six.vercel.app/assets) |
+| Analyze mint | Paste any mint: both fee schedules decoded from the account bytes | [/analyze](https://manifest-mocha-six.vercel.app/analyze?mint=PresTj4Yc2bAR197Er7wz4UUKSfqt6FryBEdAriBoQB) |
+| Transactions | Reconstruct any signature from the cluster's own balances | [/tx](https://manifest-mocha-six.vercel.app/tx) |
+| Proof | Every claim, run in front of you, on the click | [/proof](https://manifest-mocha-six.vercel.app/proof) |
 | Compare | One company at both issuers, priced at your size, with the rail between them | [/api/compare?size=100000000](https://manifest-mocha-six.vercel.app/api/compare?size=100000000) |
 | Health | Each dependency checked separately, failing loudly | [/api/health](https://manifest-mocha-six.vercel.app/api/health) |
 
@@ -405,7 +405,7 @@ anything. And the fee does not hit both issuers equally: 1.45% of the price is
 lost between the spot and the landing at issuer A, 2.39% at issuer B. A screen
 that showed a price without that would be showing the wrong number twice.
 
-![The same company at both issuers: withheld, into the pool, lands, spot against landed, the spread, and the rail](docs/screenshots/compare-issuers.png)
+![One settlement, priced: the venue's quote, the mint's cut at the fee in force, what actually lands](docs/screenshots/settle.png)
 
 `node scripts/compare_live.mjs` re-prices both issuers against devnet and then
 against the pool client library's own quote, which is the part that keeps the

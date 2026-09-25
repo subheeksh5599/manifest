@@ -230,3 +230,93 @@ details.q .q-b { margin-top: 8px; color: #6b7280; font-size: 13px; line-height: 
 .state-card { border: 1px solid var(--color-hairline); border-radius: 2px; padding: 16px; margin-bottom: 16px; }
 .state-error { border-color: var(--color-refuse); }
 .state-title { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 6px; }
+
+/* ---------------------------------------------------------------- */
+/* The dashboard shell: a rail with the mark and the six screens, and */
+/* a column of content beside it.                                     */
+/* ---------------------------------------------------------------- */
+.shell { display: grid; grid-template-columns: 232px minmax(0, 1fr); min-height: 100vh; }
+.shell-rail {
+  border-right: 1px solid var(--color-hairline);
+  display: flex;
+  flex-direction: column;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  background: var(--color-white);
+}
+.shell-mark {
+  font-size: 17px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--color-onyx);
+  text-decoration: none;
+}
+.shell-link {
+  display: block;
+  padding: 8px 10px;
+  border-radius: 2px;
+  font-size: 13px;
+  color: var(--color-graphite);
+  text-decoration: none;
+}
+.shell-link:hover { background: var(--color-cloud); color: var(--color-onyx); }
+.shell-link-on { background: var(--color-onyx); color: var(--color-white); font-weight: 600; }
+.shell-link-on:hover { background: var(--color-onyx); color: var(--color-white); }
+.shell-main { min-width: 0; padding: 34px 38px 72px; }
+
+/* A number that carries its own provenance: the value, then the button that
+   opens where it came from. */
+.src-btn {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-graphite);
+  border: 1px solid var(--color-hairline);
+  border-radius: 2px;
+  padding: 1px 5px;
+  background: none;
+  cursor: pointer;
+}
+.src-btn:hover { border-color: var(--color-onyx); color: var(--color-onyx); }
+
+/* The thesis, drawn: quote, then what the mint keeps, then what arrives. */
+.flow { display: grid; gap: 0; }
+.flow-step { display: grid; grid-template-columns: 128px minmax(0, 1fr) auto; gap: 14px; align-items: baseline; padding: 13px 0; border-top: 1px solid var(--color-hairline); }
+.flow-step:first-child { border-top: none; }
+.flow-label { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--color-graphite); }
+.flow-value { font-family: var(--font-mono); font-size: 17px; font-weight: 600; color: var(--color-onyx); word-break: break-all; }
+.flow-cut .flow-value { color: #8a5a00; }
+.flow-lands .flow-value { color: #16794c; }
+
+/* Tables in the dashboard: one row per fact, hairline between. */
+.dtable { width: 100%; border-collapse: collapse; font-size: 13px; }
+.dtable th {
+  text-align: left;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-graphite);
+  font-weight: 400;
+  padding: 0 12px 8px 0;
+  border-bottom: 1px solid var(--color-hairline);
+}
+.dtable td { padding: 9px 12px 9px 0; border-bottom: 1px solid var(--color-cloud); vertical-align: baseline; }
+.dtable tr:last-child td { border-bottom: none; }
+.dtable a { color: var(--color-brand-blue); text-decoration: none; }
+.dtable a:hover { text-decoration: underline; }
+
+@media (max-width: 900px) {
+  .shell { grid-template-columns: minmax(0, 1fr); }
+  .shell-rail {
+    position: static;
+    height: auto;
+    border-right: none;
+    border-bottom: 1px solid var(--color-hairline);
+  }
+  .shell-rail nav { display: flex; flex-wrap: wrap; gap: 2px; padding: 0 12px 12px; }
+  .shell-main { padding: 22px 16px 64px; }
+  .flow-step { grid-template-columns: minmax(0, 1fr); gap: 3px; }
+}

@@ -1,12 +1,6 @@
-import IssuerBoard from "@/components/issuer-board";
-import DashboardLayout from "@/components/dashboard-layout";
+import { redirect } from "next/navigation";
 
-export const dynamic = "force-dynamic";
-
-export default function IssuersPage() {
-  return (
-    <DashboardLayout active="issuers">
-      <IssuerBoard />
-    </DashboardLayout>
-  );
+/** The issuer board is the assets screen now: the same mints, read live, with a price series each. */
+export default function Old() {
+  redirect("/assets");
 }
