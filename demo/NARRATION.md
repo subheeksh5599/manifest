@@ -6,6 +6,7 @@ Source: `recording_2026-09-25_23.24.42.mp4` — one unedited screen capture of t
 devnet, 6:02 long, no system audio. Nothing in the walkthrough was re-staged for the camera.
 
 Output: `demo/media/manifest-demo.mp4` — 2:04, 1364×766, 30 fps, 5.7 MB, mono.
+Uploaded: https://youtu.be/SIS0Fvh6_Kg
 
 ## What the walkthrough shows
 

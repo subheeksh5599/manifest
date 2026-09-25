@@ -5,7 +5,7 @@
 **Exit terms for tokenized equities on Solana, read from the mint itself.**
 
 [![Live](https://img.shields.io/badge/demo-live-145FE4?style=flat-square)](https://manifest-mocha-six.vercel.app)
-[![Walkthrough](https://img.shields.io/badge/walkthrough-2%3A04%20narrated-CC0000?style=flat-square&logo=youtube&logoColor=white)](demo/media/manifest-demo.mp4)
+[![Walkthrough](https://img.shields.io/badge/walkthrough-2%3A04%20narrated-CC0000?style=flat-square&logo=youtube&logoColor=white)](https://youtu.be/SIS0Fvh6_Kg)
 [![Tests](https://img.shields.io/badge/tests-423%20passing-2E7D32?style=flat-square)](#proof)
 [![Program](https://img.shields.io/badge/devnet-on--chain%20record-14F195?style=flat-square)](https://explorer.solana.com/address/pTpaE75ubNyv9voydPJNaEfmv3GbmcN5bvZBfnRtdiA?cluster=devnet)
 [![Verifier](https://img.shields.io/badge/independent%20verifier-30%20checks-2E7D32?style=flat-square)](#proof)
@@ -25,7 +25,7 @@ A quote is not a payout, and the difference is the product.
 
 ## ▶ Watch the walkthrough
 
-[![Two minutes of the live site, narrated](demo/media/manifest-demo-poster.png)](demo/media/manifest-demo.mp4)
+[![Two minutes of the live site, narrated — watch it on YouTube](demo/media/manifest-demo-poster.png)](https://youtu.be/SIS0Fvh6_Kg)
 
 Two minutes of the site on devnet, no terminal in frame: the desk reading the mint, the assets
 board where one fee is in force and another is scheduled, the raw account read behind both, one
@@ -37,7 +37,9 @@ gate on the swap, and an explorer pointed at Mainnet Beta returning `Not Found` 
 signature. Every kept segment, every removed one, and the reason for each is in
 [`demo/NARRATION.md`](demo/NARRATION.md); the click script is in [`demo/CLICKS.md`](demo/CLICKS.md).
 
-> The YouTube upload of this file goes here once it is up; the copy above is the same cut.
+> **▶ [Watch the walkthrough on YouTube](https://youtu.be/SIS0Fvh6_Kg)** — 2:04, the same cut as
+> the file below it. The copy at [`demo/media/manifest-demo.mp4`](demo/media/manifest-demo.mp4)
+> is there so the file survives the link.
 
 **Contents** · [See it in one command](#see-it-in-one-command) · [The one fact that matters](#the-one-fact-that-matters) · [Screenshots](#screenshots) · [Surfaces](#surfaces) · [Exit checks](#exit-checks) · [Proof](#proof) · [The record, on devnet](#the-record-on-devnet) · [What this is not](#honesty-table) · [Stack](#stack) · [License](#license)
 
