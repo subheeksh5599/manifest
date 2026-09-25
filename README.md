@@ -419,6 +419,8 @@ scripts/verify_receipts.py    independent Python re-derivation of the fee fields
 scripts/adversarial_gate.py   five hostile checks, including the ablation
 scripts/prove_onchain.mjs     builds the devnet scenario and shows the refusal
 scripts/replica_devnet.mjs    two real devnet issuers, and the fee measured
+scripts/pools_devnet.mjs      real pools for both issuers, and the crossing
+scripts/verify_pools.py       both pools and the crossing, checked against devnet
 scripts/check_no_secrets.py   refuses credentials on the way in, not after
 ```
 
