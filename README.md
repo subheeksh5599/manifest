@@ -5,7 +5,7 @@
 **Exit terms for tokenized equities on Solana, read from the mint itself.**
 
 [![Live](https://img.shields.io/badge/demo-live-145FE4?style=flat-square)](https://manifest-mocha-six.vercel.app)
-[![Tests](https://img.shields.io/badge/tests-404%20passing-2E7D32?style=flat-square)](#proof)
+[![Tests](https://img.shields.io/badge/tests-411%20passing-2E7D32?style=flat-square)](#proof)
 [![Program](https://img.shields.io/badge/devnet-on--chain%20record-14F195?style=flat-square)](https://explorer.solana.com/address/pTpaE75ubNyv9voydPJNaEfmv3GbmcN5bvZBfnRtdiA?cluster=devnet)
 |[![Verifier](https://img.shields.io/badge/independent%20verifier-25%20checks-2E7D32?style=flat-square)](#proof)|
 [![License](https://img.shields.io/badge/license-MIT-303136?style=flat-square)](LICENSE)
