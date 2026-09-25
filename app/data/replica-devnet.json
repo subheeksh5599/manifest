@@ -1,11 +1,52 @@
 {
   "issuer_a": {
     "mint": "DjvERvY5tuuZzWziNSqMCdUxNeg7adfVCHVR9eQnSjGb",
-    "created": "4jnxwGmbooNp8dBkyebaEMe6WVNMg2vcBMstE2xZdCEZEnDx8cdpTYbn3bGKdVVCnGQMWSGAVN59e1AABcb1Cm1c"
+    "created": "4jnxwGmbooNp8dBkyebaEMe6WVNMg2vcBMstE2xZdCEZEnDx8cdpTYbn3bGKdVVCnGQMWSGAVN59e1AABcb1Cm1c",
+    "fee_bps": 0,
+    "pool": {
+      "address": "bp5Jto1AxiWzaB1D6kGwancaptGgPgGNkzhLRgN1tXE",
+      "quote_mint": "So11111111111111111111111111111111111111112",
+      "vault_quote": "2hGKTCPTeKcsE3cHWuPJZCivTdumV2BZwpuH99L5vyhg",
+      "vault_issuer": "5i16m7wsmJ3Cs6CzA9kzG627PEicGZCVxKLPrdoy5mtZ",
+      "tick_spacing": 64,
+      "fee_rate_bps": 20,
+      "deposit_sig": "5acguNjYCJdvf9AgcbsRymzpwLzHvmxx7746KEbAW9Ggytzs3aMUMgjPfm8hYbDqY5a3xifNaCnqy9XC95GbuqHG",
+      "position_mint": "C1v6kZQbTK5gANcVZUaMTbMZoSqGACRizBiXyYEKAHNz"
+    }
   },
   "issuer_b": {
     "mint": "3CeQw3Y4nEBiykxWKEnxPnmKq3GFrwrxYjFRwUTMPVgu",
     "created": "3UtgKz4ekBHQzRnMU9pBjzqQpypH9SoRgHSS4x5XC1N6B1f58WmpsawibKdxTjquGCNM979geVRFGpxhiSRkNncH",
-    "announced": "3GXDDQQdXkHAMR1GxPcF7xzhWWkZ6LRaiSmJqUYUHPAcGkoYyAXAfmHur2iakMwfmZ1YKaGGPurhAJG1wx1XbDVD"
+    "announced": "3GXDDQQdXkHAMR1GxPcF7xzhWWkZ6LRaiSmJqUYUHPAcGkoYyAXAfmHur2iakMwfmZ1YKaGGPurhAJG1wx1XbDVD",
+    "fee_bps": 100,
+    "announced_fee_bps": 300,
+    "pool": {
+      "address": "3UjmfmbJgrw9AJbBuFZn1wZcY7sdXhC8i2bRap751yVi",
+      "quote_mint": "So11111111111111111111111111111111111111112",
+      "vault_quote": "BSQk8BZdop94bGyP1EWePY4Z6ZEhGpHBWddM9yYatSVq",
+      "vault_issuer": "FGYEwnDcyDRd5bGytAJBEB5EFrfmGxXXJF4tE6t8mBcq",
+      "tick_spacing": 64,
+      "fee_rate_bps": 20,
+      "deposit_sig": "21Cpg4tmHdiRLpre7S5T6k9Yna6KEhJEKe5KpEnm54VWsxs45JuLKpRHHJa5bH5StfTw5bbGSUYioQvwmKkBBaXF",
+      "position_mint": "Bb2AcsKuhV5mFwPGnNWf9tKyzS8de33eS2iUNoaVVdmA",
+      "sold_into_pool_sig": "4TZje9C8Zooz6kS3uz3H7qU5wVMpfrsz5raWC31V8Ab2CmnRZov6VqATX9X7WTnpJ7zoNqLXMpjv3J3n4hTdmhLt",
+      "sold_into_pool": {
+        "in": "500000000",
+        "quoted_out_lamports": "23963245",
+        "landed_lamports": "23963245"
+      }
+    }
+  },
+  "cross_issuer": {
+    "sig": "2MiQBYXueWkDBPM4KVCeNqnGMYYJGRQ5YBmeP4AEHkeiHiTrD5nuy92EZuBg3Vu4sdHYDRdpMfGxvpbdKKvpDrMn",
+    "legs_in_one_transaction": 2,
+    "from": "issuer_b",
+    "to": "issuer_a",
+    "measured": {
+      "issuer_b_spent": "100000000",
+      "issuer_a_received": "94306362",
+      "quote_asset_left_behind": "23788",
+      "quote_asset": "wSOL"
+    }
   }
 }
