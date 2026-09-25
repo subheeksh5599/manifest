@@ -61,16 +61,11 @@ export async function GET(req: Request) {
     );
   }
 
-  if (!terms?.is_token_2022) {
-    return NextResponse.json(
-      {
-        error: "unsupported: this mint is not a Token-2022 mint, so it cannot carry a transfer-fee configuration",
-        stage: "mint_read",
-        terms,
-      },
-      { status: 422 }
-    );
-  }
+  // A mint that cannot carry a transfer-fee configuration simply withholds
+  // nothing. The quote is still read from the venue and the zero is the mint's own
+  // answer, so this is priced rather than refused.
+  const hasFeeSchedule =
+    terms?.is_token_2022 === true && (terms?.fee_older != null || terms?.fee_newer != null);
 
   // The venue's answer. A failure here is also reported, never substituted.
   let quote: any;
@@ -99,7 +94,23 @@ export async function GET(req: Request) {
 
   // The arithmetic, from the engine that already prices every exit this system
   // reports. The venue's output in, the mint's schedule applied, the remainder out.
-  const settlement = landingAmount(quote.out_amount, terms, terms.epoch ?? null);
+  const settlement = hasFeeSchedule
+    ? landingAmount(quote.out_amount, terms, terms.epoch ?? null)
+    : (() => {
+        const quoted = BigInt(quote.out_amount);
+        return {
+          quoted_out: quoted,
+          schedule_bps: 0,
+          schedule_epoch: null,
+          withheld: 0n,
+          lands: quoted,
+          pending_bps: null,
+          pending_epoch: null,
+          withheld_after_pending: null,
+          no_fee_schedule: true,
+          note: "This mint carries no transfer-fee configuration, so nothing is withheld on the transfer: the venue's quote is what lands.",
+        };
+      })();
 
   return new NextResponse(
     j({
@@ -113,6 +124,7 @@ export async function GET(req: Request) {
       epoch: terms.epoch,
       quote,
       terms,
+      has_fee_schedule: hasFeeSchedule,
       settlement,
       units: {
         input_decimals: direction === "buy" ? 6 : terms.decimals,

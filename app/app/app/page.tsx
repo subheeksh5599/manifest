@@ -16,6 +16,8 @@ type Asset = {
   fee_in_force_bps: number | null;
   fee_pending_bps: number | null;
   fee_pending_epoch: string | null;
+  /** Which family issued it: the issuer listing, or the registry's Solana names. */
+  issuer: string | null;
   price: { usd_price: number | null; equity_price: number | null } | null;
   error?: string;
 };
@@ -52,21 +54,23 @@ export default function OverviewPage() {
 
   return (
     <AppShell active="overview">
-      <div style={{ marginBottom: 26 }}>
-        <div className="label-mono" style={{ color: "var(--color-brand-blue)", marginBottom: 8 }}>
-          Overview
+      <div className="dash-head">
+        <div>
+          <div className="label-mono" style={{ color: "var(--color-brand-blue)", marginBottom: 8 }}>
+            Overview
+          </div>
+          <h1 className="heading-sm" style={{ margin: 0 }}>
+            What actually lands
+          </h1>
+          <p className="mono" style={{ fontSize: 12, color: "var(--color-graphite)", margin: "8px 0 0", maxWidth: 620 }}>
+            A quote is the venue&apos;s arithmetic. The mint takes its own cut on the transfer. This is
+            the difference, priced live, with every number traceable to the read it came from.
+          </p>
         </div>
-        <h1 className="heading-sm" style={{ margin: 0 }}>
-          What actually lands
-        </h1>
-        <p className="mono" style={{ fontSize: 12, color: "var(--color-graphite)", margin: "8px 0 0", maxWidth: 620 }}>
-          A quote is the venue&apos;s arithmetic. The mint takes its own cut on the transfer. This is
-          the difference, priced live, with every number traceable to the read it came from.
-        </p>
-      </div>
 
-      <div className="card" style={{ padding: 18, marginBottom: 18 }}>
-        <WalletPanel onChange={(w) => setWallet(w?.address ?? null)} />
+        <div className="card" style={{ padding: 14 }}>
+          <WalletPanel onChange={(w) => setWallet(w?.address ?? null)} />
+        </div>
       </div>
 
       {err && (
@@ -110,7 +114,7 @@ export default function OverviewPage() {
               </Link>
             </div>
             {!assets && <p className="mono" style={{ fontSize: 12, color: "var(--color-graphite)", margin: 0 }}>reading</p>}
-            {assets?.slice(0, 8).map((a) => (
+            {assets?.map((a) => (
               <button
                 key={a.mint}
                 onClick={() => setMint(a.mint)}
@@ -135,8 +139,9 @@ export default function OverviewPage() {
                 </span>
                 <span
                   className="mono"
-                  style={{ fontSize: 11, color: a.supported ? "#8a5a00" : "var(--color-ash)", minWidth: 56, textAlign: "right" }}
+                  style={{ fontSize: 10, color: "var(--color-ash)", minWidth: 104, textAlign: "right" }}
                 >
+                  {a.issuer ? `${a.issuer} · ` : ""}
                   {a.readable === false ? "unreadable" : a.fee_in_force_bps != null ? `${a.fee_in_force_bps} bps` : "no fee"}
                 </span>
               </button>

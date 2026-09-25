@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { rpc } from "@/lib/rpc";
 import { readExitTermsCached } from "@/lib/exit-terms.mjs";
 import { equityShelf, jupiterPrice } from "@/lib/sources.mjs";
+import { loadRegistry } from "@/lib/registry";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -48,7 +49,33 @@ export async function GET() {
     shelfError = (e as Error).message;
   }
 
-  const mints = [...new Set(shelf.map((s) => s.mint).filter(Boolean))] as string[];
+  let registryError: string | null = null;
+  let registry: any[] = [];
+  try {
+    registry = loadRegistry();
+  } catch (e) {
+    registryError = (e as Error).message;
+  }
+
+  // The issuer listing is one family; the registry is the other. A mint that
+  // appears in both is kept once, from the listing, which carries a mark price.
+  const listedMints = new Set(shelf.map((s) => s.mint).filter(Boolean));
+  const all = [
+    ...shelf.map((s) => ({ ...s, issuer: s.issuer ?? "PreStocks", mark_price: s.mark_price ?? null })),
+    ...registry
+      .filter((r) => r.mint && !listedMints.has(r.mint))
+      .map((r) => ({
+        mint: r.mint,
+        symbol: r.symbol,
+        name: r.name,
+        issuer: r.issuer ?? null,
+        mark_price: null,
+        token_price: null,
+        external_url: null,
+      })),
+  ];
+
+  const mints = [...new Set(all.map((s) => s.mint).filter(Boolean))] as string[];
 
   let prices: Record<string, any> = {};
   let priceSource: any = null;
@@ -62,7 +89,7 @@ export async function GET() {
   }
 
   const assets = await mapLimit(mints, 3, async (mint) => {
-    const listed = shelf.find((s) => s.mint === mint) ?? {};
+    const listed = all.find((s) => s.mint === mint) ?? {};
     try {
       const t = await readExitTermsCached(mint, { rpcUrl: RPC_URL, ua: RPC_USER_AGENT });
       const eff = t.fee_effective ?? t.fee_older ?? null;
@@ -75,6 +102,7 @@ export async function GET() {
         mark_price: listed.mark_price ?? null,
         token_price: listed.token_price ?? null,
         external_url: listed.external_url ?? null,
+        issuer: listed.issuer ?? null,
         readable: true,
         symbol: t.symbol ?? listed.symbol ?? null,
         name: t.name ?? listed.name ?? null,
@@ -90,7 +118,11 @@ export async function GET() {
         paused: t.paused ?? null,
         permanent_delegate: t.permanent_delegate ?? null,
         transfer_hook_program: t.transfer_hook_program ?? null,
-        supported: t.is_token_2022 === true && (t.fee_older != null || t.fee_newer != null),
+        // Readable means this product can price it. Carrying a fee schedule is a
+        // narrower fact, kept separately, because a mint without one simply
+        // withholds nothing and that is a reading, not a failure.
+        has_fee_schedule: t.is_token_2022 === true && (t.fee_older != null || t.fee_newer != null),
+        supported: true,
         slot: t.slot ?? null,
         price: prices[mint] ?? null,
       };
@@ -101,6 +133,7 @@ export async function GET() {
         listed_name: listed.name ?? null,
         mark_price: listed.mark_price ?? null,
         token_price: listed.token_price ?? null,
+        issuer: listed.issuer ?? null,
         readable: false,
         error: (e as Error).message,
         supported: false,
@@ -122,7 +155,7 @@ export async function GET() {
       assets,
       discovered_from: shelfSource,
       prices_from: priceSource,
-      errors: { shelf: shelfError, prices: priceError },
+      errors: { shelf: shelfError, prices: priceError, registry: registryError },
       read_at: new Date().toISOString(),
     },
       (_k, v) => (typeof v === "bigint" ? v.toString() : v)

@@ -55,6 +55,9 @@ type Settle = {
     pending_bps: number | null;
     pending_epoch: string | null;
     withheld_after_pending: string | null;
+    /** True when the mint carries no transfer-fee configuration at all. */
+    no_fee_schedule?: boolean;
+    note?: string;
   };
   units: { input_decimals: number; output_decimals: number };
   sources: { quote: Source; mint: Source };
@@ -397,7 +400,9 @@ export default function SettlementCard({
                 {n(fromBase(data.settlement.withheld, outDecimals).replace(/,/g, ""))}
                 <span style={{ fontSize: 12, color: "var(--color-graphite)" }}>
                   {" "}
-                  at {data.settlement.schedule_bps} bps
+                  {data.settlement.no_fee_schedule
+                    ? "no fee schedule on this mint"
+                    : `at ${data.settlement.schedule_bps} bps`}
                 </span>
               </span>
               <button className="src-btn" onClick={() => setOpen(open === "mint" ? null : "mint")}>
@@ -408,8 +413,11 @@ export default function SettlementCard({
               <>
                 <SourceBox label="Mint account, fee config decoded from bytes" source={data.sources.mint} />
                 <div className="mono" style={{ fontSize: 10, color: "var(--color-graphite)", marginTop: 6 }}>
-                  field olderTransferFee.transferFeeBasisPoints · epoch {String(data.settlement.schedule_epoch)} ·
-                  max fee {data.terms.fee_effective?.maximum_fee ?? "—"}
+                  {data.settlement.no_fee_schedule
+                    ? data.settlement.note
+                    : `field olderTransferFee.transferFeeBasisPoints · epoch ${String(
+                        data.settlement.schedule_epoch
+                      )} · max fee ${data.terms.fee_effective?.maximum_fee ?? "—"}`}
                 </div>
               </>
             )}

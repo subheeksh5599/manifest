@@ -271,6 +271,15 @@ details.q .q-b { margin-top: 8px; color: #6b7280; font-size: 13px; line-height: 
 .dash-cols { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 18px; align-items: start; }
 .dash-cols > * { min-width: 0; }
 
+/* Heading on the left, the wallet on the top right — where a reader looks for it. */
+.dash-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: 18px;
+  align-items: start;
+  margin-bottom: 26px;
+}
+
 /* The shared primary rule only carries ink. Scoped here so the landing page keeps
    its own, and so a dashboard button reads as a button: it has room around its
    label, and it says when it cannot be pressed. */
@@ -342,4 +351,6 @@ details.q .q-b { margin-top: 8px; color: #6b7280; font-size: 13px; line-height: 
   .shell-rail nav { display: flex; flex-wrap: wrap; gap: 2px; padding: 0 12px 12px; }
   .shell-main { padding: 22px 16px 64px; }
   .flow-step { grid-template-columns: minmax(0, 1fr); gap: 3px; }
+  .dash-head { grid-template-columns: minmax(0, 1fr); }
+  .dash-cols { grid-template-columns: minmax(0, 1fr); }
 }

@@ -150,7 +150,7 @@ export default function WalletPanel({ onChange }: { onChange?: (w: WalletRead | 
 
   return (
     <div>
-      <div style={{ display: "flex", alignItems: "baseline", gap: 10, flexWrap: "wrap" }}>
+      <div style={{ display: "flex", alignItems: "baseline", gap: 10, flexWrap: "wrap", justifyContent: "space-between" }}>
         <span className="label-mono" style={{ fontSize: 10 }}>
           Wallet
         </span>
