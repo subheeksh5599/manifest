@@ -399,7 +399,7 @@ instruction logs`.
 ```
 app/lib/exit-terms.mjs        read the mint; epoch-selected fee; exact TLV read
 app/lib/exit-engine.mjs       quote -> landing; six checks; route comparison
-app/lib/*.test.mjs            404 tests, including a live read and the matrices
+app/lib/*.test.mjs            411 tests, including a live read and the matrices
 app/lib/*.matrix.test.mjs     the fee arithmetic, the epoch rule and the routes
                               across their domains, not at sample points
 app/app/exit/                 the desk
