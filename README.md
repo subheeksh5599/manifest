@@ -384,12 +384,14 @@ instruction logs`.
 | Independent Python verifier agrees | Done | `python3 scripts/verify_receipts.py` |
 | **Executing a swap on mainnet** | **Not claimed** | The site reads and prices. It does not sign. |
 | **An issuer redemption window** | **Not claimed** | That path is off chain, so it is never shown as achievable. |
-| **A second issuer for the same company** | **Not claimed** | Reported as not observed until one is read on chain. |
+| **A second issuer for the same company, on mainnet** | **Not observed** | No second issuer is read there, so no route there is shown. |
+| A real second route, on devnet | Done | `python3 scripts/verify_pools.py` |
+| **The exit across issuers, in one transaction** | **Done, on devnet** | `node scripts/pools_devnet.mjs cross 0.1` · the `2MiQBYX…` record above |
 | On-chain reading record (devnet) | Done | `solana program show pTpaE75ubNyv9voydPJNaEfmv3GbmcN5bvZBfnRtdiA --url devnet` |
 | The fee is measured on devnet, not computed | Done | `node scripts/replica_devnet.mjs exit` |
 | Two issuers with different terms, tradeable | Done | `node scripts/replica_devnet.mjs show` |
 | A reading that stops reproducing is refused | Done | The `verify_reading` refusal above, error 6003 |
-| **Executing the exit itself on-chain** | **Not claimed** | The program records and verifies a reading. It does not move tokens. |
+| **The reading program moving tokens** | **Not claimed** | It records and verifies a reading. The devnet route runs through pools, not through it. |
 | **Underwriting, insurance, or payout** | **Not claimed** | This is a read-and-price layer. |
 
 ## Architecture
