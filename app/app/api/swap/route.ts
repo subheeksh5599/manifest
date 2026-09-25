@@ -84,9 +84,19 @@ export async function POST(req: Request) {
       body: JSON.stringify({
         quoteResponse: rawQuote,
         userPublicKey,
-        wrapAndUnwrapSol: true,
+        // The route here is USDC against an SPL holding, never native SOL, so
+        // there is nothing to wrap or unwrap. Asking for it anyway makes the
+        // venue attach a closeAccount instruction for a wrapped-SOL account,
+        // which is the shape a wallet's own firewall reads as a drain: it
+        // answers with "proceed at your own risk" before the user has read a
+        // single number on the page. Nothing to unwrap, nothing to warn about.
+        wrapAndUnwrapSol: false,
         dynamicComputeUnitLimit: true,
-        prioritizationFeeLamports: "auto",
+        // "auto" lets the venue pick the priority fee, and an auto fee moves
+        // with congestion: a spike reads to a wallet as an unusual charge on
+        // top of the swap. A small ceiling keeps the fee a number this page
+        // can state rather than one the network chooses.
+        prioritizationFeeLamports: 50000,
       }),
     });
     const swapJson = await swapRes.json();

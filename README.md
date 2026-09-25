@@ -5,9 +5,10 @@
 **Exit terms for tokenized equities on Solana, read from the mint itself.**
 
 [![Live](https://img.shields.io/badge/demo-live-145FE4?style=flat-square)](https://manifest-mocha-six.vercel.app)
+[![Walkthrough](https://img.shields.io/badge/walkthrough-2%3A04%20narrated-CC0000?style=flat-square&logo=youtube&logoColor=white)](demo/media/manifest-demo.mp4)
 [![Tests](https://img.shields.io/badge/tests-423%20passing-2E7D32?style=flat-square)](#proof)
 [![Program](https://img.shields.io/badge/devnet-on--chain%20record-14F195?style=flat-square)](https://explorer.solana.com/address/pTpaE75ubNyv9voydPJNaEfmv3GbmcN5bvZBfnRtdiA?cluster=devnet)
-|[![Verifier](https://img.shields.io/badge/independent%20verifier-30%20checks-2E7D32?style=flat-square)](#proof)|
+[![Verifier](https://img.shields.io/badge/independent%20verifier-30%20checks-2E7D32?style=flat-square)](#proof)
 [![License](https://img.shields.io/badge/license-MIT-303136?style=flat-square)](LICENSE)
 [![Solana](https://img.shields.io/badge/Solana-Token--2022-9945FF?style=flat-square)](https://solana.com)
 
@@ -21,6 +22,24 @@ nothing shows either of them.
 Manifest reads the exit terms out of the mint and reports three numbers in
 order: **what the pool quoted**, **what the mint withholds**, and **what lands**.
 A quote is not a payout, and the difference is the product.
+
+## ▶ Watch the walkthrough
+
+[![Two minutes of the live site, narrated](demo/media/manifest-demo-poster.png)](demo/media/manifest-demo.mp4)
+
+Two minutes of the site on devnet, no terminal in frame: the desk reading the mint, the assets
+board where one fee is in force and another is scheduled, the raw account read behind both, one
+exit priced with its quote and its withholding, the signature, and a receipt rebuilt from the
+cluster's own balances.
+
+The recording is one take. Two stretches were cut rather than performed again: the wallet's risk
+gate on the swap, and an explorer pointed at Mainnet Beta returning `Not Found` for a devnet
+signature. Every kept segment, every removed one, and the reason for each is in
+[`demo/NARRATION.md`](demo/NARRATION.md); the click script is in [`demo/CLICKS.md`](demo/CLICKS.md).
+
+> The YouTube upload of this file goes here once it is up; the copy above is the same cut.
+
+**Contents** · [See it in one command](#see-it-in-one-command) · [The one fact that matters](#the-one-fact-that-matters) · [Screenshots](#screenshots) · [Surfaces](#surfaces) · [Exit checks](#exit-checks) · [Proof](#proof) · [The record, on devnet](#the-record-on-devnet) · [What this is not](#honesty-table) · [Stack](#stack) · [License](#license)
 
 ## See it in one command
 
@@ -71,7 +90,9 @@ epoch *E* is the newer schedule when *E* is at or past `newer.epoch`, and the
 older one otherwise. That single rule is why an announced increase is readable
 today, before it is charged.
 
-## On screen
+## Screenshots
+
+### From the live site
 
 ![The dashboard: connect a wallet, pick a holding, and watch quote, withholding and receipt priced live](docs/screenshots/app.png)
 
@@ -96,6 +117,27 @@ The ablation underneath the matrix is the same run.
 All three frames are live reads taken at the slots they display, so the figures in them
 are not the figures quoted elsewhere in this file. That is what a live number
 looks like: it moves, and the slot is the only thing that pins it.
+
+### From the walkthrough
+
+Three frames taken out of the recording, at the slots they show.
+
+![The assets board: thirteen mints, the fee each one charges today against the one it has scheduled](demo/media/board.png)
+
+The board on the left is where the two schedules sit side by side. One column is what
+leaving costs at this epoch; the other is what it will cost once the signed schedule
+starts charging.
+
+![Transactions: a signature rebuilt from the cluster's own before and after token balances](demo/media/transactions.png)
+
+The receipt is not a log the app keeps. It is rebuilt on the request from the
+cluster's own before and after balances, so a signature taken off any explorer can be
+checked here against the chain rather than against this page.
+
+![Proof: every declared case run on the click, declared against returned](demo/media/proof.png)
+
+Each case states what it must return before it runs, and the page reports the ones that
+did not.
 
 ## Surfaces
 
