@@ -27,3 +27,5 @@ jobs:
         run: python3 scripts/verify_receipts.py --check
       - name: adversarial gate (ablation, tampered bytes, absent extension)
         run: python3 scripts/adversarial_gate.py
+      - name: devnet pools and the route across issuers
+        run: python3 scripts/verify_pools.py
